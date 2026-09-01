@@ -30,6 +30,8 @@ body{
   background:var(--bg-primary);color:var(--text-primary);
   min-height:100vh;line-height:1.5;
 }
+
+/* ====== HEADER ====== */
 .header{
   position:fixed;top:0;left:0;right:0;z-index:100;
   height:56px;background:var(--bg-sidebar);
@@ -52,6 +54,8 @@ body{
   display:none;background:none;border:none;color:var(--text-primary);
   font-size:1.4rem;cursor:pointer;padding:4px 6px;line-height:1;
 }
+
+/* ====== SIDEBAR ====== */
 .sidebar{
   position:fixed;top:56px;left:0;bottom:0;
   width:var(--sidebar-width);background:var(--bg-sidebar);
@@ -60,6 +64,7 @@ body{
 }
 .sidebar::-webkit-scrollbar{width:3px}
 .sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
 .nav-group{padding:8px 0}
 .nav-group-label{
   padding:10px 16px 4px;font-size:11px;font-weight:600;
@@ -79,6 +84,8 @@ body{
 }
 .nav-item .nav-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:.7}
 .nav-item.active .nav-icon{opacity:1}
+
+/* 工具与模板的子项 */
 .nav-sub{
   max-height:0;overflow:hidden;transition:max-height .25s ease;
 }
@@ -96,6 +103,8 @@ body{
   transition:transform .2s;
 }
 .nav-item.has-children.open .nav-arrow{transform:rotate(90deg)}
+
+/* Sidebar footer */
 .sidebar-footer{
   margin-top:auto;padding:12px 16px;border-top:1px solid var(--border);
   display:flex;align-items:center;gap:8px;font-size:11px;color:var(--success);
@@ -103,12 +112,18 @@ body{
 .sidebar-footer .dot{
   width:6px;height:6px;border-radius:50%;background:var(--success);
 }
+
+/* ====== MAIN ====== */
 .main{
   margin-left:var(--sidebar-width);padding:24px 32px;
   min-height:calc(100vh - 56px);padding-top:80px;
 }
 .main-inner{max-width:1000px}
+
+/* Page title */
 .page-title{font-size:24px;font-weight:700;color:var(--text-primary);margin-bottom:20px}
+
+/* Search bar */
 .search-bar{
   display:flex;align-items:center;background:var(--bg-input);
   border-radius:10px;padding:10px 16px;gap:12px;margin-bottom:32px;
@@ -127,12 +142,16 @@ body{
   transition:filter .15s;
 }
 .btn-add:hover{filter:brightness(1.15)}
+
+/* Empty state */
 .empty-state{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   padding:80px 20px;text-align:center;
 }
 .empty-icon{color:var(--icon-dim);margin-bottom:16px}
 .empty-text{font-size:14px;color:var(--text-dim)}
+
+/* Readme card */
 .readme-card{
   background:var(--bg-card);border:1px solid var(--border);
   border-radius:12px;padding:20px 24px;margin-bottom:16px;
@@ -147,6 +166,8 @@ body{
   font-size:12px;color:var(--text-dim);margin-top:12px;
   padding-top:10px;border-top:1px solid var(--border);
 }
+
+/* Template preview */
 .tpl-preview{
   background:var(--bg-card);border:1px solid var(--border);
   border-radius:12px;margin-bottom:16px;overflow:hidden;
@@ -181,6 +202,8 @@ body{
 .tpl-body td{color:var(--text-muted)}
 .tpl-body hr{border:none;border-top:1px solid var(--border);margin:12px 0}
 .tpl-body strong{color:var(--text-primary)}
+
+/* Template list */
 .tpl-list{display:flex;flex-direction:column;gap:12px}
 .tpl-list-item{
   background:var(--bg-card);border:1px solid var(--border);
@@ -196,7 +219,10 @@ body{
 }
 .tpl-list-item .tpl-info h4{font-size:14px;color:var(--text-primary);margin-bottom:2px}
 .tpl-list-item .tpl-info p{font-size:12px;color:var(--text-muted)}
+
+/* Overlay */
 .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:85}
+
 @media(max-width:768px){
   .sidebar{transform:translateX(-100%);transition:transform .25s}
   .sidebar.open{transform:translateX(0)}
@@ -206,9 +232,17 @@ body{
   .search-bar{flex-wrap:wrap}
   .btn-add{width:100%;text-align:center}
 }
+
+/* report list for 行业研究 */
+.report-list{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+.report-item{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.report-item a{color:var(--accent);text-decoration:none;font-size:14px;font-weight:600}
+.report-item a:hover{text-decoration:underline}
+.report-desc{color:var(--text-muted);font-size:12px}
 </style>
 </head>
 <body>
+
 <header class="header">
   <button class="menu-toggle" onclick="toggleSidebar()">&#9776;</button>
   <div class="header-left">
@@ -222,16 +256,21 @@ body{
     <span class="header-date" id="headerDate"></span>
   </div>
 </header>
+
 <div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
 <nav class="sidebar" id="sidebar"></nav>
+
 <main class="main">
   <div class="main-inner" id="mainContent">
     <div class="page-title">每日盘面</div>
+
     <div class="search-bar">
       <span class="search-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
-      <input type="text" placeholder="搜索盘面报告..." />
+      <input type="text" placeholder="搜索晨报 / 报告 / 模板..." />
       <button class="btn-add">+ 新增盘面报告</button>
     </div>
+
     <div class="empty-state" id="emptyState">
       <div class="empty-icon">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -242,113 +281,361 @@ body{
     </div>
   </div>
 </main>
+
 <script>
-var NAV=[{label:"投研分析",items:[{id:"03-A股盘面信息",name:"每日盘面",icon:"chart-line"},{id:"03-A股盘面信息",name:"龙虎榜",icon:"trophy"},{id:"03-A股盘面信息",name:"涨跌停复盘",icon:"arrow-up-down"},{id:"03-A股盘面信息",name:"板块轮动",icon:"shuffle"}]},{label:"交易管理",items:[{id:"04-投资复盘",name:"日度复盘",icon:"sun"},{id:"04-投资复盘",name:"周度复盘",icon:"calendar-week"},{id:"04-投资复盘",name:"月度复盘",icon:"calendar-month"},{id:"04-投资复盘",name:"交易记录",icon:"receipt"}]},{label:"投研研究",items:[{id:"01-投研信息收集",name:"宏观研究",icon:"globe"},{id:"01-投研信息收集",name:"政策解读",icon:"file-text"},{id:"01-投研信息收集",name:"券商研报",icon:"briefcase"},{id:"01-投研信息收集",name:"机构观点",icon:"users"},{id:"02-资本市场信息",name:"全球市场",icon:"earth"},{id:"02-资本市场信息",name:"大宗商品",icon:"package"},{id:"02-资本市场信息",name:"外汇利率",icon:"currency"},{id:"02-资本市场信息",name:"资金流向",icon:"banknote"},{id:"05-行业与个股分析",name:"行业研究",icon:"building"},{id:"05-行业与个股分析",name:"个股深度",icon:"search"},{id:"05-行业与个股分析",name:"财务分析",icon:"calculator"},{id:"05-行业与个股分析",name:"估值模型",icon:"chart-bar"},{id:"06-投资策略分析",name:"策略回测",icon:"play-circle"},{id:"06-投资策略分析",name:"组合管理",icon:"layers"},{id:"06-投资策略分析",name:"风控体系",icon:"shield"},{id:"06-投资策略分析",name:"投资笔记",icon:"edit"},{id:"07-工具与模板",name:"工具与模板",icon:"tools",children:["日报模板","周报模板","复盘模板"]}]}];
-var README={"03-A股盘面信息|||每日盘面":"存放A股每日大盘走势、主要指数表现、成交额、涨跌家数等盘面速览。","03-A股盘面信息|||龙虎榜":"存放每日龙虎榜数据、活跃席位追踪、机构/游资买卖动向分析。","03-A股盘面信息|||涨跌停复盘":"存放每日涨停板/跌停板股票复盘分析，包括涨停原因、封板强度、连板统计等。","03-A股盘面信息|||板块轮动":"存放A股板块轮动分析、行业涨跌幅排名、资金在板块间的流动趋势判断。","04-投资复盘|||日度复盘":"存放每日投资操作的复盘总结，包括当日交易回顾、得失分析与次日计划。","04-投资复盘|||周度复盘":"存放每周投资交易总结、周度绩效评估与下周策略规划。","04-投资复盘|||月度复盘":"存放月度投资绩效分析、资产配置回顾与下一阶段策略调整。","04-投资复盘|||交易记录":"存放每笔交易的详细记录，包括买卖时间、价格、数量、手续费。","01-投研信息收集|||宏观研究":"存放宏观经济数据跟踪、GDP/CPI/PMI等核心指标分析、货币政策与财政政策研究。","01-投研信息收集|||政策解读":"存放政策文件原文及解读、监管动态跟踪、产业政策与行业规范分析。","01-投研信息收集|||券商研报":"存放各大券商的研究报告、晨会纪要、策略报告。","01-投研信息收集|||机构观点":"存放公募基金、私募基金、外资机构、保险资管等买方机构的观点汇总与跟踪。","02-资本市场信息|||全球市场":"存放海外主要市场行情复盘、重大事件及联动分析。","02-资本市场信息|||大宗商品":"存放原油、黄金、铜、铁矿石、农产品等大宗商品价格跟踪、供需分析与投资逻辑。","02-资本市场信息|||外汇利率":"存放主要货币汇率走势、国内外利率变化、债券收益率曲线及利差分析。","02-资本市场信息|||资金流向":"存放北向资金、南向资金、主力资金、游资等各类资金流向追踪与分析。","05-行业与个股分析|||行业研究":"存放行业深度研究报告、行业景气度跟踪、产业链分析及竞争格局研判。","05-行业与个股分析|||个股深度":"存放个股深度研究报告。","05-行业与个股分析|||财务分析":"存放上市公司财务报表分析、财务指标拆解、杜邦分析及同行业对比。","05-行业与个股分析|||估值模型":"存放公司估值模型文件。","06-投资策略分析|||策略回测":"存放量化策略/交易策略的回测代码、回测结果、参数优化记录。","06-投资策略分析|||组合管理":"存放投资组合配置方案、仓位记录、再平衡计划及组合绩效归因分析。","06-投资策略分析|||风控体系":"存放风控规则文档、止损/止盈方案、风险敞口监控、压力测试及黑天鹅预案。","06-投资策略分析|||投资笔记":"存放投资思考随笔、读书笔记、交易心得、投资理念沉淀及经典案例研究。","07-工具与模板|||日报模板":"用于快速生成每日盘面速览、交易总结和次日计划。","07-工具与模板|||周报模板":"用于快速生成每周投资总结、绩效分析和下周策略。","07-工具与模板|||复盘模板":"用于投资复盘的结构化模板。"};
-var TM={"日报模板":"# 投研日报\n\n---\n\n## 基本信息\n\n| 项目 | 内容 |\n|------|------|\n| **日期** | YYYY-MM-DD |\n| **撰写人** | — |\n\n---\n\n## 一、大盘概况\n\n### 主要指数\n\n| 指数 | 收盘价 | 涨跌幅 | 成交额 |\n|------|--------|--------|--------|\n| 上证指数 | — | — | — |\n| 深证成指 | — | — | — |\n| 创业板指 | — | — | — |\n| 科创50 | — | — | — |\n| 沪深300 | — | — | — |\n\n### 市场情绪\n\n| 指标 | 数值 | 说明 |\n|------|------|------|\n| 涨跌家数比 | — | — |\n| 涨停/跌停 | — | — |\n| 两市成交额合计 | — 亿 | 较前日 ±—% |\n| 北向资金净流入 | — 亿 | — |\n\n---\n\n## 二、板块表现\n\n### 领涨板块\n\n| 板块名称 | 涨幅 | 驱动逻辑 | 代表性个股 |\n|----------|------|----------|------------|\n| — | — | — | — |\n\n### 领跌板块\n\n| 板块名称 | 跌幅 | 下跌原因 | 代表性个股 |\n|----------|------|----------|------------|\n| — | — | — | — |\n\n---\n\n## 三、持仓跟踪\n\n| 标的 | 仓位占比 | 今日涨跌 | 最新动态 | 操作建议 |\n|------|----------|----------|----------|----------|\n| — | — | — | — | — |\n\n---\n\n## 四、今日操作记录\n\n| 时间 | 标的 | 方向 | 数量 | 均价 | 成交额 | 操作理由 |\n|------|------|------|------|------|--------|----------|\n| — | — | — | — | — | — | — |\n\n---\n\n## 五、次日关注\n\n| 标的 | 关注方向 | 关注理由 | 关键价位 |\n|------|----------|----------|----------|\n| — | — | — | — |\n\n---\n\n## 六、心得备忘\n\n- 今日感悟：\n- 待研究事项：","周报模板":"# 投研周报\n\n---\n\n## 基本信息\n\n| 项目 | 内容 |\n|------|------|\n| **周度区间** | YYYY-MM-DD ~ YYYY-MM-DD |\n| **撰写人** | — |\n| **报告日期** | YYYY-MM-DD |\n\n---\n\n## 一、市场回顾\n\n### 主要指数周度表现\n\n| 指数 | 本周收盘 | 周涨跌幅 | 上周收盘 |\n|------|----------|----------|----------|\n| 上证指数 | — | — | — |\n| 深证成指 | — | — | — |\n| 创业板指 | — | — | — |\n| 科创50 | — | — | — |\n| 沪深300 | — | — | — |\n\n---\n\n## 二、板块轮动\n\n| 板块 | 周涨幅 | 核心驱动 | 持续性判断 |\n|------|--------|----------|------------|\n| — | — | — | — |\n\n---\n\n## 三、持仓收益统计\n\n| 标的 | 期初成本 | 期末价格 | 持仓市值 | 本周盈亏 | 收益率 |\n|------|----------|----------|----------|----------|--------|\n| — | — | — | — | — | — |\n\n---\n\n## 四、本周操作汇总\n\n| 日期 | 标的 | 方向 | 数量 | 均价 | 盈亏 |\n|------|------|------|------|------|------|\n| — | — | — | — | — | — |\n\n---\n\n## 五、下周计划\n\n| 标的 | 关注方向 | 入场条件 | 目标价位 | 止损价位 |\n|------|----------|----------|----------|----------|\n| — | — | — | — | — |\n\n---\n\n## 六、心得与总结\n\n- 本周核心收获：\n- 不足与反思：","复盘模板":"# 投资复盘报告\n\n---\n\n## 基本信息\n\n| 项目 | 内容 |\n|------|------|\n| **复盘周期** | YYYY-MM-DD ~ YYYY-MM-DD |\n| **撰写人** | — |\n\n---\n\n## 一、交易明细\n\n| 序号 | 日期 | 标的 | 方向 | 仓位占比 | 成交均价 | 平仓均价 | 盈亏金额 | 盈亏比例 | 持有天数 |\n|------|------|------|------|----------|----------|----------|----------|----------|----------|\n| 1 | — | — | 多/空 | —% | — | — | ±— | ±—% | — |\n\n### 交易统计\n\n| 维度 | 数据 |\n|------|------|\n| 总交易笔数 | — |\n| 盈利笔数/亏损笔数 | — / — |\n| 胜率 | —% |\n| 最大单笔盈利 | +— |\n| 最大单笔亏损 | — |\n| 累计盈亏 | ±— |\n\n---\n\n## 二、盈亏归因分析\n\n| 盈利来源 | 贡献金额 | 贡献占比 | 是否策略内 | 可持续性 |\n|----------|----------|----------|------------|----------|\n| — | +— | —% | 是/否 | 高/中/低 |\n\n### 归因总结\n\n- 核心盈利逻辑：\n- 主要亏损根因：\n\n---\n\n## 三、策略执行评估\n\n| 策略 | 期间收益 | 同期基准收益 | 超额收益 | 评价 |\n|------|----------|-------------|----------|------|\n| — | ±—% | ±—% | ±—% | 有效/待优化/失效 |\n\n---\n\n## 四、经验教训\n\n| 教训 | 对应案例 | 改进措施 | 检查节点 |\n|------|----------|----------|----------|\n| — | — | — | — |\n\n---\n\n## 五、改进措施\n\n| 改进项 | 具体措施 | 量化目标 | 截止时间 |\n|--------|----------|----------|----------|\n| — | — | — | — |"};
-var ICONS={"chart-line":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"22 12 18 12 15 21 9 3 6 12 2 12\"/></svg>","trophy":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 7 7 7 9\"/><path d=\"M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 17 7 17 9\"/><path d=\"M4 22h16\"/><path d=\"M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22\"/><path d=\"M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22\"/><path d=\"M18 2H6v7a6 6 0 0 0 12 0V2Z\"/></svg>","arrow-up-down":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m21 16-4 4-4-4\"/><path d=\"M17 20V4\"/><path d=\"m3 8 4-4 4 4\"/><path d=\"M7 4v16\"/></svg>","shuffle":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m16 3 5 5-5 5\"/><path d=\"M21 8H9a4 4 0 0 0-4 4v1\"/><path d=\"m8 21-5-5 5-5\"/><path d=\"M3 16h12a4 4 0 0 0 4-4v-1\"/></svg>","sun":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41\"/></svg>","calendar-week":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"16\" y1=\"2\" x2=\"16\" y2=\"6\"/><line x1=\"8\" y1=\"2\" x2=\"8\" y2=\"6\"/><line x1=\"3\" y1=\"10\" x2=\"21\" y2=\"10\"/><line x1=\"8\" y1=\"14\" x2=\"8\" y2=\"14.01\"/><line x1=\"12\" y1=\"14\" x2=\"12\" y2=\"14.01\"/><line x1=\"16\" y1=\"14\" x2=\"16\" y2=\"14.01\"/><line x1=\"8\" y1=\"18\" x2=\"8\" y2=\"18.01\"/><line x1=\"12\" y1=\"18\" x2=\"12\" y2=\"18.01\"/><line x1=\"16\" y1=\"18\" x2=\"16\" y2=\"18.01\"/></svg>","calendar-month":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"16\" y1=\"2\" x2=\"16\" y2=\"6\"/><line x1=\"8\" y1=\"2\" x2=\"8\" y2=\"6\"/><line x1=\"3\" y1=\"10\" x2=\"21\" y2=\"10\"/></svg>","receipt":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z\"/><path d=\"M14 8H8\"/><path d=\"M16 12H8\"/><path d=\"M13 16H8\"/></svg>","globe":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><line x1=\"2\" y1=\"12\" x2=\"22\" y2=\"12\"/><path d=\"M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z\"/></svg>","file-text":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><polyline points=\"14 2 14 8 20 8\"/><line x1=\"16\" y1=\"13\" x2=\"8\" y2=\"13\"/><line x1=\"16\" y1=\"17\" x2=\"8\" y2=\"17\"/><polyline points=\"10 9 9 9 8 9\"/></svg>","briefcase":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"2\" y=\"7\" width=\"20\" height=\"14\" rx=\"2\" ry=\"2\"/><path d=\"M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16\"/></svg>","users":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\"/><path d=\"M16 3.13a4 4 0 0 1 0 7.75\"/></svg>","earth":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><line x1=\"2\" y1=\"12\" x2=\"22\" y2=\"12\"/><path d=\"M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z\"/></svg>","package":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"m16.5 9.4-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z\"/><polyline points=\"3.29 7 12 12 20.71 7\"/><line x1=\"12\" y1=\"22\" x2=\"12\" y2=\"12\"/></svg>","currency":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8\"/><path d=\"M12 18V6\"/></svg>","banknote":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"2\" y=\"6\" width=\"20\" height=\"12\" rx=\"2\"/><circle cx=\"12\" cy=\"12\" r=\"2\"/><path d=\"M6 12h.01M18 12h.01\"/></svg>","building":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"4\" y=\"2\" width=\"16\" height=\"20\" rx=\"2\" ry=\"2\"/><path d=\"M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01\"/></svg>","search":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><line x1=\"21\" y1=\"21\" x2=\"16.65\" y2=\"16.65\"/></svg>","calculator":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"4\" y=\"2\" width=\"16\" height=\"20\" rx=\"2\"/><line x1=\"8\" y1=\"6\" x2=\"16\" y2=\"6\"/><line x1=\"16\" y1=\"14\" x2=\"16\" y2=\"18\"/><path d=\"M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01\"/></svg>","chart-bar":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><line x1=\"18\" y1=\"20\" x2=\"18\" y2=\"10\"/><line x1=\"12\" y1=\"20\" x2=\"12\" y2=\"4\"/><line x1=\"6\" y1=\"20\" x2=\"6\" y2=\"14\"/></svg>","play-circle":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><polygon points=\"10 8 16 12 10 16 10 8\"/></svg>","layers":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><polygon points=\"12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2\"/><line x1=\"12\" y1=\"22\" x2=\"12\" y2=\"15.5\"/><polyline points=\"22 8.5 12 15.5 2 8.5\"/></svg>","shield":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z\"/></svg>","edit":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7\"/><path d=\"M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z\"/></svg>","tools":"<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z\"/></svg>"};
-document.getElementById('headerDate').textContent=new Date().toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
-var sidebar=document.getElementById('sidebar');
-var mainContent=document.getElementById('mainContent');
+// ============ DATA ============
+var NAV = [
+  {label:"投研分析",items:[
+    {id:"03-A股盘面信息",name:"每日盘面",icon:"chart-line"},
+    {id:"03-A股盘面信息",name:"龙虎榜",icon:"trophy"},
+    {id:"03-A股盘面信息",name:"涨跌停复盘",icon:"arrow-up-down"},
+    {id:"03-A股盘面信息",name:"板块轮动",icon:"shuffle"},
+    {id:"01-投研信息收集",name:"每日晨报",icon:"file-text"}
+  ]},
+  {label:"交易管理",items:[
+    {id:"04-投资复盘",name:"日度复盘",icon:"sun"},
+    {id:"04-投资复盘",name:"周度复盘",icon:"calendar-week"},
+    {id:"04-投资复盘",name:"月度复盘",icon:"calendar-month"},
+    {id:"04-投资复盘",name:"交易记录",icon:"receipt"}
+  ]},
+  {label:"投研研究",items:[
+    {id:"01-投研信息收集",name:"宏观研究",icon:"globe"},
+    {id:"01-投研信息收集",name:"政策解读",icon:"file-text"},
+    {id:"01-投研信息收集",name:"券商研报",icon:"briefcase"},
+    {id:"01-投研信息收集",name:"机构观点",icon:"users"},
+    {id:"02-资本市场信息",name:"全球市场",icon:"earth"},
+    {id:"02-资本市场信息",name:"大宗商品",icon:"package"},
+    {id:"02-资本市场信息",name:"外汇利率",icon:"currency"},
+    {id:"02-资本市场信息",name:"资金流向",icon:"banknote"},
+    {id:"05-行业与个股分析",name:"行业研究",icon:"building"},
+    {id:"05-行业与个股分析",name:"个股深度",icon:"search"},
+    {id:"05-行业与个股分析",name:"财务分析",icon:"calculator"},
+    {id:"05-行业与个股分析",name:"估值模型",icon:"chart-bar"},
+    {id:"06-投资策略分析",name:"策略回测",icon:"play-circle"},
+    {id:"06-投资策略分析",name:"组合管理",icon:"layers"},
+    {id:"06-投资策略分析",name:"风控体系",icon:"shield"},
+    {id:"06-投资策略分析",name:"投资笔记",icon:"edit"},
+    {id:"07-工具与模板",name:"工具与模板",icon:"tools",children:["日报模板","周报模板","复盘模板"]}
+  ]}
+];
+
+var README = {"03-A股盘面信息|||每日盘面": "存放A股每日大盘走势、主要指数表现、成交额、涨跌家数等盘面速览。", "03-A股盘面信息|||龙虎榜": "存放每日龙虎榜数据、活跃席位追踪、机构/游资买卖动向分析。", "03-A股盘面信息|||涨跌停复盘": "存放每日涨停板/跌停板股票复盘分析，包括涨停原因、封板强度、连板统计等。", "03-A股盘面信息|||板块轮动": "存放A股板块轮动分析、行业涨跌幅排名、资金在板块间的流动趋势判断。", "04-投资复盘|||日度复盘": "存放每日投资操作的复盘总结，包括当日交易回顾、得失分析与次日计划。", "04-投资复盘|||周度复盘": "存放每周投资交易总结、周度绩效评估与下周策略规划。", "04-投资复盘|||月度复盘": "存放月度投资绩效分析、资产配置回顾与下一阶段策略调整。", "04-投资复盘|||交易记录": "存放每笔交易的详细记录，包括买卖时间、价格、数量、手续费。", "01-投研信息收集|||宏观研究": "存放宏观经济数据跟踪、GDP/CPI/PMI等核心指标分析、货币政策与财政政策研究。", "01-投研信息收集|||政策解读": "存放政策文件原文及解读、监管动态跟踪、产业政策与行业规范分析。", "01-投研信息收集|||券商研报": "存放各大券商（中信、华泰、中金、国泰君安等）的研究报告、晨会纪要、策略报告。", "01-投研信息收集|||机构观点": "存放公募基金、私募基金、外资机构、保险资管等买方机构的观点汇总与跟踪。", "02-资本市场信息|||全球市场": "存放海外主要市场（美股、港股、欧股、日股等）的行情复盘、重大事件及联动分析。", "02-资本市场信息|||大宗商品": "存放原油、黄金、铜、铁矿石、农产品等大宗商品的价格跟踪、供需分析与投资逻辑。", "02-资本市场信息|||外汇利率": "存放主要货币汇率走势、国内外利率变化、债券收益率曲线及利差分析。", "02-资本市场信息|||资金流向": "存放北向资金、南向资金、主力资金、游资等各类资金流向追踪与分析。", "05-行业与个股分析|||行业研究": "存放行业深度研究报告、行业景气度跟踪、产业链分析及竞争格局研判。", "05-行业与个股分析|||个股深度": "存放个股深度研究报告，包括商业模式、护城河、成长性、管理层等全面分析。", "05-行业与个股分析|||财务分析": "存放上市公司财务报表分析、财务指标拆解、杜邦分析及同行业对比。", "05-行业与个股分析|||估值模型": "存放公司估值模型文件，包括DCF、PE/PB相对估值、DDM等各类估值方法。", "06-投资策略分析|||策略回测": "存放量化策略/交易策略的回测代码、回测结果、参数优化记录。", "06-投资策略分析|||组合管理": "存放投资组合配置方案、仓位记录、再平衡计划及组合绩效归因分析。", "06-投资策略分析|||风控体系": "存放风控规则文档、止损/止盈方案、风险敞口监控、压力测试及黑天鹅预案。", "06-投资策略分析|||投资笔记": "存放投资思考随笔、读书笔记、交易心得、投资理念沉淀及经典案例研究。", "07-工具与模板|||日报模板": "用于快速生成每日盘面速览、交易总结和次日计划。", "07-工具与模板|||周报模板": "用于快速生成每周投资总结、绩效分析和下周策略。", "07-工具与模板|||复盘模板": "用于投资复盘的结构化模板。包含交易明细、盈亏归因、经验教训等。", "01-投研信息收集|||每日晨报": "每日盘前晨报，覆盖隔夜美股、欧股、亚太、贵金属、原油、汇率美债及A股资金面，自动加载 data/ 目录下最新一份按日期命名的晨报 Markdown。"};
+
+var TM = {
+  "日报模板":'# 投研日报\n\n---\n\n## 基本信息\n\n| 项目 | 内容 |\n|------|------|\n| **日期** | YYYY-MM-DD（星期X） |\n| **撰写人** | — |\n\n---\n\n## 一、大盘概况\n\n### 主要指数\n\n| 指数 | 收盘价 | 涨跌幅 | 成交额（亿） |\n|------|--------|--------|-------------|\n| 上证指数 | — | — | — |\n| 深证成指 | — | — | — |\n| 创业板指 | — | — | — |\n| 科创50 | — | — | — |\n| 沪深300 | — | — | — |\n\n### 市场情绪\n\n| 指标 | 数值 | 说明 |\n|------|------|------|\n| 涨跌家数比 | — / — | — |\n| 涨停 / 跌停 | — / — | — |\n| 两市成交额合计 | — 亿 | 较前日 ±—% |\n| 北向资金净流入 | — 亿 | — |\n\n---\n\n## 二、板块表现\n\n### 领涨板块\n\n| 板块名称 | 涨幅 | 驱动逻辑 | 代表性个股 |\n|----------|------|----------|------------|\n| — | — | — | — |\n\n### 领跌板块\n\n| 板块名称 | 跌幅 | 下跌原因 | 代表性个股 |\n|----------|------|----------|------------|\n| — | — | — | — |\n\n### 异动板块 / 个股点评\n\n- —\n\n---\n\n## 三、持仓跟踪\n\n| 标的 | 仓位占比 | 今日涨跌 | 最新动态 / 公告 | 操作建议 |\n|------|----------|----------|-----------------|----------|\n| — | — | — | — | — |\n\n---\n\n## 四、今日操作记录\n\n| 时间 | 标的 | 方向（买/卖） | 数量 | 均价 | 成交额 | 操作理由 |\n|------|------|-------------|------|------|--------|----------|\n| — | — | — | — | — | — | — |\n\n---\n\n## 五、次日关注\n\n### 重点关注标的\n\n| 标的 | 关注方向 | 关注理由 | 关键价位 |\n|------|----------|----------|----------|\n| — | — | — | — |\n\n### 宏观/消息面提醒\n\n- —\n\n### 待操作计划\n\n- —\n\n---\n\n## 六、心得备忘\n\n- 今日感悟：\n- 待研究事项：\n- 其他备忘：',
+  "周报模板":'# 投研周报\n\n---\n\n## 基本信息\n\n| 项目 | 内容 |\n|------|------|\n| **周度区间** | YYYY-MM-DD ~ YYYY-MM-DD |\n| **撰写人** | — |\n| **报告日期** | YYYY-MM-DD |\n\n---\n\n## 一、市场回顾\n\n### 主要指数周度表现\n\n| 指数 | 本周收盘 | 周涨跌幅 | 上周收盘 | 周成交额（亿） |\n|------|----------|----------|----------|---------------|\n| 上证指数 | — | — | — | — |\n| 深证成指 | — | — | — | — |\n| 创业板指 | — | — | — | — |\n| 科创50 | — | — | — | — |\n| 沪深300 | — | — | — | — |\n\n### 市场情绪指标\n\n| 指标 | 本周数值 | 上周数值 | 趋势 |\n|------|----------|----------|------|\n| 日均成交额 | — 亿 | — 亿 | — |\n| 涨跌家数比（日均） | — | — | — |\n| 北向资金周净流入 | — 亿 | — 亿 | — |\n\n### 本周重要事件回顾\n\n| 日期 | 事件 | 影响 |\n|------|------|------|\n| — | — | — |\n\n---\n\n## 二、板块轮动分析\n\n### 本周最强板块\n\n| 板块 | 周涨幅 | 核心驱动 | 持续性判断 |\n|------|--------|----------|------------|\n| — | — | — | — |\n\n### 本周最弱板块\n\n| 板块 | 周跌幅 | 下跌逻辑 | 是否企稳 |\n|------|--------|----------|----------|\n| — | — | — | — |\n\n### 下周值得关注的板块\n\n| 板块 | 关注逻辑 | 关键观察节点 |\n|------|----------|-------------|\n| — | — | — |\n\n---\n\n## 三、持仓收益统计\n\n| 标的 | 期初数量 | 期初成本 | 期末价格 | 持仓市值 | 本周盈亏 | 收益率 | 仓位占比 |\n|------|----------|----------|----------|----------|----------|--------|----------|\n| — | — | — | — | — | — | — | — |\n| **合计** | — | — | — | **—** | **—** | **—%** | **100%** |\n\n### 收益归因\n\n- 主要盈利来源：—\n- 主要亏损来源：—\n\n---\n\n## 四、本周操作汇总\n\n| 日期 | 标的 | 方向 | 数量 | 均价 | 成交额 | 操作类型 | 盈亏 |\n|------|------|------|------|------|--------|----------|------|\n| — | — | — | — | — | — | 开仓/加仓/减仓/清仓 | — |\n\n### 操作统计\n\n| 维度 | 数据 |\n|------|------|\n| 总交易笔数 | — |\n| 胜率 | —%（—胜—负） |\n| 累计盈亏 | ±— 元（±—%） |\n| 换手率 | —% |\n\n---\n\n## 五、策略评估与调整\n\n### 当前策略执行情况\n\n- 策略名称：—\n- 本周执行偏差：—\n- 偏差原因：—\n\n### 策略调整建议\n\n- 调整方向：\n- 调整理由：\n- 执行计划：\n\n---\n\n## 六、下周计划\n\n### 重点关注标的\n\n| 标的 | 关注方向 | 入场条件 | 目标价位 | 止损价位 |\n|------|----------|----------|----------|----------|\n| — | — | — | — | — |\n\n### 仓位管理计划\n\n- 当前仓位：—%\n- 目标仓位：—%\n- 调整路径：—\n\n### 待办事项\n\n- —\n\n---\n\n## 七、心得与总结\n\n- 本周核心收获：\n- 不足与反思：\n- 下周关键词：',
+  "复盘模板":'# 投资复盘报告\n\n---\n\n## 基本信息\n\n| 项目 | 内容 |\n|------|------|\n| **复盘周期** | YYYY-MM-DD ~ YYYY-MM-DD |\n| **撰写人** | — |\n| **报告日期** | YYYY-MM-DD |\n\n---\n\n## 一、交易明细\n\n| 序号 | 日期 | 标的 | 方向 | 仓位占比 | 成交均价 | 平仓均价 | 盈亏金额 | 盈亏比例 | 持有天数 | 操作原因 |\n|------|------|------|------|----------|----------|----------|----------|----------|----------|----------|\n| 1 | — | — | 多/空 | —% | — | — | ±— | ±—% | — | — |\n| 2 | — | — | — | —% | — | — | ±— | ±—% | — | — |\n\n### 交易统计\n\n| 维度 | 数据 |\n|------|------|\n| 总交易笔数 | — |\n| 盈利笔数 / 亏损笔数 | — / — |\n| 胜率 | —% |\n| 最大单笔盈利 | +—（标的：—） |\n| 最大单笔亏损 | —（标的：—） |\n| 累计盈亏 | ±— |\n| 平均盈亏比 | — |\n\n---\n\n## 二、盈亏归因分析\n\n### 盈利归因\n\n| 盈利来源 | 贡献金额 | 贡献占比 | 是否策略内 | 可持续性 |\n|----------|----------|----------|------------|----------|\n| — | +— | —% | 是/否 | 高/中/低 |\n\n### 亏损归因\n\n| 亏损来源 | 损失金额 | 损失占比 | 根因分类 | 是否可避免 |\n|----------|----------|----------|----------|------------|\n| — | — | —% | 追高/止损过晚/仓位过重/判断失误/黑天鹅 | 是/否 |\n\n### 归因总结\n\n- 核心盈利逻辑：—\n- 主要亏损根因：—\n\n---\n\n## 三、策略执行评估\n\n### 策略纪律检查\n\n| 策略规则 | 应执行次数 | 实际执行次数 | 执行率 | 偏差说明 |\n|----------|------------|-------------|--------|----------|\n| — | — | — | —% | — |\n\n### 策略有效性评估\n\n| 策略 | 期间收益 | 同期基准收益 | 超额收益 | 评价 |\n|------|----------|-------------|----------|------|\n| — | ±—% | ±—% | ±—% | 有效/待优化/失效 |\n\n---\n\n## 四、经验教训\n\n### 做得好的\n\n1. —\n2. —\n\n### 需要改进的\n\n1. —\n2. —\n\n### 关键教训\n\n| 教训 | 对应案例 | 改进措施 | 检查节点 |\n|------|----------|----------|----------|\n| — | — | — | — |\n\n---\n\n## 五、改进措施与行动计划\n\n| 改进项 | 具体措施 | 量化目标 | 责任人 | 截止时间 | 跟踪方式 |\n|--------|----------|----------|--------|----------|----------|\n| — | — | — | — | — | — |\n\n---\n\n## 六、附录\n\n### 交易曲线 / 净值走势（描述或贴图）\n\n- —\n\n### 复盘关键词\n\n- —\n\n### 下期复盘重点\n\n- —'
+};
+
+var ICONS = {"chart-line": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"22 12 18 12 15 21 9 3 6 12 2 12\"/></svg>", "trophy": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 7 7 7 9\"/><path d=\"M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 17 7 17 9\"/><path d=\"M4 22h16\"/><path d=\"M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22\"/><path d=\"M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22\"/><path d=\"M18 2H6v7a6 6 0 0 0 12 0V2Z\"/></svg>", "arrow-up-down": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m21 16-4 4-4-4\"/><path d=\"M17 20V4\"/><path d=\"m3 8 4-4 4 4\"/><path d=\"M7 4v16\"/></svg>", "shuffle": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m16 3 5 5-5 5\"/><path d=\"M21 8H9a4 4 0 0 0-4 4v1\"/><path d=\"m8 21-5-5 5-5\"/><path d=\"M3 16h12a4 4 0 0 0 4-4v-1\"/></svg>", "sun": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41\"/></svg>", "calendar-week": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"16\" y1=\"2\" x2=\"16\" y2=\"6\"/><line x1=\"8\" y1=\"2\" x2=\"8\" y2=\"6\"/><line x1=\"3\" y1=\"10\" x2=\"21\" y2=\"10\"/><line x1=\"8\" y1=\"14\" x2=\"8\" y2=\"14.01\"/><line x1=\"12\" y1=\"14\" x2=\"12\" y2=\"14.01\"/><line x1=\"16\" y1=\"14\" x2=\"16\" y2=\"14.01\"/><line x1=\"8\" y1=\"18\" x2=\"8\" y2=\"18.01\"/><line x1=\"12\" y1=\"18\" x2=\"12\" y2=\"18.01\"/><line x1=\"16\" y1=\"18\" x2=\"16\" y2=\"18.01\"/></svg>", "calendar-month": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"16\" y1=\"2\" x2=\"16\" y2=\"6\"/><line x1=\"8\" y1=\"2\" x2=\"8\" y2=\"6\"/><line x1=\"3\" y1=\"10\" x2=\"21\" y2=\"10\"/></svg>", "receipt": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z\"/><path d=\"M14 8H8\"/><path d=\"M16 12H8\"/><path d=\"M13 16H8\"/></svg>", "globe": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><line x1=\"2\" y1=\"12\" x2=\"22\" y2=\"12\"/><path d=\"M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z\"/></svg>", "file-text": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><polyline points=\"14 2 14 8 20 8\"/><line x1=\"16\" y1=\"13\" x2=\"8\" y2=\"13\"/><line x1=\"16\" y1=\"17\" x2=\"8\" y2=\"17\"/><polyline points=\"10 9 9 9 8 9\"/></svg>", "briefcase": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"2\" y=\"7\" width=\"20\" height=\"14\" rx=\"2\" ry=\"2\"/><path d=\"M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16\"/></svg>", "users": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\"/><path d=\"M16 3.13a4 4 0 0 1 0 7.75\"/></svg>", "earth": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><line x1=\"2\" y1=\"12\" x2=\"22\" y2=\"12\"/><path d=\"M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z\"/></svg>", "package": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"m16.5 9.4-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z\"/><polyline points=\"3.29 7 12 12 20.71 7\"/><line x1=\"12\" y1=\"22\" x2=\"12\" y2=\"12\"/></svg>", "currency": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8\"/><path d=\"M12 18V6\"/></svg>", "banknote": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"2\" y=\"6\" width=\"20\" height=\"12\" rx=\"2\"/><circle cx=\"12\" cy=\"12\" r=\"2\"/><path d=\"M6 12h.01M18 12h.01\"/></svg>", "building": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"4\" y=\"2\" width=\"16\" height=\"20\" rx=\"2\" ry=\"2\"/><path d=\"M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01\"/></svg>", "search": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><line x1=\"21\" y1=\"21\" x2=\"16.65\" y2=\"16.65\"/></svg>", "calculator": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"4\" y=\"2\" width=\"16\" height=\"20\" rx=\"2\"/><line x1=\"8\" y1=\"6\" x2=\"16\" y2=\"6\"/><line x1=\"16\" y1=\"14\" x2=\"16\" y2=\"18\"/><path d=\"M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01\"/></svg>", "chart-bar": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><line x1=\"18\" y1=\"20\" x2=\"18\" y2=\"10\"/><line x1=\"12\" y1=\"20\" x2=\"12\" y2=\"4\"/><line x1=\"6\" y1=\"20\" x2=\"6\" y2=\"14\"/></svg>", "play-circle": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><polygon points=\"10 8 16 12 10 16 10 8\"/></svg>", "layers": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><polygon points=\"12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2\"/><line x1=\"12\" y1=\"22\" x2=\"12\" y2=\"15.5\"/><polyline points=\"22 8.5 12 15.5 2 8.5\"/></svg>", "shield": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z\"/></svg>", "edit": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7\"/><path d=\"M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z\"/></svg>", "tools": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z\"/></svg>"};
+
+// ============ INIT ============
+document.getElementById('headerDate').textContent =
+  new Date().toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+
+var sidebar = document.getElementById('sidebar');
+var mainContent = document.getElementById('mainContent');
+
+// Build sidebar
 NAV.forEach(function(g){
-  var group=document.createElement('div');group.className='nav-group';
-  var label=document.createElement('div');label.className='nav-group-label';label.textContent=g.label;group.appendChild(label);
+  var group = document.createElement('div');
+  group.className = 'nav-group';
+
+  var label = document.createElement('div');
+  label.className = 'nav-group-label';
+  label.textContent = g.label;
+  group.appendChild(label);
+
   g.items.forEach(function(item){
-    var el=document.createElement('div');
-    var hasKids=item.children&&item.children.length;
-    el.className='nav-item'+(hasKids?' has-children':'');
-    el.innerHTML='<span class="nav-icon">'+(ICONS[item.icon]||'')+'</span><span>'+item.name+'</span>'+(hasKids?'<span class="nav-arrow">&#9654;</span>':'');
-    el.dataset.id=item.id;el.dataset.name=item.name;el.dataset.hasChildren=hasKids?'1':'0';
-    el.addEventListener('click',function(e){
+    var el = document.createElement('div');
+    var hasKids = item.children && item.children.length;
+    el.className = 'nav-item' + (hasKids ? ' has-children' : '');
+    el.innerHTML = '<span class="nav-icon">' + (ICONS[item.icon]||'') + '</span>' +
+      '<span>' + item.name + '</span>' +
+      (hasKids ? '<span class="nav-arrow">&#9654;</span>' : '');
+    el.dataset.id = item.id;
+    el.dataset.name = item.name;
+    el.dataset.hasChildren = hasKids ? '1' : '0';
+
+    el.addEventListener('click', function(e){
       e.stopPropagation();
-      if(hasKids){
-        var sub=this.nextElementSibling;
-        if(sub&&sub.classList.contains('nav-sub')){
-          var open=sub.classList.contains('expanded');
-          sub.classList.toggle('expanded',!open);
-          this.classList.toggle('open',!open);
+      if (hasKids) {
+        // toggle submenu
+        var sub = this.nextElementSibling;
+        if (sub && sub.classList.contains('nav-sub')) {
+          var open = sub.classList.contains('expanded');
+          sub.classList.toggle('expanded', !open);
+          this.classList.toggle('open', !open);
         }
-        if(!this.classList.contains('open'))selectItem(this);
-      }else{selectItem(this)}
-      if(window.innerWidth<=768)closeSidebar();
+        // if closing, also select parent
+        if (!this.classList.contains('open')) {
+          selectItem(this);
+        }
+      } else {
+        selectItem(this);
+      }
+      if (window.innerWidth <= 768) closeSidebar();
     });
     group.appendChild(el);
-    if(hasKids){
-      var subDiv=document.createElement('div');subDiv.className='nav-sub';
+
+    // submenu for 工具与模板
+    if (hasKids) {
+      var subDiv = document.createElement('div');
+      subDiv.className = 'nav-sub';
       item.children.forEach(function(childName){
-        var subItem=document.createElement('div');subItem.className='nav-sub-item';subItem.textContent=childName;
-        subItem.dataset.id=item.id;subItem.dataset.name=childName;subItem.dataset.isSub='1';
-        subItem.addEventListener('click',function(e){e.stopPropagation();selectItem(this);if(window.innerWidth<=768)closeSidebar();});
+        var subItem = document.createElement('div');
+        subItem.className = 'nav-sub-item';
+        subItem.textContent = childName;
+        subItem.dataset.id = item.id;
+        subItem.dataset.name = childName;
+        subItem.dataset.isSub = '1';
+        subItem.addEventListener('click', function(e){
+          e.stopPropagation();
+          selectItem(this);
+          if (window.innerWidth <= 768) closeSidebar();
+        });
         subDiv.appendChild(subItem);
       });
       group.appendChild(subDiv);
     }
   });
+
   sidebar.appendChild(group);
 });
-var footer=document.createElement('div');footer.className='sidebar-footer';
-footer.innerHTML='<span class="dot"></span>本地数据 - 已同步';sidebar.appendChild(footer);
-function selectItem(el){
-  document.querySelectorAll('.nav-item, .nav-sub-item').forEach(function(e){e.classList.remove('active')});
+
+// footer
+var footer = document.createElement('div');
+footer.className = 'sidebar-footer';
+footer.innerHTML = '<span class="dot"></span>本地数据 - 已同步';
+sidebar.appendChild(footer);
+
+// ============ SELECT ============
+function selectItem(el) {
+  document.querySelectorAll('.nav-item, .nav-sub-item').forEach(function(e){ e.classList.remove('active'); });
   el.classList.add('active');
-  var dirKey=el.dataset.id;var name=el.dataset.name;
-  if(el.dataset.isSub==='1'){
-    var prev=el.parentElement.previousElementSibling;
-    if(prev&&prev.classList.contains('has-children')){prev.classList.add('open');el.parentElement.classList.add('expanded')}
+
+  var dirKey = el.dataset.id;
+  var name = el.dataset.name;
+
+  // If sub-item: expand parent
+  if (el.dataset.isSub === '1') {
+    var prev = el.parentElement.previousElementSibling;
+    if (prev && prev.classList.contains('has-children')) {
+      prev.classList.add('open');
+      el.parentElement.classList.add('expanded');
+    }
   }
-  var title=mainContent.querySelector('.page-title');
-  if(title)title.textContent=name;
-  var descKey=dirKey+'|||'+name;var desc=README[descKey]||'';
-  var isTplItem=dirKey==='07-工具与模板'&&TM[name];var html='';
-  if(isTplItem){
-    html+='<div class="readme-card"><h2>'+name+'</h2><div class="desc">'+desc+'</div></div>';
-    html+='<div class="tpl-preview"><div class="tpl-header"><h3><span class="tag">模板预览</span> '+name+'.md</h3></div>';
-    html+='<div class="tpl-body">'+renderMD(TM[name])+'</div></div>';
-  }else if(name==='工具与模板'){
-    html+='<div class="readme-card"><h2>工具与模板</h2><div class="desc">存放投研工作所需的各类模板文件。</div></div>';
-    html+='<div class="tpl-list">';
+
+  // Update page title
+  var title = mainContent.querySelector('.page-title');
+  if (title) title.textContent = name;
+
+  var descKey = dirKey + '|||' + name;
+  var desc = README[descKey] || '';
+  var isTplItem = dirKey === '07-工具与模板' && TM[name];
+
+  var html = '';
+
+  if (isTplItem) {
+    // Show template preview
+    html += '<div class="readme-card"><h2>' + name + '</h2><div class="desc">' + desc + '</div></div>';
+    html += '<div class="tpl-preview"><div class="tpl-header"><h3><span class="tag">模板预览</span> ' + name + '.md</h3></div>';
+    html += '<div class="tpl-body">' + renderMD(TM[name]) + '</div></div>';
+  } else if (name === '工具与模板') {
+    // Show template list
+    html += '<div class="readme-card"><h2>工具与模板</h2><div class="desc">存放投研工作所需的各类模板文件，包括日报、周报、复盘等结构化模板。</div></div>';
+    html += '<div class="tpl-list">';
     ['日报模板','周报模板','复盘模板'].forEach(function(tn){
-      html+='<div class="tpl-list-item" onclick="selectByName(\'07-工具与模板\',\''+tn+'\')">';
-      html+='<div class="tpl-icon">&#9998;</div><div class="tpl-info"><h4>'+tn+'</h4><p>'+(README['07-工具与模板|||'+tn]||'')+'</p></div></div>';
+      html += '<div class="tpl-list-item" onclick="selectByName(\'07-工具与模板\',\'\'+tn+\'\')">';
+      html += '<div class="tpl-icon">&#9998;</div>';
+      html += '<div class="tpl-info"><h4>' + tn + '</h4><p>' + (README['07-工具与模板|||'+tn]||'') + '</p></div>';
+      html += '</div>';
     });
-    html+='</div>';
-  }else{
-    html+='<div class="readme-card"><h2><span class="breadcrumb">'+dirKey+' /</span> '+name+'</h2>';
-    html+='<div class="desc">'+(desc||'暂无描述信息')+'</div>';
-    html+='<div class="meta">来源：'+dirKey+'/'+name+'/README.md</div></div>';
+    html += '</div>';
+  } else if (name === '每日晨报') {
+    // 每日晨报：展示 README 描述 + 异步加载 data/ 最新晨报 Markdown
+    html += '<div class="readme-card"><h2><span class="breadcrumb">' + dirKey + ' /</span> ' + name + '</h2>';
+    html += '<div class="desc">' + (desc || '每日盘前晨报，覆盖隔夜市场与A股资金面。') + '</div>';
+    html += '<div class="meta">自动加载：data/ 目录下最新一份按日期命名的晨报 Markdown（YYYY-MM-DD-晨报.md）</div></div>';
+    html += '<div class="tpl-preview"><div class="tpl-header"><h3><span class="tag">每日晨报</span> <span id="morningReportTitle">正在加载...</span></h3></div>';
+    html += '<div class="tpl-body" id="morningReportBody"><div class="empty-text">正在加载晨报数据...</div></div></div>';
+  } else if (dirKey === '05-行业与个股分析' && name === '行业研究') {
+    // Show readme card + report list
+    html += '<div class="readme-card"><h2><span class="breadcrumb">' + dirKey + ' /</span> ' + name + '</h2>';
+    html += '<div class="desc">' + (desc || '暂无描述信息') + '</div>';
+    html += '<div class="meta">来源：' + dirKey + '/' + name + '/README.md</div></div>';
+    html += '<div class="report-list">';
+    html += '<div class="report-item"><a href="05-行业与个股分析/行业研究/七大新兴产业深度投资研究报告.md" target="_blank">&#128196; 七大新兴产业深度投资研究报告.md</a><span class="report-desc">七大新兴产业（新一代信息技术、高端装备、新材料、生物医药、新能源汽车、节能环保、数字创意）深度投资分析，含行业景气、产业链、竞争格局与投资策略</span></div>';
+    html += '</div>';
+  } else {
+    // Show readme card
+    html += '<div class="readme-card"><h2><span class="breadcrumb">' + dirKey + ' /</span> ' + name + '</h2>';
+    html += '<div class="desc">' + (desc || '暂无描述信息') + '</div>';
+    html += '<div class="meta">来源：' + dirKey + '/' + name + '/README.md</div></div>';
   }
-  var empty=document.getElementById('emptyState');var existing=document.getElementById('dynamicContent');
-  if(existing)existing.remove();empty.style.display='none';
-  var wrapper=document.createElement('div');wrapper.id='dynamicContent';wrapper.innerHTML=html;mainContent.appendChild(wrapper);
+
+  // Hide empty state, show content
+  var empty = document.getElementById('emptyState');
+  var existing = document.getElementById('dynamicContent');
+  if (existing) existing.remove();
+  empty.style.display = 'none';
+
+  var wrapper = document.createElement('div');
+  wrapper.id = 'dynamicContent';
+  wrapper.innerHTML = html;
+  mainContent.appendChild(wrapper);
+
+  // 每日晨报：动态加载 data/ 目录最新晨报 Markdown
+  if (name === '每日晨报') {
+    loadMorningReport();
+  }
 }
-function selectByName(dirKey,name){
-  var el=document.querySelector('.nav-sub-item[data-id="'+dirKey+'"][data-name="'+CSS.escape(name)+'"]');
-  if(!el)el=document.querySelector('.nav-item[data-id="'+dirKey+'"][data-name="'+CSS.escape(name)+'"]');
-  if(el)selectItem(el);
+
+function selectByName(dirKey, name) {
+  var el = document.querySelector('.nav-sub-item[data-id="'+dirKey+'"][data-name="'+CSS.escape(name)+'"]');
+  if (!el) el = document.querySelector('.nav-item[data-id="'+dirKey+'"][data-name="'+CSS.escape(name)+'"]');
+  if (el) selectItem(el);
 }
-function renderMD(md){
-  var h=md.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h2>$1</h2>').replace(/^# (.+)$/gm,'<h1>$1</h1>')
-    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/^---$/gm,'<hr>')
-    .replace(/`([^`]+)`/g,'<code>$1</code>').replace(/^- (.+)$/gm,'<li>$1</li>');
-  h=h.replace(/((?:<li>.*<\/li>\n?)+)/g,'<ul>$1</ul>');
-  h=h.replace(/((?:\|.+\|\n)+)/g,function(m){
-    var lines=m.trim().split('\n').filter(function(l){return l.indexOf('|')!==-1});if(lines.length<2)return m;
-    var dl=lines.filter(function(l){return !/^\|[\s\-:|]+\|$/.test(l)});if(dl.length===0)return m;
+
+// ============ MARKDOWN RENDER ============
+function renderMD(md) {
+  var h = md
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+    .replace(/^# (.+)$/gm,'<h1>$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/^---$/gm,'<hr>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/^- (.+)$/gm,'<li>$1</li>');
+  h = h.replace(/((?:<li>.*<\/li>\n?)+)/g,'<ul>$1</ul>');
+  h = h.replace(/((?:\|.+\|\n)+)/g,function(m){
+    var lines=m.trim().split('\n').filter(function(l){return l.indexOf('|')!==-1});
+    if(lines.length<2)return m;
+    var dl=lines.filter(function(l){return !/^\|[\s\-:|]+\|$/.test(l)});
+    if(dl.length===0)return m;
     var th='<thead><tr>'+dl[0].split('|').filter(function(c){return c.trim()}).map(function(c){return'<th>'+c.trim()+'</th>'}).join('')+'</tr></thead>';
-    var tb='<tbody>'+dl.slice(1).map(function(l){return'<tr>'+l.split('|').filter(function(c){return c.trim()}).map(function(c){return'<td>'+c.trim()+'</td>'}).join('')+'</tr>'}).join('')+'</tbody>';
+    var tb='<tbody>'+dl.slice(1).map(function(l){
+      return'<tr>'+l.split('|').filter(function(c){return c.trim()}).map(function(c){return'<td>'+c.trim()+'</td>'}).join('')+'</tr>'
+    }).join('')+'</tbody>';
     return'<table>'+th+tb+'</table>';
   });
-  h=h.replace(/\n\n/g,'</p><p>');h='<p>'+h+'</p>';h=h.replace(/<p>\s*<\/p>/g,'');
-  h=h.replace(/<p><h([1-3])>/g,'<h$1>');h=h.replace(/<\/h([1-3])><\/p>/g,'</h$1>');
-  h=h.replace(/<p><ul>/g,'<ul>');h=h.replace(/<\/ul><\/p>/g,'</ul>');
-  h=h.replace(/<p><table>/g,'<table>');h=h.replace(/<\/table><\/p>/g,'</table>');
-  h=h.replace(/<p><hr><\/p>/g,'<hr>');return h;
+  h=h.replace(/\n\n/g,'</p><p>');
+  h='<p>'+h+'</p>';
+  h=h.replace(/<p>\s*<\/p>/g,'');
+  h=h.replace(/<p><h([1-3])>/g,'<h$1>');
+  h=h.replace(/<\/h([1-3])><\/p>/g,'</h$1>');
+  h=h.replace(/<p><ul>/g,'<ul>');
+  h=h.replace(/<\/ul><\/p>/g,'</ul>');
+  h=h.replace(/<p><table>/g,'<table>');
+  h=h.replace(/<\/table><\/p>/g,'</table>');
+  h=h.replace(/<p><hr><\/p>/g,'<hr>');
+  return h;
 }
-function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show')}
-function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show')}
-window.addEventListener('resize',function(){if(window.innerWidth>768)closeSidebar()});
-var firstItem=document.querySelector('.nav-item');if(firstItem)selectItem(firstItem);
+
+// ============ MORNING REPORT (DATA-DRIVEN) ============
+// 尝试加载 data/ 目录下的晨报：优先加载指定文件，失败则回退到"最近日期"探测
+var MORNING_FALLBACK_DAYS = 7;
+function loadMorningReport() {
+  var title = document.getElementById('morningReportTitle');
+  var body = document.getElementById('morningReportBody');
+  if (!body) return;
+
+  function setLoading() {
+    if (title) title.textContent = '正在加载...';
+    body.innerHTML = '<div class="empty-text">正在加载晨报数据...</div>';
+  }
+  function setEmpty(msg) {
+    if (title) title.textContent = '暂无晨报';
+    body.innerHTML = '<div class="empty-text">' + (msg || '暂无晨报数据，请将按日期命名的晨报 Markdown 放入 data/ 目录（命名规范：YYYY-MM-DD-晨报.md）。') + '</div>';
+  }
+  function render(md, name) {
+    if (title) title.textContent = name;
+    body.innerHTML = renderMD(md);
+  }
+
+  // 候选列表：最新日期优先
+  var candidates = [];
+  var today = new Date();
+  for (var i = 0; i < MORNING_FALLBACK_DAYS; i++) {
+    var d = new Date(today.getTime() - i * 86400000);
+    var y = d.getFullYear();
+    var m = ('0' + (d.getMonth() + 1)).slice(-2);
+    var day = ('0' + d.getDate()).slice(-2);
+    candidates.push(y + '-' + m + '-' + day + '-晨报.md');
+  }
+
+  setLoading();
+
+  function tryFetch(idx) {
+    if (idx >= candidates.length) { setEmpty(); return; }
+    var file = candidates[idx];
+    var url = 'data/' + file;
+    fetch(url, { cache: 'no-store' })
+      .then(function(res) {
+        if (!res.ok) throw new Error('not found');
+        return res.text();
+      })
+      .then(function(md) { render(md, file); })
+      .catch(function() { tryFetch(idx + 1); });
+  }
+
+  // 若页面按 task 指定 URL 已提供，则优先尝试；这里统一用日期探测（最新一份）
+  tryFetch(0);
+}
+
+// ============ SEARCH ============
+function setupSearch() {
+  var input = document.querySelector('.search-bar input');
+  if (!input) return;
+  var btn = document.querySelector('.btn-add');
+  function doSearch() {
+    var q = (input.value || '').trim();
+    if (!q) return;
+    // 在 NAV 中按名称模糊匹配
+    var found = null;
+    NAV.forEach(function(g) {
+      g.items.forEach(function(item) {
+        if (found) return;
+        if (item.name.indexOf(q) !== -1) found = item;
+      });
+    });
+    if (found) {
+      var el = document.querySelector('.nav-item[data-name="' + CSS.escape(found.name) + '"]');
+      if (el) selectItem(el);
+    }
+  }
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { doSearch(); }
+  });
+  input.addEventListener('input', doSearch);
+  if (btn) btn.addEventListener('click', doSearch);
+}
+
+// ============ MOBILE ============
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+window.addEventListener('resize',function(){
+  if(window.innerWidth>768){closeSidebar()}
+});
+
+// ============ DEFAULT SELECT ============
+// 默认选中"每日晨报"板块（页面加载时自动 fetch data/ 最新晨报）
+setupSearch();
+var defaultItem = document.querySelector('.nav-item[data-name="每日晨报"]');
+if (defaultItem) {
+  selectItem(defaultItem);
+} else {
+  var firstItem = document.querySelector('.nav-item');
+  if (firstItem) selectItem(firstItem);
+}
 </script>
 </body>
 </html>
