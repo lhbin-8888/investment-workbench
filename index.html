@@ -575,6 +575,9 @@ function loadMorningReport() {
     fetch(url, { cache: 'no-store' })
       .then(function(res) {
         if (!res.ok) throw new Error('not found');
+        // 仅接受真正的 PDF 响应；SPA 回退/404 会返回 text/html 的 index.html，必须跳过继续探测
+        var ct = res.headers.get('content-type') || '';
+        if (ct.indexOf('application/pdf') === -1) throw new Error('not pdf');
         render(url, file);
       })
       .catch(function() { tryFetch(idx + 1); });
