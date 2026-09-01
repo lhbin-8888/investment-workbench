@@ -453,12 +453,12 @@ function selectItem(el) {
     });
     html += '</div>';
   } else if (name === '每日晨报') {
-    // 每日晨报：展示 README 描述 + 异步加载 data/ 最新晨报 Markdown
+    // 每日晨报：展示 README 描述 + 异步加载 data/ 最新晨报 PDF（内嵌 PDF 查看器展示）
     html += '<div class="readme-card"><h2><span class="breadcrumb">' + dirKey + ' /</span> ' + name + '</h2>';
     html += '<div class="desc">' + (desc || '每日盘前晨报，覆盖隔夜市场与A股资金面。') + '</div>';
-    html += '<div class="meta">自动加载：data/ 目录下最新一份按日期命名的晨报 Markdown（YYYY-MM-DD-晨报.md）</div></div>';
+    html += '<div class="meta">自动加载：data/ 目录下最新一份按日期命名的晨报 PDF（YYYY-MM-DD-晨报.pdf）</div></div>';
     html += '<div class="tpl-preview"><div class="tpl-header"><h3><span class="tag">每日晨报</span> <span id="morningReportTitle">正在加载...</span></h3></div>';
-    html += '<div class="tpl-body" id="morningReportBody"><div class="empty-text">正在加载晨报数据...</div></div></div>';
+    html += '<div class="tpl-body" id="morningReportBody" style="padding:0"><div class="empty-text">正在加载晨报数据...</div></div></div>';
   } else if (dirKey === '05-行业与个股分析' && name === '行业研究') {
     // Show readme card + report list
     html += '<div class="readme-card"><h2><span class="breadcrumb">' + dirKey + ' /</span> ' + name + '</h2>';
@@ -535,7 +535,7 @@ function renderMD(md) {
 }
 
 // ============ MORNING REPORT (DATA-DRIVEN) ============
-// 尝试加载 data/ 目录下的晨报：优先加载指定文件，失败则回退到"最近日期"探测
+// 尝试加载 data/ 目录下的晨报 PDF：优先加载指定文件，失败则回退到"最近日期"探测
 var MORNING_FALLBACK_DAYS = 7;
 function loadMorningReport() {
   var title = document.getElementById('morningReportTitle');
@@ -548,11 +548,11 @@ function loadMorningReport() {
   }
   function setEmpty(msg) {
     if (title) title.textContent = '暂无晨报';
-    body.innerHTML = '<div class="empty-text">' + (msg || '暂无晨报数据，请将按日期命名的晨报 Markdown 放入 data/ 目录（命名规范：YYYY-MM-DD-晨报.md）。') + '</div>';
+    body.innerHTML = '<div class="empty-text">' + (msg || '暂无晨报数据，请将按日期命名的晨报 PDF 放入 data/ 目录（命名规范：YYYY-MM-DD-晨报.pdf）。') + '</div>';
   }
-  function render(md, name) {
+  function render(url, name) {
     if (title) title.textContent = name;
-    body.innerHTML = renderMD(md);
+    body.innerHTML = '<iframe src="' + url + '" title="' + name + '" style="width:100%;height:520px;border:0;display:block;background:#fff;"></iframe>';
   }
 
   // 候选列表：最新日期优先
@@ -563,7 +563,7 @@ function loadMorningReport() {
     var y = d.getFullYear();
     var m = ('0' + (d.getMonth() + 1)).slice(-2);
     var day = ('0' + d.getDate()).slice(-2);
-    candidates.push(y + '-' + m + '-' + day + '-晨报.md');
+    candidates.push(y + '-' + m + '-' + day + '-晨报.pdf');
   }
 
   setLoading();
@@ -575,9 +575,8 @@ function loadMorningReport() {
     fetch(url, { cache: 'no-store' })
       .then(function(res) {
         if (!res.ok) throw new Error('not found');
-        return res.text();
+        render(url, file);
       })
-      .then(function(md) { render(md, file); })
       .catch(function() { tryFetch(idx + 1); });
   }
 
