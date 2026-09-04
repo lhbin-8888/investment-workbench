@@ -239,6 +239,91 @@ body{
 .report-item a{color:var(--accent);text-decoration:none;font-size:14px;font-weight:600}
 .report-item a:hover{text-decoration:underline}
 .report-desc{color:var(--text-muted);font-size:12px}
+
+/* ====== 通用文档（新增/查询）====== */
+.btn-export{
+  flex-shrink:0;padding:8px 16px;border-radius:8px;border:1px solid var(--border);
+  background:var(--bg-input);color:var(--text-secondary);font-size:13px;font-weight:500;
+  cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s;
+}
+.btn-export:hover{border-color:var(--accent);color:var(--accent)}
+
+.docs-section{margin-top:16px;display:flex;flex-direction:column;gap:12px}
+.docs-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.docs-header h3{font-size:15px;color:var(--text-primary);display:flex;align-items:center;gap:8px}
+.docs-count{font-size:12px;color:var(--text-dim)}
+.doc-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:10px;
+  padding:14px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s;
+}
+.doc-card:hover{border-color:var(--accent);background:var(--bg-hover)}
+.doc-card .doc-icon{
+  width:38px;height:38px;border-radius:8px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--accent-purple));
+  color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;
+}
+.doc-card .doc-info{flex:1;min-width:0}
+.doc-card .doc-info h4{font-size:14px;color:var(--text-primary);margin-bottom:2px;word-break:break-all}
+.doc-card .doc-info p{font-size:12px;color:var(--text-muted);word-break:break-all}
+.doc-card .doc-type{
+  flex-shrink:0;font-size:11px;padding:3px 10px;border-radius:999px;font-weight:600;
+}
+.doc-type.md{background:rgba(0,229,255,.12);color:var(--accent);border:1px solid rgba(0,229,255,.3)}
+.doc-type.pdf{background:rgba(139,92,246,.15);color:#C4B5FD;border:1px solid rgba(139,92,246,.4)}
+.doc-type.link{background:rgba(16,185,129,.12);color:var(--success);border:1px solid rgba(16,185,129,.3)}
+.doc-card .doc-open{color:var(--text-dim);font-size:12px;flex-shrink:0}
+
+.doc-preview{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+  margin-top:16px;overflow:hidden;display:none;
+}
+.doc-preview.show{display:block}
+.doc-preview .prev-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 20px;background:var(--bg-active);border-bottom:1px solid var(--border);
+}
+.doc-preview .prev-header h3{font-size:14px;color:var(--text-primary);display:flex;align-items:center;gap:8px}
+.doc-preview .prev-body{padding:16px 20px;max-height:560px;overflow-y:auto;font-size:13px;line-height:1.7;color:var(--text-secondary)}
+.doc-preview .prev-close{background:none;border:1px solid var(--border);color:var(--text-muted);border-radius:6px;padding:4px 12px;cursor:pointer;font-size:12px;font-family:inherit}
+.doc-preview .prev-close:hover{color:var(--text-primary);border-color:var(--text-dim)}
+
+/* Modal */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;
+  align-items:center;justify-content:center;
+}
+.modal-overlay.show{display:flex}
+.modal{
+  width:520px;max-width:92vw;background:var(--bg-card);border:1px solid var(--border);
+  border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:hidden;
+}
+.modal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;background:var(--bg-active);border-bottom:1px solid var(--border);
+}
+.modal-header h3{font-size:15px;color:var(--text-primary)}
+.modal-close{background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;line-height:1}
+.modal-close:hover{color:var(--text-primary)}
+.modal-body{padding:20px;display:flex;flex-direction:column;gap:14px}
+.modal-body label{font-size:12px;color:var(--text-muted);display:flex;flex-direction:column;gap:6px}
+.modal-body input,.modal-body select,.modal-body textarea{
+  background:var(--bg-input);border:1px solid var(--border);border-radius:8px;
+  color:var(--text-primary);font-size:13px;padding:9px 12px;font-family:inherit;outline:none;width:100%;
+}
+.modal-body input:focus,.modal-body select:focus,.modal-body textarea:focus{border-color:var(--accent)}
+.modal-body textarea{resize:vertical;min-height:64px}
+.modal-footer{
+  display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--border);
+}
+.btn-plain{
+  padding:8px 18px;border-radius:8px;border:1px solid var(--border);
+  background:var(--bg-input);color:var(--text-secondary);font-size:13px;cursor:pointer;font-family:inherit;
+}
+.btn-plain:hover{border-color:var(--text-dim);color:var(--text-primary)}
+
+@media(max-width:768px){
+  .btn-export{width:100%;text-align:center}
+}
 </style>
 </head>
 <body>
@@ -267,8 +352,9 @@ body{
 
     <div class="search-bar">
       <span class="search-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
-      <input type="text" placeholder="搜索晨报 / 报告 / 模板..." />
-      <button class="btn-add">+ 新增盘面报告</button>
+      <input type="text" id="searchInput" placeholder="搜索文档，或输入板块名回车跳转..." />
+      <button class="btn-export" onclick="exportManifest()">导出清单</button>
+      <button class="btn-add" onclick="openAddDoc()">+ 新增文档</button>
     </div>
 
     <div class="empty-state" id="emptyState">
@@ -281,6 +367,34 @@ body{
     </div>
   </div>
 </main>
+
+<!-- 新增文档模态框 -->
+<div class="modal-overlay" id="addDocModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>&#128194; 新增文档</h3>
+      <button class="modal-close" onclick="closeAddDoc()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <label>所属板块
+        <select id="docSectionSel"></select>
+      </label>
+      <label>标题
+        <input id="docTitle" placeholder="文档标题（不含扩展名）" />
+      </label>
+      <label>文档链接 / 相对路径
+        <input id="docFile" placeholder="如 03-A股盘面信息/每日盘面/xxx.md 或 https://..." />
+      </label>
+      <label>描述（可选）
+        <textarea id="docDesc" placeholder="一句话说明文档内容"></textarea>
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-plain" onclick="closeAddDoc()">取消</button>
+      <button class="btn-add" onclick="saveAddDoc()">保存</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ============ DATA ============
@@ -459,25 +573,12 @@ function selectItem(el) {
     html += '<div class="meta">自动加载：data/ 目录下最新一份按日期命名的晨报 PDF（YYYY-MM-DD-晨报.pdf）</div></div>';
     html += '<div class="tpl-preview"><div class="tpl-header"><h3><span class="tag">每日晨报</span> <span id="morningReportTitle">正在加载...</span></h3></div>';
     html += '<div class="tpl-body" id="morningReportBody" style="padding:0"><div class="empty-text">正在加载晨报数据...</div></div></div>';
-  } else if (dirKey === '05-行业与个股分析' && name === '行业研究') {
-    // Show readme card + report list
-    html += '<div class="readme-card"><h2><span class="breadcrumb">' + dirKey + ' /</span> ' + name + '</h2>';
-    html += '<div class="desc">' + (desc || '暂无描述信息') + '</div>';
-    html += '<div class="meta">来源：' + dirKey + '/' + name + '/README.md</div></div>';
-    html += '<div class="report-list">';
-    html += '<div class="report-item"><a href="05-行业与个股分析/行业研究/生物制药产业链周报_2026-08-31.pdf" target="_blank">&#128196; 生物制药产业链周报（2026-08-31）</a><span class="report-desc">生物制药产业链周报</span></div>';
-    html += '<div class="report-item"><a href="05-行业与个股分析/行业研究/AI产业链周报_2026-08-31.pdf" target="_blank">&#128196; AI产业链周报（2026-08-31）</a><span class="report-desc">AI产业链周报</span></div>';
-    html += '<div class="report-item"><a href="05-行业与个股分析/行业研究/人形机器人产业链周报_2026-08-31.pdf" target="_blank">&#128196; 人形机器人产业链周报（2026-08-31）</a><span class="report-desc">人形机器人产业链周报</span></div>';
-    html += '<div class="report-item"><a href="05-行业与个股分析/行业研究/生物制药产业链周报_2026-08-30.pdf" target="_blank">&#128196; 生物制药产业链周报（2026-08-30）</a><span class="report-desc">生物制药产业链周报</span></div>';
-    html += '<div class="report-item"><a href="05-行业与个股分析/行业研究/AI产业链周报_2026-08-30.pdf" target="_blank">&#128196; AI产业链周报（2026-08-30）</a><span class="report-desc">AI产业链周报</span></div>';
-    html += '<div class="report-item"><a href="05-行业与个股分析/行业研究/人形机器人产业链周报_2026-08-30.pdf" target="_blank">&#128196; 人形机器人产业链周报（2026-08-30）</a><span class="report-desc">人形机器人产业链周报</span></div>';
-    html += '<div class="report-item"><a href="05-行业与个股分析/行业研究/七大新兴产业深度投资研究报告.pdf" target="_blank">&#128196; 七大新兴产业深度投资研究报告.pdf</a><span class="report-desc">七大新兴产业（人工智能、人形机器人、航空航天、智能驾驶、生物制药、电力、有色金属）深度投资分析，含行业景气、产业链、竞争格局与投资策略</span></div>';
-    html += '</div>';
   } else {
-    // Show readme card
+    // 普通板块：readme 说明 + 文档列表（manifest + localStorage 合并）
     html += '<div class="readme-card"><h2><span class="breadcrumb">' + dirKey + ' /</span> ' + name + '</h2>';
     html += '<div class="desc">' + (desc || '暂无描述信息') + '</div>';
     html += '<div class="meta">来源：' + dirKey + '/' + name + '/README.md</div></div>';
+    html += '<div class="docs-section" id="docsSection"></div>';
   }
 
   // Hide empty state, show content
@@ -494,6 +595,14 @@ function selectItem(el) {
   // 每日晨报：动态加载 data/ 目录最新晨报 Markdown
   if (name === '每日晨报') {
     loadMorningReport();
+  }
+
+  // 普通板块：渲染文档卡片列表（manifest + localStorage 合并）
+  if (!isTplItem && name !== '工具与模板' && name !== '每日晨报') {
+    currentSection = name;
+    renderDocList(name, '');
+  } else {
+    currentSection = null;
   }
 }
 
@@ -539,6 +648,191 @@ function renderMD(md) {
   h=h.replace(/<p><hr><\/p>/g,'<hr>');
   return h;
 }
+
+// ============ DOCS (MANIFEST + LOCALSTORAGE) ============
+var consoleDocsKey = 'console-docs-v1';
+var MANIFEST = {};
+var currentSection = null;
+var localDocs = [];
+var docCache = [];
+
+function guessType(file){
+  var f = String(file || '').toLowerCase();
+  if (/\.pdf\b/.test(f) || /\.pdf(\?|$)/.test(f)) return 'pdf';
+  if (/^https?:\/\//.test(f) || /^\/\//.test(f)) return 'link';
+  return 'md';
+}
+function loadLocalDocs() {
+  try {
+    var raw = localStorage.getItem(consoleDocsKey);
+    localDocs = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(localDocs)) localDocs = [];
+  } catch (e) { localDocs = []; }
+}
+function saveLocalDocs() {
+  try { localStorage.setItem(consoleDocsKey, JSON.stringify(localDocs)); } catch (e) {}
+}
+loadLocalDocs();
+
+function NavNames() {
+  var names = [];
+  NAV.forEach(function(g){ g.items.forEach(function(it){
+    if (it.children && it.children.length) it.children.forEach(function(c){ names.push(c); });
+    else names.push(it.name);
+  });});
+  return names;
+}
+function getSectionDocs(section) {
+  var list = [];
+  var m = (MANIFEST && MANIFEST[section]) || [];
+  m.forEach(function(d){ list.push({title:d.title,file:d.file,type:d.type||guessType(d.file),desc:d.desc||'',local:false}); });
+  localDocs.forEach(function(d){
+    if (d.section === section) list.push({title:d.title,file:d.file,type:d.type||guessType(d.file),desc:d.desc||'',local:true});
+  });
+  return list;
+}
+function getSearchKw(){ var i = document.getElementById('searchInput'); return i ? i.value : ''; }
+
+// 预加载 manifest（fetch 失败静默降级为空）
+fetch('data/manifest.json', { cache: 'no-store' })
+  .then(function(res){ if (!res.ok) throw new Error('not found'); return res.json(); })
+  .then(function(data){ MANIFEST = data || {}; if (currentSection) renderDocList(currentSection, getSearchKw()); })
+  .catch(function(){ MANIFEST = {}; });
+
+function renderDocList(section, kw) {
+  var box = document.getElementById('docsSection');
+  if (!box) return;
+  var docs = getSectionDocs(section);
+  if (kw && (kw = kw.trim())) {
+    var k = kw.toLowerCase();
+    docs = docs.filter(function(d){
+      return (d.title||'').toLowerCase().indexOf(k) !== -1 || (d.desc||'').toLowerCase().indexOf(k) !== -1;
+    });
+  }
+  docCache = docs;
+  var html = '<div class="docs-header"><h3>&#128194; 文档列表</h3><span class="docs-count">共 ' + docs.length + ' 篇</span></div>';
+  if (!docs.length) {
+    html += '<div class="empty-state" style="padding:32px 20px"><div class="empty-text">' + (kw ? '未找到匹配文档' : '暂无文档，点击右上角「+ 新增文档」添加') + '</div></div>';
+  } else {
+    docs.forEach(function(d, idx){
+      var icon = d.type === 'pdf' ? '&#128196;' : (d.type === 'link' ? '&#128279;' : '&#128221;');
+      html += '<div class="doc-card" data-title="' + escAttr(d.title) + '" data-desc="' + escAttr(d.desc) + '" onclick="openDocByIdx(' + idx + ')">';
+      html += '<div class="doc-icon">' + icon + '</div>';
+      html += '<div class="doc-info"><h4>' + escHtml(d.title) + '</h4>' + (d.desc ? '<p>' + escHtml(d.desc) + '</p>' : '') + '</div>';
+      html += '<span class="doc-type ' + d.type + '">' + String(d.type).toUpperCase() + '</span>';
+      html += '<span class="doc-open">打开 &#10148;</span>';
+      html += '</div>';
+    });
+  }
+  box.innerHTML = html;
+}
+
+function filterDocs(kw) {
+  var box = document.getElementById('docsSection');
+  if (!box) return;
+  var cards = box.querySelectorAll('.doc-card');
+  var k = (kw || '').trim().toLowerCase();
+  var visible = 0;
+  cards.forEach(function(c){
+    var hit = !k || (c.dataset.title||'').toLowerCase().indexOf(k) !== -1 || (c.dataset.desc||'').toLowerCase().indexOf(k) !== -1;
+    c.style.display = hit ? '' : 'none';
+    if (hit) visible++;
+  });
+  var count = box.querySelector('.docs-count');
+  if (count) count.textContent = '共 ' + visible + ' 篇';
+}
+
+function openDocByIdx(idx) {
+  var d = docCache[idx];
+  if (!d) return;
+  if (d.type === 'pdf' || /\.pdf(\?|$)/i.test(d.file)) { window.open(d.file, '_blank'); return; }
+  if (d.type === 'link' || /^https?:\/\//i.test(d.file)) { window.open(d.file, '_blank'); return; }
+  // md：fetch 内容页内预览
+  var prev = document.getElementById('docPreview');
+  if (!prev) {
+    prev = document.createElement('div');
+    prev.id = 'docPreview';
+    prev.className = 'doc-preview';
+    document.getElementById('mainContent').appendChild(prev);
+  }
+  prev.className = 'doc-preview show';
+  prev.innerHTML = '<div class="prev-header"><h3>&#128221; ' + escHtml(d.title) + '</h3><button class="prev-close" onclick="closeDocPreview()">关闭预览</button></div>';
+  prev.innerHTML += '<div class="prev-body"><div class="empty-text">正在加载文档...</div></div>';
+  fetch(d.file, { cache: 'no-store' })
+    .then(function(res){ if (!res.ok) throw new Error('not found'); return res.text(); })
+    .then(function(txt){ var pb = document.querySelector('#docPreview .prev-body'); if (pb) pb.innerHTML = renderMD(txt); })
+    .catch(function(){ var pb = document.querySelector('#docPreview .prev-body'); if (pb) pb.innerHTML = '<p style="color:var(--text-muted)">无法加载该文档（本地 file:// 下浏览器会拦截请求，请以 https 方式访问部署版本）。</p>'; });
+}
+function closeDocPreview(){
+  var prev = document.getElementById('docPreview');
+  if (prev) prev.className = 'doc-preview';
+}
+
+function openAddDoc() {
+  var sel = document.getElementById('docSectionSel');
+  sel.innerHTML = '';
+  var cur = currentSection || '每日晨报';
+  NavNames().forEach(function(n){
+    var o = document.createElement('option');
+    o.value = n; o.textContent = n;
+    if (n === cur) o.selected = true;
+    sel.appendChild(o);
+  });
+  document.getElementById('docTitle').value = '';
+  document.getElementById('docFile').value = '';
+  document.getElementById('docDesc').value = '';
+  document.getElementById('addDocModal').classList.add('show');
+}
+function closeAddDoc() {
+  document.getElementById('addDocModal').classList.remove('show');
+}
+function saveAddDoc() {
+  var section = document.getElementById('docSectionSel').value;
+  var title = document.getElementById('docTitle').value.trim();
+  var file = document.getElementById('docFile').value.trim();
+  var desc = document.getElementById('docDesc').value.trim();
+  if (!title || !file) { alert('请填写标题与文档链接/相对路径'); return; }
+  var type = guessType(file);
+  localDocs.push({section: section, title: title, file: file, type: type, desc: desc});
+  saveLocalDocs();
+  closeAddDoc();
+  if (section === currentSection) {
+    renderDocList(section, getSearchKw());
+    return;
+  }
+  // 保存到其他板块：跳转到该板块以便查看
+  var found = null;
+  NAV.forEach(function(g){ g.items.forEach(function(it){
+    if (found) return;
+    if (it.children && it.children.length) {
+      it.children.forEach(function(c){ if (!found && c === section) found = {id: it.id, name: c, sub: 1}; });
+    } else if (it.name === section) {
+      found = {id: it.id, name: it.name, sub: 0};
+    }
+  });});
+  if (found) {
+    var sel2 = document.querySelector((found.sub ? '.nav-sub-item' : '.nav-item') + '[data-id="' + CSS.escape(found.id) + '"][data-name="' + CSS.escape(found.name) + '"]');
+    if (sel2) selectItem(sel2);
+  }
+}
+
+// 导出合并后的完整清单（manifest + localStorage），便于同步进 data/ 后上线
+function exportManifest() {
+  var out = {};
+  NavNames().forEach(function(n){
+    out[n] = getSectionDocs(n).map(function(d){ return {title: d.title, file: d.file, type: d.type, desc: d.desc}; });
+  });
+  var blob = new Blob([JSON.stringify(out, null, 2)], {type: 'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'manifest.json';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 500);
+}
+
+function escHtml(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escAttr(s){ return escHtml(s).replace(/'/g,'&#39;'); }
 
 // ============ MORNING REPORT (DATA-DRIVEN) ============
 // 尝试加载 data/ 目录下的晨报 PDF：优先加载指定文件，失败则回退到"最近日期"探测
@@ -595,13 +889,9 @@ function loadMorningReport() {
 
 // ============ SEARCH ============
 function setupSearch() {
-  var input = document.querySelector('.search-bar input');
+  var input = document.getElementById('searchInput');
   if (!input) return;
-  var btn = document.querySelector('.btn-add');
-  function doSearch() {
-    var q = (input.value || '').trim();
-    if (!q) return;
-    // 在 NAV 中按名称模糊匹配
+  function findNav(q) {
     var found = null;
     NAV.forEach(function(g) {
       g.items.forEach(function(item) {
@@ -609,16 +899,38 @@ function setupSearch() {
         if (item.name.indexOf(q) !== -1) found = item;
       });
     });
-    if (found) {
-      var el = document.querySelector('.nav-item[data-name="' + CSS.escape(found.name) + '"]');
-      if (el) selectItem(el);
-    }
+    return found;
+  }
+  function goNav(found) {
+    var el = document.querySelector('.nav-item[data-id="' + CSS.escape(found.id) + '"][data-name="' + CSS.escape(found.name) + '"]');
+    if (el) { selectItem(el); return; }
+    var sub = document.querySelector('.nav-sub-item[data-name="' + CSS.escape(found.name) + '"]');
+    if (sub) selectItem(sub);
   }
   input.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') { doSearch(); }
+    if (e.key !== 'Enter') return;
+    var q = (input.value || '').trim();
+    if (!q) return;
+    var found = findNav(q);
+    if (found) goNav(found);
   });
-  input.addEventListener('input', doSearch);
-  if (btn) btn.addEventListener('click', doSearch);
+  input.addEventListener('input', function() {
+    var q = (input.value || '').trim();
+    // 精确输入板块名 → 保留原有跳转导航行为
+    var exact = null;
+    NAV.forEach(function(g) {
+      g.items.forEach(function(it) {
+        if (exact) return;
+        if (it.name === q) exact = it;
+        else if (it.children && it.children.length) {
+          it.children.forEach(function(c) { if (!exact && c === q) exact = {id: it.id, name: c}; });
+        }
+      });
+    });
+    if (exact) { goNav(exact); return; }
+    // 普通板块：实时过滤当前文档列表
+    if (currentSection) filterDocs(q);
+  });
 }
 
 // ============ MOBILE ============
