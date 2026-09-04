@@ -659,6 +659,7 @@ var docCache = [];
 function guessType(file){
   var f = String(file || '').toLowerCase();
   if (/\.pdf\b/.test(f) || /\.pdf(\?|$)/.test(f)) return 'pdf';
+  if (/\.json(\?|$)/.test(f)) return 'json';
   if (/^https?:\/\//.test(f) || /^\/\//.test(f)) return 'link';
   return 'md';
 }
