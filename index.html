@@ -272,6 +272,10 @@ body{
 .doc-type.pdf{background:rgba(139,92,246,.15);color:#C4B5FD;border:1px solid rgba(139,92,246,.4)}
 .doc-type.link{background:rgba(16,185,129,.12);color:var(--success);border:1px solid rgba(16,185,129,.3)}
 .doc-card .doc-open{color:var(--text-dim);font-size:12px;flex-shrink:0}
+.doc-card .doc-del{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:13px;padding:2px 6px;border-radius:4px;flex-shrink:0;font-family:inherit}
+.doc-card .doc-del:hover{background:var(--bg-hover);color:#e5484d}
+.btn-restore{background:none;border:1px solid var(--border);color:var(--text-muted);border-radius:6px;padding:2px 10px;font-size:12px;cursor:pointer;font-family:inherit;margin-left:8px}
+.btn-restore:hover{color:#e5484d;border-color:#e5484d}
 
 .doc-preview{
   background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
@@ -675,6 +679,25 @@ function saveLocalDocs() {
 }
 loadLocalDocs();
 
+// 删除标记（针对 manifest 内置文档：前端删除=本地隐藏，导出清单时同步剔除）
+var deletedDocsKey = 'console-deleted-v1';
+var deletedDocs = {}; // {section: [file,...]}
+function loadDeletedDocs() {
+  try {
+    var raw = localStorage.getItem(deletedDocsKey);
+    deletedDocs = raw ? JSON.parse(raw) : {};
+    if (typeof deletedDocs !== 'object' || Array.isArray(deletedDocs)) deletedDocs = {};
+  } catch (e) { deletedDocs = {}; }
+}
+function saveDeletedDocs() {
+  try { localStorage.setItem(deletedDocsKey, JSON.stringify(deletedDocs)); } catch (e) {}
+}
+function isDeleted(section, file) {
+  var arr = deletedDocs[section];
+  return !!(arr && arr.indexOf(file) !== -1);
+}
+loadDeletedDocs();
+
 function NavNames() {
   var names = [];
   NAV.forEach(function(g){ g.items.forEach(function(it){
@@ -686,9 +709,9 @@ function NavNames() {
 function getSectionDocs(section) {
   var list = [];
   var m = (MANIFEST && MANIFEST[section]) || [];
-  m.forEach(function(d){ list.push({title:d.title,file:d.file,type:d.type||guessType(d.file),desc:d.desc||'',local:false}); });
+  m.forEach(function(d){ if (isDeleted(section, d.file)) return; list.push({title:d.title,file:d.file,type:d.type||guessType(d.file),desc:d.desc||'',local:false,section:section}); });
   localDocs.forEach(function(d){
-    if (d.section === section) list.push({title:d.title,file:d.file,type:d.type||guessType(d.file),desc:d.desc||'',local:true});
+    if (d.section === section) list.push({title:d.title,file:d.file,type:d.type||guessType(d.file),desc:d.desc||'',local:true,section:d.section});
   });
   return list;
 }
@@ -711,7 +734,8 @@ function renderDocList(section, kw) {
     });
   }
   docCache = docs;
-  var html = '<div class="docs-header"><h3>&#128194; 文档列表</h3><span class="docs-count">共 ' + docs.length + ' 篇</span></div>';
+  var delCount = (deletedDocs[section] || []).length;
+  var html = '<div class="docs-header"><h3>&#128194; 文档列表</h3><span class="docs-count">共 ' + docs.length + ' 篇</span>' + (delCount ? '<button class="btn-restore" onclick="restoreDeleted(currentSection)" title="恢复本板块已删除的文档">&#8635; 恢复已删除(' + delCount + ')</button>' : '') + '</div>';
   if (!docs.length) {
     html += '<div class="empty-state" style="padding:32px 20px"><div class="empty-text">' + (kw ? '未找到匹配文档' : '暂无文档，点击右上角「+ 新增文档」添加') + '</div></div>';
   } else {
@@ -722,6 +746,7 @@ function renderDocList(section, kw) {
       html += '<div class="doc-info"><h4>' + escHtml(d.title) + '</h4>' + (d.desc ? '<p>' + escHtml(d.desc) + '</p>' : '') + '</div>';
       html += '<span class="doc-type ' + d.type + '">' + String(d.type).toUpperCase() + '</span>';
       html += '<span class="doc-open">打开 &#10148;</span>';
+      html += '<button class="doc-del" title="删除该文档" onclick="event.stopPropagation();delDocByIdx(' + idx + ')">&#128465;</button>';
       html += '</div>';
     });
   }
@@ -769,6 +794,33 @@ function closeDocPreview(){
   if (prev) prev.className = 'doc-preview';
 }
 
+// ============ DELETE / RESTORE ============
+function delDocByIdx(idx) {
+  var d = docCache[idx];
+  if (!d) return;
+  if (!window.confirm('确认删除文档「' + d.title + '」？\n（已添加的文档将被移除；内置清单文档将从列表中隐藏，可随时恢复）')) return;
+  if (d.local) {
+    // 用户新增的文档：真正移除
+    localDocs = localDocs.filter(function(x){ return !(x.section === d.section && x.title === d.title && x.file === d.file); });
+    saveLocalDocs();
+  } else {
+    // manifest 内置文档：标记隐藏
+    if (!deletedDocs[d.section]) deletedDocs[d.section] = [];
+    if (deletedDocs[d.section].indexOf(d.file) === -1) deletedDocs[d.section].push(d.file);
+    saveDeletedDocs();
+    // 关闭可能打开的预览
+    closeDocPreview();
+  }
+  renderDocList(currentSection, getSearchKw());
+}
+function restoreDeleted(section) {
+  if (!section) return;
+  closeDocPreview();
+  delete deletedDocs[section];
+  saveDeletedDocs();
+  renderDocList(section, getSearchKw());
+}
+
 function openAddDoc() {
   var sel = document.getElementById('docSectionSel');
   sel.innerHTML = '';
@@ -796,6 +848,11 @@ function saveAddDoc() {
   var type = guessType(file);
   localDocs.push({section: section, title: title, file: file, type: type, desc: desc});
   saveLocalDocs();
+  // 若曾在删除列表中的同名内置文档，一并恢复显示
+  if (deletedDocs[section]) {
+    deletedDocs[section] = deletedDocs[section].filter(function(f){ return f !== file; });
+    saveDeletedDocs();
+  }
   closeAddDoc();
   if (section === currentSection) {
     renderDocList(section, getSearchKw());
