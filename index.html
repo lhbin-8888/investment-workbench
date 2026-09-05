@@ -386,6 +386,13 @@ body{
       <label>标题
         <input id="docTitle" placeholder="文档标题（不含扩展名）" />
       </label>
+      <label>从本地选择文件
+        <span style="display:flex;gap:8px;align-items:center">
+          <button type="button" class="btn-plain" onclick="document.getElementById('docLocalFile').click()" style="white-space:nowrap">选择文件…</button>
+          <input type="file" id="docLocalFile" style="display:none" onchange="pickLocalFile(this)" />
+          <span id="docLocalFileInfo" style="color:var(--text-muted);font-size:12px;line-height:1.4"></span>
+        </span>
+      </label>
       <label>文档链接 / 相对路径
         <input id="docFile" placeholder="如 03-A股盘面信息/每日盘面/xxx.md 或 https://..." />
       </label>
@@ -821,6 +828,36 @@ function restoreDeleted(section) {
   renderDocList(section, getSearchKw());
 }
 
+// 从本地选取文件：自动填充标题/路径/类型，仅登记元信息；文件本体验证并放置在本地工作台对应目录，由自动同步任务上线
+var FILE_EXT_MAP = {pdf:'pdf', md:'md', markdown:'md', txt:'md', html:'html', htm:'html', json:'json', csv:'csv', xlsx:'xlsx', xls:'xlsx', pptx:'pptx', ppt:'pptx', docx:'docx', doc:'docx', png:'image', jpg:'image', jpeg:'image', gif:'image', webp:'image'};
+function guessLocalDir(section){
+  var m = {}, best = '', bestN = 0;
+  getSectionDocs(section).forEach(function(d){
+    var f = String(d.file || '');
+    if (/^https?:/i.test(f)) return;
+    var idx = f.lastIndexOf('/');
+    if (idx > 0) { var p = f.slice(0, idx); m[p] = (m[p] || 0) + 1; }
+  });
+  for (var k in m) if (m[k] > bestN) { best = k; bestN = m[k]; }
+  return best || 'data';
+}
+function pickLocalFile(inp){
+  var f = inp.files && inp.files[0];
+  var name = f ? f.name : ''; var size = f ? f.size : 0;
+  if (inp) inp.value = '';
+  if (!name) return;
+  var dot = name.lastIndexOf('.');
+  var ext = dot >= 0 ? name.slice(dot + 1).toLowerCase() : '';
+  var stem = dot > 0 ? name.slice(0, dot) : name;
+  var type = FILE_EXT_MAP[ext] || 'file';
+  var section = document.getElementById('docSectionSel').value;
+  var dir = guessLocalDir(section);
+  document.getElementById('docTitle').value = stem;
+  document.getElementById('docFile').value = dir + '/' + name;
+  var sizeTxt = size >= 1048576 ? (size/1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(size/1024)) + ' KB';
+  var info = document.getElementById('docLocalFileInfo');
+  if (info) info.innerHTML = '已选择 <b>' + escHtml(name) + '</b>（' + sizeTxt + '，类型 ' + type + '）<br>已自动填入右侧路径。请将该文件放入本地工作台的 <b>' + escHtml(dir) + '/</b> 目录，自动同步后即可在线上打开。';
+}
 function openAddDoc() {
   var sel = document.getElementById('docSectionSel');
   sel.innerHTML = '';
@@ -834,6 +871,7 @@ function openAddDoc() {
   document.getElementById('docTitle').value = '';
   document.getElementById('docFile').value = '';
   document.getElementById('docDesc').value = '';
+  var fi = document.getElementById('docLocalFileInfo'); if (fi) fi.innerHTML = '';
   document.getElementById('addDocModal').classList.add('show');
 }
 function closeAddDoc() {
