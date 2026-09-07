@@ -415,7 +415,8 @@ var NAV = [
     {id:"03-A股盘面信息",name:"龙虎榜",icon:"trophy"},
     {id:"03-A股盘面信息",name:"涨跌停复盘",icon:"arrow-up-down"},
     {id:"03-A股盘面信息",name:"板块轮动",icon:"shuffle"},
-    {id:"01-投研信息收集",name:"每日晨报",icon:"file-text"}
+    {id:"01-投研信息收集",name:"每日晨报",icon:"file-text"},
+    {id:"01-投研信息收集",name:"行业板块龙头股分析",icon:"trophy"}
   ]},
   {label:"交易管理",items:[
     {id:"04-投资复盘",name:"日度复盘",icon:"sun"},
@@ -427,6 +428,10 @@ var NAV = [
     {id:"01-投研信息收集",name:"宏观研究",icon:"globe"},
     {id:"01-投研信息收集",name:"政策解读",icon:"file-text"},
     {id:"01-投研信息收集",name:"券商研报",icon:"briefcase"},
+    {id:"01-投研信息收集",name:"机构观点",icon:"users"},
+    {id:"02-资本市场信息",name:"全球市场",icon:"earth"},
+    {id:"02-资本市场信息",name:"外汇利率",icon:"currency"},
+    {id:"02-资本市场信息",name:"大宗商品",icon:"package"},
     {id:"02-资本市场信息",name:"资金流向",icon:"banknote"},
     {id:"05-行业与个股分析",name:"行业研究",icon:"building"},
     {id:"05-行业与个股分析",name:"个股深度",icon:"search"},
@@ -574,10 +579,10 @@ function selectItem(el) {
     });
     html += '</div>';
   } else if (name === '每日晨报') {
-    // 每日晨报：展示 README 描述 + 异步加载 data/ 最新晨报 PDF（内嵌 PDF 查看器展示）
+    // 每日晨报：异步加载 01-投研信息收集/每日晨报/ 最新晨报 PDF（内嵌 PDF 查看器展示）
     html += '<div class="readme-card"><h2><span class="breadcrumb">' + dirKey + ' /</span> ' + name + '</h2>';
-    html += '<div class="desc">' + (desc || '每日盘前晨报，覆盖隔夜市场与A股资金面。') + '</div>';
-    html += '<div class="meta">自动加载：data/ 目录下最新一份按日期命名的晨报 PDF（YYYY-MM-DD-晨报.pdf）</div></div>';
+    html += '<div class="desc">每日盘前晨报，覆盖隔夜市场与A股资金面；正文归档于 01-投研信息收集/每日晨报/。</div>';
+    html += '<div class="meta">自动加载：01-投研信息收集/每日晨报/ 目录下最新一份按日期命名的晨报 PDF（YYYY-MM-DD-晨报.pdf）</div></div>';
     html += '<div class="tpl-preview"><div class="tpl-header"><h3><span class="tag">每日晨报</span> <span id="morningReportTitle">正在加载...</span></h3></div>';
     html += '<div class="tpl-body" id="morningReportBody" style="padding:0"><div class="empty-text">正在加载晨报数据...</div></div></div>';
   } else {
@@ -599,7 +604,7 @@ function selectItem(el) {
   wrapper.innerHTML = html;
   mainContent.appendChild(wrapper);
 
-  // 每日晨报：动态加载 data/ 目录最新晨报 Markdown
+  // 每日晨报：动态加载 01-投研信息收集/每日晨报/ 目录最新晨报 PDF
   if (name === '每日晨报') {
     loadMorningReport();
   }
@@ -927,7 +932,7 @@ function escHtml(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').rep
 function escAttr(s){ return escHtml(s).replace(/'/g,'&#39;'); }
 
 // ============ MORNING REPORT (DATA-DRIVEN) ============
-// 尝试加载 data/ 目录下的晨报 PDF：优先加载指定文件，失败则回退到"最近日期"探测
+// 尝试加载 01-投研信息收集/每日晨报/ 下的晨报 PDF：失败则回退到"最近日期"探测
 var MORNING_FALLBACK_DAYS = 7;
 function loadMorningReport() {
   var title = document.getElementById('morningReportTitle');
@@ -940,7 +945,7 @@ function loadMorningReport() {
   }
   function setEmpty(msg) {
     if (title) title.textContent = '暂无晨报';
-    body.innerHTML = '<div class="empty-text">' + (msg || '暂无晨报数据，请将按日期命名的晨报 PDF 放入 data/ 目录（命名规范：YYYY-MM-DD-晨报.pdf）。') + '</div>';
+    body.innerHTML = '<div class="empty-text">' + (msg || '暂无晨报数据，请将按日期命名的晨报 PDF 放入 01-投研信息收集/每日晨报/ 目录（命名规范：YYYY-MM-DD-晨报.pdf）。') + '</div>';
   }
   function render(url, name) {
     if (title) title.textContent = name;
@@ -963,7 +968,7 @@ function loadMorningReport() {
   function tryFetch(idx) {
     if (idx >= candidates.length) { setEmpty(); return; }
     var file = candidates[idx];
-    var url = 'data/' + file;
+    var url = '01-投研信息收集/每日晨报/' + file;
     fetch(url, { cache: 'no-store' })
       .then(function(res) {
         if (!res.ok) throw new Error('not found');
@@ -1039,7 +1044,7 @@ window.addEventListener('resize',function(){
 });
 
 // ============ DEFAULT SELECT ============
-// 默认选中"每日晨报"板块（页面加载时自动 fetch data/ 最新晨报）
+// 默认选中"每日晨报"板块（页面加载时自动 fetch 每日晨报目录最新 PDF）
 setupSearch();
 var defaultItem = document.querySelector('.nav-item[data-name="每日晨报"]');
 if (defaultItem) {
