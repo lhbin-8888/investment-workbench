@@ -61,6 +61,7 @@ function collectDocs() {
         const name = path.basename(file, path.extname(file));
         if (leaf === '每日晨报' && name.includes('行业板块龙头股分析')) {
           add('行业板块龙头股分析', file);
+          add('每日盘面', file);
         } else {
           add(leaf, file);
         }
