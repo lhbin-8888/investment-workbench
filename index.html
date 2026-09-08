@@ -328,6 +328,81 @@ body{
 @media(max-width:768px){
   .btn-export{width:100%;text-align:center}
 }
+/* ============================ 宏观研究页 ============================ */
+.macro-wrap{display:flex;flex-direction:column;gap:14px}
+.macro-panel{
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:14px;padding:16px 18px 18px;
+}
+.macro-head{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;margin-bottom:14px;flex-wrap:wrap;
+}
+.macro-head-l{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--text-primary)}
+.macro-head-l .bar{width:3px;height:14px;border-radius:2px;background:linear-gradient(180deg,var(--accent),var(--accent-purple))}
+.macro-head-l .sub{font-size:11px;font-weight:400;color:var(--text-dim)}
+.macro-head-r{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--text-dim)}
+.btn-mini{
+  background:var(--bg-hover);border:1px solid var(--border);color:var(--text-secondary);
+  font-size:11px;font-family:inherit;padding:4px 10px;border-radius:6px;cursor:pointer;
+  transition:all .15s;
+}
+.btn-mini:hover{border-color:var(--accent);color:var(--accent)}
+
+.macro-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.macro-card{
+  background:var(--bg-hover);border:1px solid var(--border);
+  border-radius:11px;padding:12px 14px 8px;
+}
+.macro-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.macro-card-name{font-size:12.5px;font-weight:600;color:var(--text-secondary)}
+.macro-card-meta{font-size:10.5px;color:var(--text-dim);margin-top:2px}
+.macro-card-num{text-align:right;flex-shrink:0}
+.macro-last{font-size:17px;font-weight:700;color:var(--text-primary);letter-spacing:.2px}
+.macro-chg{display:block;font-size:11.5px;font-weight:600;margin-top:1px}
+.up{color:#FF4D4F}      /* 涨 - 红 */
+.down{color:#10B981}    /* 跌 - 绿 */
+.flat{color:var(--text-dim)}
+.macro-legend{display:flex;gap:12px;margin:6px 0 2px;flex-wrap:wrap}
+.macro-legend span{display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--text-muted)}
+.macro-legend i{width:10px;height:2px;border-radius:1px;display:inline-block}
+.macro-chart{margin-top:2px}
+.macro-chart svg{display:block;width:100%;height:auto}
+.macro-foot{
+  font-size:10px;color:var(--text-dim);margin-top:6px;
+  padding-top:6px;border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;
+}
+
+.macro-sep{
+  display:flex;align-items:center;gap:10px;margin:2px 0;
+  font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.5px;
+}
+.macro-sep::after{content:"";flex:1;height:1px;background:var(--border)}
+
+.policy-list{display:flex;flex-direction:column;gap:10px}
+.policy-item{
+  background:var(--bg-hover);border:1px solid var(--border);border-left:3px solid var(--accent);
+  border-radius:10px;padding:12px 14px;transition:all .15s;
+}
+.policy-item:hover{border-color:var(--accent);background:#131B2B}
+.policy-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.policy-tag{
+  font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;
+  background:rgba(0,229,255,.12);color:var(--accent);border:1px solid rgba(0,229,255,.25);
+}
+.policy-tag.p2{background:rgba(139,92,246,.12);color:#A78BFA;border-color:rgba(139,92,246,.25)}
+.policy-tag.p3{background:rgba(16,185,129,.12);color:#34D399;border-color:rgba(16,185,129,.25)}
+.policy-tag.p4{background:rgba(245,197,66,.12);color:#F5C542;border-color:rgba(245,197,66,.25)}
+.policy-date{font-size:11px;color:var(--text-dim);font-variant-numeric:tabular-nums}
+.policy-title{font-size:13.5px;font-weight:600;color:var(--text-primary);margin-bottom:5px;line-height:1.5}
+.policy-sum{font-size:12px;color:var(--text-muted);line-height:1.75}
+.policy-src{font-size:10.5px;color:var(--text-dim);margin-top:7px}
+.macro-loading{padding:24px;text-align:center;font-size:12px;color:var(--text-dim)}
+
+@media(max-width:1100px){
+  .macro-grid{grid-template-columns:minmax(0,1fr)}
+}
 </style>
 </head>
 <body>
@@ -445,7 +520,7 @@ var NAV = [
   ]}
 ];
 
-var README = {"03-A股盘面信息|||每日盘面": "存放A股每日大盘走势、主要指数表现、成交额、涨跌家数等盘面速览。", "03-A股盘面信息|||龙虎榜": "存放每日龙虎榜数据、活跃席位追踪、机构/游资买卖动向分析。", "03-A股盘面信息|||涨跌停复盘": "存放每日涨停板/跌停板股票复盘分析，包括涨停原因、封板强度、连板统计等。", "03-A股盘面信息|||板块轮动": "存放A股板块轮动分析、行业涨跌幅排名、资金在板块间的流动趋势判断。", "04-投资复盘|||日度复盘": "存放每日投资操作的复盘总结，包括当日交易回顾、得失分析与次日计划。", "04-投资复盘|||周度复盘": "存放每周投资交易总结、周度绩效评估与下周策略规划。", "04-投资复盘|||月度复盘": "存放月度投资绩效分析、资产配置回顾与下一阶段策略调整。", "04-投资复盘|||交易记录": "存放每笔交易的详细记录，包括买卖时间、价格、数量、手续费。", "01-投研信息收集|||宏观研究": "存放宏观经济数据跟踪、GDP/CPI/PMI等核心指标分析、货币政策与财政政策研究。", "01-投研信息收集|||政策解读": "存放政策文件原文及解读、监管动态跟踪、产业政策与行业规范分析。", "01-投研信息收集|||券商研报": "存放各大券商（中信、华泰、中金、国泰君安等）的研究报告、晨会纪要、策略报告。", "02-资本市场信息|||资金流向": "存放北向资金、南向资金、主力资金、游资等各类资金流向追踪与分析。", "05-行业与个股分析|||行业研究": "存放行业深度研究报告、行业景气度跟踪、产业链分析及竞争格局研判。", "05-行业与个股分析|||个股深度": "存放个股深度研究报告，包括商业模式、护城河、成长性、管理层等全面分析。", "05-行业与个股分析|||财务分析": "存放上市公司财务报表分析、财务指标拆解、杜邦分析及同行业对比。", "05-行业与个股分析|||估值模型": "存放公司估值模型文件，包括DCF、PE/PB相对估值、DDM等各类估值方法。", "06-投资策略分析|||策略回测": "存放量化策略/交易策略的回测代码、回测结果、参数优化记录。", "06-投资策略分析|||组合管理": "存放投资组合配置方案、仓位记录、再平衡计划及组合绩效归因分析。", "06-投资策略分析|||风控体系": "存放风控规则文档、止损/止盈方案、风险敞口监控、压力测试及黑天鹅预案。", "06-投资策略分析|||投资笔记": "存放投资思考随笔、读书笔记、交易心得、投资理念沉淀及经典案例研究。", "07-工具与模板|||日报模板": "用于快速生成每日盘面速览、交易总结和次日计划。", "07-工具与模板|||周报模板": "用于快速生成每周投资总结、绩效分析和下周策略。", "07-工具与模板|||复盘模板": "用于投资复盘的结构化模板。包含交易明细、盈亏归因、经验教训等。", "01-投研信息收集|||每日晨报": "每日盘前晨报，覆盖隔夜美股、欧股、亚太、贵金属、原油、汇率美债及A股资金面，自动加载 data/ 目录下最新一份按日期命名的晨报 Markdown。"};
+var README = {"03-A股盘面信息|||每日盘面": "存放A股每日大盘走势、主要指数表现、成交额、涨跌家数等盘面速览。", "03-A股盘面信息|||龙虎榜": "存放每日龙虎榜数据、活跃席位追踪、机构/游资买卖动向分析。", "03-A股盘面信息|||涨跌停复盘": "存放每日涨停板/跌停板股票复盘分析，包括涨停原因、封板强度、连板统计等。", "03-A股盘面信息|||板块轮动": "存放A股板块轮动分析、行业涨跌幅排名、资金在板块间的流动趋势判断。", "04-投资复盘|||日度复盘": "存放每日投资操作的复盘总结，包括当日交易回顾、得失分析与次日计划。", "04-投资复盘|||周度复盘": "存放每周投资交易总结、周度绩效评估与下周策略规划。", "04-投资复盘|||月度复盘": "存放月度投资绩效分析、资产配置回顾与下一阶段策略调整。", "04-投资复盘|||交易记录": "存放每笔交易的详细记录，包括买卖时间、价格、数量、手续费。", "01-投研信息收集|||宏观研究": "存放宏观经济数据跟踪、GDP/CPI/PMI等核心指标分析、货币政策与财政政策研究。页面上半页为黄金/原油/美债/汇率近一周波动曲线，下半页为中国宏观政策信息。", "01-投研信息收集|||政策解读": "存放政策文件原文及解读、监管动态跟踪、产业政策与行业规范分析。", "01-投研信息收集|||券商研报": "存放各大券商（中信、华泰、中金、国泰君安等）的研究报告、晨会纪要、策略报告。", "02-资本市场信息|||资金流向": "存放北向资金、南向资金、主力资金、游资等各类资金流向追踪与分析。", "05-行业与个股分析|||行业研究": "存放行业深度研究报告、行业景气度跟踪、产业链分析及竞争格局研判。", "05-行业与个股分析|||个股深度": "存放个股深度研究报告，包括商业模式、护城河、成长性、管理层等全面分析。", "05-行业与个股分析|||财务分析": "存放上市公司财务报表分析、财务指标拆解、杜邦分析及同行业对比。", "05-行业与个股分析|||估值模型": "存放公司估值模型文件，包括DCF、PE/PB相对估值、DDM等各类估值方法。", "06-投资策略分析|||策略回测": "存放量化策略/交易策略的回测代码、回测结果、参数优化记录。", "06-投资策略分析|||组合管理": "存放投资组合配置方案、仓位记录、再平衡计划及组合绩效归因分析。", "06-投资策略分析|||风控体系": "存放风控规则文档、止损/止盈方案、风险敞口监控、压力测试及黑天鹅预案。", "06-投资策略分析|||投资笔记": "存放投资思考随笔、读书笔记、交易心得、投资理念沉淀及经典案例研究。", "07-工具与模板|||日报模板": "用于快速生成每日盘面速览、交易总结和次日计划。", "07-工具与模板|||周报模板": "用于快速生成每周投资总结、绩效分析和下周策略。", "07-工具与模板|||复盘模板": "用于投资复盘的结构化模板。包含交易明细、盈亏归因、经验教训等。", "01-投研信息收集|||每日晨报": "每日盘前晨报，覆盖隔夜美股、欧股、亚太、贵金属、原油、汇率美债及A股资金面，自动加载 data/ 目录下最新一份按日期命名的晨报 Markdown。"};
 
 var TM = {
   "日报模板":'# 投研日报\n\n---\n\n## 基本信息\n\n| 项目 | 内容 |\n|------|------|\n| **日期** | YYYY-MM-DD（星期X） |\n| **撰写人** | — |\n\n---\n\n## 一、大盘概况\n\n### 主要指数\n\n| 指数 | 收盘价 | 涨跌幅 | 成交额（亿） |\n|------|--------|--------|-------------|\n| 上证指数 | — | — | — |\n| 深证成指 | — | — | — |\n| 创业板指 | — | — | — |\n| 科创50 | — | — | — |\n| 沪深300 | — | — | — |\n\n### 市场情绪\n\n| 指标 | 数值 | 说明 |\n|------|------|------|\n| 涨跌家数比 | — / — | — |\n| 涨停 / 跌停 | — / — | — |\n| 两市成交额合计 | — 亿 | 较前日 ±—% |\n| 北向资金净流入 | — 亿 | — |\n\n---\n\n## 二、板块表现\n\n### 领涨板块\n\n| 板块名称 | 涨幅 | 驱动逻辑 | 代表性个股 |\n|----------|------|----------|------------|\n| — | — | — | — |\n\n### 领跌板块\n\n| 板块名称 | 跌幅 | 下跌原因 | 代表性个股 |\n|----------|------|----------|------------|\n| — | — | — | — |\n\n### 异动板块 / 个股点评\n\n- —\n\n---\n\n## 三、持仓跟踪\n\n| 标的 | 仓位占比 | 今日涨跌 | 最新动态 / 公告 | 操作建议 |\n|------|----------|----------|-----------------|----------|\n| — | — | — | — | — |\n\n---\n\n## 四、今日操作记录\n\n| 时间 | 标的 | 方向（买/卖） | 数量 | 均价 | 成交额 | 操作理由 |\n|------|------|-------------|------|------|--------|----------|\n| — | — | — | — | — | — | — |\n\n---\n\n## 五、次日关注\n\n### 重点关注标的\n\n| 标的 | 关注方向 | 关注理由 | 关键价位 |\n|------|----------|----------|----------|\n| — | — | — | — |\n\n### 宏观/消息面提醒\n\n- —\n\n### 待操作计划\n\n- —\n\n---\n\n## 六、心得备忘\n\n- 今日感悟：\n- 待研究事项：\n- 其他备忘：',
@@ -585,6 +660,9 @@ function selectItem(el) {
     html += '<div class="meta">自动加载：01-投研信息收集/每日晨报/ 目录下最新一份按日期命名的晨报 PDF（YYYY-MM-DD-晨报.pdf）</div></div>';
     html += '<div class="tpl-preview"><div class="tpl-header"><h3><span class="tag">每日晨报</span> <span id="morningReportTitle">正在加载...</span></h3></div>';
     html += '<div class="tpl-body" id="morningReportBody" style="padding:0"><div class="empty-text">正在加载晨报数据...</div></div></div>';
+  } else if (dirKey === '01-投研信息收集' && name === '宏观研究') {
+    // 宏观研究：上半页 = 全球资产近一周波动曲线；下半页 = 中国宏观政策信息
+    html += buildMacroShell();
   } else {
     // 普通板块：readme 说明 + 文档列表（manifest + localStorage 合并）
     html += '<div class="readme-card"><h2><span class="breadcrumb">' + dirKey + ' /</span> ' + name + '</h2>';
@@ -607,6 +685,10 @@ function selectItem(el) {
   // 每日晨报：动态加载 01-投研信息收集/每日晨报/ 目录最新晨报 PDF
   if (name === '每日晨报') {
     loadMorningReport();
+  }
+  // 宏观研究：加载 data/macro-weekly.json（失败则回退到内嵌快照）
+  if (dirKey === '01-投研信息收集' && name === '宏观研究') {
+    renderMacro();
   }
 
   // 普通板块：渲染文档卡片列表（manifest + localStorage 合并）
@@ -982,6 +1064,223 @@ function loadMorningReport() {
 
   // 若页面按 task 指定 URL 已提供，则优先尝试；这里统一用日期探测（最新一份）
   tryFetch(0);
+}
+
+// ============ 宏观研究页（上半页：全球资产波动 / 下半页：中国宏观政策） ============
+// 离线快照：由 tools/refresh_macro.py 自动注入；用 file:// 直接打开时无法 fetch，回退到这里
+var MACRO_SNAPSHOT = /*MACRO_DATA_START*/{"updated": "2026-09-09 00:18", "markets": [{"key": "gold", "name": "国际黄金（COMEX 黄金连续）", "unit": "美元/盎司", "source": "新浪财经 · 外盘期货", "note": "", "lines": [{"label": "COMEX 黄金", "field": "v", "color": "#F5C542"}], "points": [{"d": "09-01", "v": 4375.7}, {"d": "09-02", "v": 4434.0}, {"d": "09-03", "v": 4519.9}, {"d": "09-04", "v": 4477.1}, {"d": "09-07", "v": 4451.9}, {"d": "09-08", "v": 4439.9}]}, {"key": "brent", "name": "布伦特原油（ICE Brent 连续）", "unit": "美元/桶", "source": "新浪财经 · 外盘期货", "note": "", "lines": [{"label": "布伦特原油", "field": "v", "color": "#FF7A45"}], "points": [{"d": "09-01", "v": 95.11}, {"d": "09-02", "v": 95.25}, {"d": "09-03", "v": 95.86}, {"d": "09-04", "v": 95.85}, {"d": "09-07", "v": 97.26}, {"d": "09-08", "v": 97.51}]}, {"key": "ust", "name": "美债收益率（10 年期 / 30 年期）", "unit": "%", "source": "FRED · DGS10 / DGS30", "note": "美债数据公布较市场价滞后 1—2 个交易日", "lines": [{"label": "10 年期", "field": "v10", "color": "#00E5FF"}, {"label": "30 年期", "field": "v30", "color": "#8B5CF6"}], "points": [{"d": "08-27", "v10": 4.67, "v30": 5.19}, {"d": "08-28", "v10": 4.73, "v30": 5.22}, {"d": "08-31", "v10": 4.75, "v30": 5.25}, {"d": "09-01", "v10": 4.79, "v30": 5.27}, {"d": "09-02", "v10": 4.79, "v30": 5.27}, {"d": "09-03", "v10": 4.77, "v30": 5.25}]}, {"key": "cny", "name": "人民币汇率（USD/CNY）", "unit": "CNY", "source": "Frankfurter · ECB 参考汇率", "note": "数值上行代表人民币贬值、美元升值", "lines": [{"label": "USD/CNY", "field": "v", "color": "#10B981"}], "points": [{"d": "09-01", "v": 6.7223}, {"d": "09-02", "v": 6.7215}, {"d": "09-03", "v": 6.7191}, {"d": "09-04", "v": 6.7109}, {"d": "09-07", "v": 6.711}, {"d": "09-08", "v": 6.7105}]}], "policies": [{"date": "2026-09-07", "tag": "货币政策", "title": "央行等量续作 5000 亿元 3 个月买断式逆回购", "summary": "9 月 7 日央行开展 5000 亿元 3 个月期（89 天）买断式逆回购，同日 7 天期逆回购仅 5 亿元，公开市场净回笼 45 亿元，结束此前连续两个月的加量续作。9 月中长期资金到期压力约 1.78 万亿元（含 5000 亿 6 个月买断式逆回购、6000 亿 MLF、1800 亿国库现金定存）。机构解读为“总量克制、结构优先”，短期降准降息概率偏低，视政府债发行节奏相机抉择。", "source": "中国经济网 / 证券日报"}, {"date": "2026-09-07", "tag": "货币政策", "title": "央行行长潘功胜 G20 会议表态：继续实施适度宽松货币政策", "summary": "8 月 31 日至 9 月 1 日 G20 财长与央行行长会议在美召开。潘功胜表示，央行将持续推进货币政策框架转型、完善利率体系，继续实施好适度宽松的货币政策，为中国经济稳定增长和金融市场平稳运行营造良好的货币金融环境。", "source": "新华财经"}, {"date": "2026-09-04", "tag": "财政政策", "title": "8000 亿元新型政策性金融工具开闸投放", "summary": "2026 年新型政策性金融工具首批资金已在浙江、云南、四川、福建、新疆、湖北等地落地，额度由去年 5000 亿元增至 8000 亿元，投向扩至数字经济、人工智能、低空经济、商业航天等新兴产业，并加大民间投资支持（福建申报项目中民资项目占比近四成）。机构预计可撬动 8 万亿—11 万亿元项目总投资，9—10 月为集中落地窗口，央行以 PSL 配套支持。", "source": "上海证券报 / 证券时报 / 中国证券报"}, {"date": "2026-09-02", "tag": "财政政策", "title": "财政部等优化财政金融协同促内需贴息政策（财金〔2026〕71 号）", "summary": "中小微民营企业新发放流动资金贷款纳入贴息（年化 1 个百分点、期限不超 2 年）；信用卡分期等新发生业务纳入个人消费贷款贴息；经办机构扩至 21 家全国性银行及 3A 以上城商行等；单户中小微贴息贷款上限 5000 万→7500 万元，个人消费贷及信用卡分期贴息上限 3000 元→5000 元/年。自 2026 年 8 月 1 日起施行。", "source": "财政部 / 中国人民银行 / 金融监管总局"}, {"date": "2026-09-01", "tag": "内需消费", "title": "七部门印发《关于推动商品消费扩容升级的实施意见》", "summary": "商务部、发改委、工信部、财政部、农业农村部、文旅部、市场监管总局联合发文，明确到 2030 年社零总额达 60 万亿元左右，培育绿色消费、智能消费、健康消费等十万亿级市场；重点激活汽车、家电等大宗消费，常态化推进以旧换新；强化财政金融支持（用好个人消费贷与服务业经营主体贷款贴息）。", "source": "光明日报 / 央广网"}, {"date": "2026-08-31", "tag": "国务院部署", "title": "国常会部署城市地下管网建设与招商引资高质量发展", "summary": "8 月 31 日国常会听取城市地下管网建设情况汇报（我国管网总长约 390 万公里，“十五五”将建设改造约 77 万公里，纳入《城市更新“十五五”规划》主要指标）；研究促进招商引资高质量发展，要求明确政府招商鼓励与禁止行为清单，从“拼优惠”转向“拼生态”；讨论并原则通过《税收征收管理法（修订草案）》，审议通过《审计法实施条例（修订草案）》。", "source": "新华社 / 中国政府网"}, {"date": "2026-09-03", "tag": "产业政策", "title": "工信部等十部门印发《促进中小企业发展“十五五”规划》", "summary": "提出加大直接融资支持：建立优质中小企业上市培育库，深化区域性股权市场“专精特新”专板建设，高质量建设债券市场“科技板”，设立国家中小企业发展基金二期，带动社会资本投早、投小、投长期、投硬科技。同日工信部表态加快动力电池安全、循环寿命、碳足迹、回收利用等标准制定。", "source": "中国证券报 / 工业和信息化部"}, {"date": "2026-09-02", "tag": "投资抓手", "title": "发改委推进“六张网”重大项目建设", "summary": "国家发改委召开“六张网”（水网、新型电网、算力网、新一代通信网、城市地下管网、物流网）重大项目协调推进机制会，研究完善政银企协作机制与项目库建设。下半年着力推动“六张网”从规划布局转向形成实物工作量，对产业链上下游形成拉动。", "source": "上海证券报"}]}/*MACRO_DATA_END*/;
+
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function buildMacroShell(){
+  var h = '';
+  h += '<div class="macro-wrap">';
+  // ---- 上半页 ----
+  h += '<div class="macro-panel">';
+  h +=   '<div class="macro-head">';
+  h +=     '<div class="macro-head-l"><span class="bar"></span>全球资产 · 近一周波动<span class="sub">日度收盘 / 收益率</span></div>';
+  h +=     '<div class="macro-head-r"><span id="macroUpdated">更新于 --</span><button class="btn-mini" onclick="renderMacro(true)">刷新数据</button></div>';
+  h +=   '</div>';
+  h +=   '<div class="macro-grid" id="macroCharts"><div class="macro-loading">正在加载行情数据...</div></div>';
+  h += '</div>';
+  // ---- 分隔 ----
+  h += '<div class="macro-sep">中国宏观政策</div>';
+  // ---- 下半页 ----
+  h += '<div class="macro-panel">';
+  h +=   '<div class="macro-head">';
+  h +=     '<div class="macro-head-l"><span class="bar"></span>政策动态跟踪<span class="sub">货币政策 / 财政政策 / 产业政策 / 内需</span></div>';
+  h +=     '<div class="macro-head-r"><span id="policyCount"></span></div>';
+  h +=   '</div>';
+  h +=   '<div class="policy-list" id="policyList"><div class="macro-loading">正在加载政策信息...</div></div>';
+  h += '</div>';
+  h += '</div>';
+  return h;
+}
+
+function loadMacroData(cb){
+  var ok = false;
+  try {
+    fetch('data/macro-weekly.json', { cache: 'no-store' })
+      .then(function(res){
+        if (!res.ok) throw new Error('http');
+        var ct = res.headers.get('content-type') || '';
+        if (ct.indexOf('json') === -1) throw new Error('not json');
+        return res.json();
+      })
+      .then(function(j){
+        if (j && j.markets && j.markets.length) cb(j);
+        else cb(MACRO_SNAPSHOT);
+      })
+      .catch(function(){ cb(MACRO_SNAPSHOT); });
+  } catch (e) {
+    cb(MACRO_SNAPSHOT);
+  }
+}
+
+function renderMacro(force){
+  var box = document.getElementById('macroCharts');
+  if (!box) return;
+  box.innerHTML = '<div class="macro-loading">正在加载行情数据...</div>';
+  var plist = document.getElementById('policyList');
+  if (plist) plist.innerHTML = '<div class="macro-loading">正在加载政策信息...</div>';
+
+  loadMacroData(function(data){
+    var box2 = document.getElementById('macroCharts');
+    var list2 = document.getElementById('policyList');
+    if (!box2) return;
+    var markets = (data && data.markets) || [];
+    var policies = (data && data.policies) || [];
+
+    if (!markets.length) {
+      box2.innerHTML = '<div class="macro-loading">暂无行情数据，请运行 tools/refresh_macro.py 生成 data/macro-weekly.json</div>';
+    } else {
+      box2.innerHTML = markets.map(function(m){ return macroCard(m); }).join('');
+    }
+
+    var up = document.getElementById('macroUpdated');
+    if (up) up.textContent = '更新于 ' + (data.updated || '--');
+
+    if (list2) {
+      list2.innerHTML = policies.length
+        ? policies.map(function(p){ return policyItem(p); }).join('')
+        : '<div class="macro-loading">暂无政策条目</div>';
+    }
+    var pc = document.getElementById('policyCount');
+    if (pc) pc.textContent = policies.length ? ('共 ' + policies.length + ' 条 · 按时间倒序') : '';
+  });
+}
+
+function macroCard(m){
+  var pts = m.points || [];
+  var lines = m.lines || [];
+  var last = pts.length ? pts[pts.length - 1] : null;
+  var first = pts.length ? pts[0] : null;
+
+  var numHtml = '';
+  if (last) {
+    lines.forEach(function(L){
+      var lv = last[L.field], fv = first ? first[L.field] : lv;
+      var diff = (typeof lv === 'number' && typeof fv === 'number') ? lv - fv : 0;
+      var pct = fv ? (diff / Math.abs(fv) * 100) : 0;
+      var cls = diff > 0.00001 ? 'up' : (diff < -0.00001 ? 'down' : 'flat');
+      var sign = diff > 0 ? '+' : '';
+      numHtml += '<div><span class="macro-last" style="font-size:' + (lines.length > 1 ? '14px' : '17px') + '">'
+        + fmtNum(lv) + '</span><span class="macro-chg ' + cls + '">' + sign + pct.toFixed(2) + '%（' + sign + fmtNum(diff) + '）</span></div>';
+    });
+  }
+
+  var legend = '';
+  if (lines.length > 1) {
+    legend = '<div class="macro-legend">' + lines.map(function(L){
+      return '<span><i style="background:' + L.color + '"></i>' + esc(L.label) + '</span>';
+    }).join('') + '</div>';
+  }
+
+  var rng = pts.length ? (pts[0].d + ' ~ ' + pts[pts.length - 1].d) : '--';
+  return '<div class="macro-card">'
+    + '<div class="macro-card-top">'
+    +   '<div><div class="macro-card-name">' + esc(m.name) + '</div>'
+    +   '<div class="macro-card-meta">单位：' + esc(m.unit || '') + (m.note ? ' · ' + esc(m.note) : '') + '</div></div>'
+    +   '<div class="macro-card-num">' + numHtml + '</div>'
+    + '</div>'
+    + legend
+    + '<div class="macro-chart">' + macroChart(pts, lines) + '</div>'
+    + '<div class="macro-foot"><span>区间 ' + esc(rng) + '</span><span>来源：' + esc(m.source || '') + '</span></div>'
+    + '</div>';
+}
+
+function policyItem(p, i){
+  var tag = p.tag || '政策';
+  var cls = '';
+  if (tag.indexOf('货币') >= 0 || tag.indexOf('财政') >= 0) cls = 'p2';
+  else if (tag.indexOf('产业') >= 0 || tag.indexOf('投资') >= 0) cls = 'p3';
+  else if (tag.indexOf('内需') >= 0 || tag.indexOf('消费') >= 0) cls = 'p4';
+  return '<div class="policy-item">'
+    + '<div class="policy-top"><span class="policy-tag ' + cls + '">' + esc(tag) + '</span>'
+    + '<span class="policy-date">' + esc(p.date) + '</span></div>'
+    + '<div class="policy-title">' + esc(p.title) + '</div>'
+    + '<div class="policy-sum">' + esc(p.summary) + '</div>'
+    + '<div class="policy-src">来源：' + esc(p.source || '') + '</div>'
+    + '</div>';
+}
+
+function fmtNum(v){
+  if (typeof v !== 'number' || isNaN(v)) return '--';
+  var a = Math.abs(v);
+  if (a >= 1000) return v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  if (a >= 10) return v.toFixed(2);
+  if (a >= 1) return v.toFixed(3);
+  return v.toFixed(4);
+}
+
+// 纯 SVG 折线图（无外部依赖）
+var macroGid = 0;
+function macroChart(points, lines){
+  var n = points.length;
+  if (!n || !lines.length) return '';
+  var W = 340, H = 118, PL = 10, PR = 10, PT = 12, PB = 22;
+  var vals = [];
+  lines.forEach(function(L){
+    points.forEach(function(p){ if (typeof p[L.field] === 'number') vals.push(p[L.field]); });
+  });
+  if (!vals.length) return '';
+  var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+  if (mx === mn) { mx = mn + 1; mn = mn - 1; }
+  var pad = (mx - mn) * 0.18; mn -= pad; mx += pad;
+
+  function X(i){ return n <= 1 ? PL + (W - PL - PR) / 2 : PL + (W - PL - PR) * i / (n - 1); }
+  function Y(v){ return PT + (H - PT - PB) * (1 - (v - mn) / (mx - mn)); }
+
+  var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img">';
+  // 面积（仅单线时）
+  if (lines.length === 1) {
+    var f = lines[0].field;
+    var dArea = 'M' + X(0).toFixed(1) + ',' + (H - PB).toFixed(1);
+    points.forEach(function(p, i){ dArea += ' L' + X(i).toFixed(1) + ',' + Y(p[f]).toFixed(1); });
+    dArea += ' L' + X(n - 1).toFixed(1) + ',' + (H - PB).toFixed(1) + ' Z';
+    var gid = 'mg' + (++macroGid);
+    s += '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0%" stop-color="' + lines[0].color + '" stop-opacity="0.30"/>'
+      + '<stop offset="100%" stop-color="' + lines[0].color + '" stop-opacity="0"/></linearGradient></defs>';
+    s += '<path d="' + dArea + '" fill="url(#' + gid + ')"/>';
+  }
+  // 网格
+  for (var g = 0; g <= 3; g++) {
+    var gy = PT + (H - PT - PB) * g / 3;
+    s += '<line x1="' + PL + '" y1="' + gy.toFixed(1) + '" x2="' + (W - PR) + '" y2="' + gy.toFixed(1)
+      + '" stroke="#1F2937" stroke-width="1" stroke-dasharray="3 3"/>';
+  }
+  // 折线 + 数据点
+  lines.forEach(function(L){
+    var d = '';
+    points.forEach(function(p, i){
+      d += (i ? ' L' : 'M') + X(i).toFixed(1) + ',' + Y(p[L.field]).toFixed(1);
+    });
+    s += '<path d="' + d + '" fill="none" stroke="' + L.color + '" stroke-width="2" '
+      + 'stroke-linejoin="round" stroke-linecap="round"/>';
+    points.forEach(function(p, i){
+      s += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(p[L.field]).toFixed(1) + '" r="2.6" '
+        + 'fill="' + L.color + '" stroke="#111827" stroke-width="1.2"/>';
+    });
+  });
+  // 悬停提示（透明热区 + 原生 title）
+  points.forEach(function(p, i){
+    var tip = p.d + '  ' + lines.map(function(L){ return L.label + ' ' + fmtNum(p[L.field]); }).join(' / ');
+    var cyTop = Y(Math.max.apply(null, lines.map(function(L){ return p[L.field]; })));
+    s += '<circle cx="' + X(i).toFixed(1) + '" cy="' + ((PT + cyTop) / 2).toFixed(1)
+      + '" r="10" fill="transparent"><title>' + esc(tip) + '</title></circle>';
+  });
+  // 纵轴极值
+  s += '<text x="' + (W - PR) + '" y="' + (PT + 4) + '" text-anchor="end" font-size="8.5" fill="#6B7280">' + fmtNum(mx - pad) + '</text>';
+  s += '<text x="' + (W - PR) + '" y="' + (H - PB + 2) + '" text-anchor="end" font-size="8.5" fill="#6B7280">' + fmtNum(mn + pad) + '</text>';
+  // 横轴日期
+  points.forEach(function(p, i){
+    var anchor = i === 0 ? 'start' : (i === n - 1 ? 'end' : 'middle');
+    s += '<text x="' + X(i).toFixed(1) + '" y="' + (H - 7) + '" text-anchor="' + anchor
+      + '" font-size="8.5" fill="#6B7280">' + esc(p.d) + '</text>';
+  });
+  s += '</svg>';
+  return s;
 }
 
 // ============ SEARCH ============
