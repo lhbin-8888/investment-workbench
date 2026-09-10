@@ -113,16 +113,28 @@ const navGroups = NAV.map(group => ({
 /* ---------------- 5. 读取最新晨报正文（小程序无法 fetch 本地 PDF，故内嵌文本快照） ---------------- */
 
 function loadLatestBriefing() {
-  if (!fs.existsSync(DATA_DIR)) return null;
-  const files = fs.readdirSync(DATA_DIR)
-    .filter(f => /^\d{4}-\d{2}-\d{2}-晨报\.md$/.test(f))
-    .sort();
-  if (!files.length) return null;
+  // 晨报可能落在 data/ 或 01-投研信息收集/每日晨报/，两处都要扫，取日期最新的一份
+  const dirs = [
+    DATA_DIR,
+    path.join(ROOT, '01-投研信息收集', '每日晨报')
+  ].filter(fs.existsSync);
+
+  const found = [];
+  for (const dir of dirs) {
+    for (const f of fs.readdirSync(dir)) {
+      if (/^\d{4}-\d{2}-\d{2}-晨报\.md$/.test(f)) {
+        found.push({ dir, file: f });
+      }
+    }
+  }
+  if (!found.length) return null;
 
   // 取日期最大的一份（文件名即日期，字典序等于时间序）
-  const latest = files[files.length - 1];
+  found.sort((a, b) => a.file < b.file ? -1 : a.file > b.file ? 1 : 0);
+  const { dir, file: latest } = found[found.length - 1];
   const date = latest.replace('-晨报.md', '');
-  const content = fs.readFileSync(path.join(DATA_DIR, latest), 'utf8')
+  const relDir = path.relative(ROOT, dir).replace(/\\/g, '/');
+  const content = fs.readFileSync(path.join(dir, latest), 'utf8')
     .replace(/\r\n/g, '\n')
     .trim();
 
@@ -130,7 +142,7 @@ function loadLatestBriefing() {
     date,
     file: latest,
     content,
-    note: '本页为晨报文本快照，同步自 data/' + latest + '。完整 PDF 版请在网页端工作台查看（小程序沙箱无法读取本地 PDF 文件）。'
+    note: '本页为晨报文本快照，同步自 ' + relDir + '/' + latest + '。完整 PDF 版请在网页端工作台查看（小程序沙箱无法读取本地 PDF 文件）。'
   };
 }
 
