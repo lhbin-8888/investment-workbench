@@ -25,6 +25,11 @@ HTML_TARGETS = [
 ]
 N = 6  # 每个品种保留的最近观测点数
 
+# 政策外部数据源：由每日联网搜索回填（见 tools/refresh_macro.py 顶部说明），
+# 文件不存在或为空时回退到下方内置 POLICIES。
+POLICIES_FILE = os.path.join(DATA_DIR, "macro-policies.json")
+POLICIES_MAX = 12  # 页面最多展示的政策条数
+
 # ---------- 中国宏观政策信息（人工维护，新增/修改在此编辑） ----------
 POLICIES = [
     {
@@ -105,6 +110,40 @@ POLICIES = [
     },
 ]
 
+# ---------- 盘前提示（insight）自动生成规则 ----------
+# 按每个品种的"周变动方向"给出对应板块影响解读，展示在波动曲线下方。
+# tone：up=涨（页面红色）/ down=跌（页面绿色）/ flat=走平（灰色）
+INSIGHT_RULES = {
+    "gold": {
+        "name": "国际黄金",
+        "up": "金价周内走强，利好黄金矿业与珠宝零售（资源自给率高者弹性更大）；避险情绪升温通常压制风险偏好，注意成长股回调压力。",
+        "down": "金价周内走弱，黄金矿业与珠宝零售短期承压；若伴随美债实际利率上行，说明避险需求回落，风险偏好相对改善。",
+        "flat": "金价周内窄幅震荡、缺乏方向，对黄金股与避险资产指引有限，等待实际利率或避险事件给出方向。",
+    },
+    "brent": {
+        "name": "布伦特原油",
+        "up": "油价走强直接利好油气开采、油服、炼化（上游弹性最大），但会压制航空、物流、化纤等中下游成本端。",
+        "down": "油价回落利好航空、物流、化纤、轮胎等中下游成本端，油气开采与油服盈利预期下修。",
+        "flat": "油价周内基本走平，产业链上下游无明显成本或价格驱动，关注库存与 OPEC+ 产量政策变化。",
+    },
+    "ust": {
+        "name": "美债 10Y",
+        "up": "收益率上行对高估值成长股（AI、半导体、创新药）的贴现率不友好，注意高位品种的估值压力；银行、保险等价值板块相对受益。",
+        "down": "收益率回落缓解高估值成长股（AI、半导体、创新药）的贴现压力，利好成长风格；银行息差与保险投资收益端相对承压。",
+        "flat": "收益率周内基本走平，对成长股贴现率与价值板块的边际影响有限。",
+    },
+    "cny": {
+        "name": "人民币汇率",
+        "up": "人民币周内贬值（USD/CNY 上行），利好出口链（家电、纺服、工程机械、跨境电商）的汇兑与价格竞争力，但压制外资流入及航空、造纸等美元负债较重行业。",
+        "down": "人民币周内升值（USD/CNY 下行），利好外资流入及航空、造纸等美元负债较重行业，出口链的汇兑收益与价格竞争力相对承压。",
+        "flat": "人民币汇率周内基本走平，对出口链与外资流向的边际影响有限。",
+    },
+}
+
+# 人工覆盖：填写 dict 后将完全替代自动生成的主线标题与逐条解读；留空(None)则自动生成。
+# 示例：{"headline": "...", "items": [{"k": "布伦特原油", "chg": "+5.67%", "text": "...", "tone": "up"}]}
+INSIGHT_MANUAL = None
+
 SINA_HDR = "-H", "Referer: https://finance.sina.com.cn"
 
 
@@ -177,6 +216,87 @@ def md(datestr):
     return datestr[5:]  # 2026-09-08 -> 09-08
 
 
+def fmt_insight_num(v):
+    if abs(v) >= 1000:
+        return "{:,.2f}".format(v)
+    if abs(v) >= 10:
+        return "%.2f" % v
+    return "%.4f" % v
+
+
+def build_insight(markets):
+    """根据四类资产的周变动自动生成「盘前提示 · 一周主线」，展示在波动曲线下方。"""
+    if INSIGHT_MANUAL:
+        return INSIGHT_MANUAL
+
+    items, chg_map, last_map = [], {}, {}
+    best_key, best_pct, best_diff = None, 0.0, 0.0
+    ust_bp = None
+
+    for m in markets:
+        key = m.get("key")
+        rule = INSIGHT_RULES.get(key)
+        if not rule:
+            continue
+        pts = m.get("points") or []
+        if len(pts) < 2:
+            continue
+        field = "v10" if key == "ust" else "v"
+        fv, lv = pts[0].get(field), pts[-1].get(field)
+        if not isinstance(fv, (int, float)) or not isinstance(lv, (int, float)):
+            continue
+
+        diff = lv - fv
+        pct = (diff / abs(fv) * 100) if fv else 0.0
+        if key == "cny":                      # 汇率波动小，阈值单独设
+            tone = "up" if diff > 0.0005 else ("down" if diff < -0.0005 else "flat")
+        else:
+            tone = "up" if diff > 0.0099 else ("down" if diff < -0.0099 else "flat")
+
+        if key == "ust":                      # 收益率用 bp 表述更直观
+            chg = ("+" if diff > 0 else "") + "%.0fbp" % (diff * 100)
+            ust_bp = (diff * 100, lv)
+        else:
+            chg = ("+" if diff > 0 else "") + "%.2f%%" % pct
+
+        items.append({"k": rule["name"], "chg": chg, "text": rule[tone], "tone": tone})
+        chg_map[key] = chg
+        last_map[key] = lv
+        # 主线只从价格型资产里挑（美债用 bp 口径，不参与百分比比较）
+        if key in ("gold", "brent", "cny") and abs(pct) > abs(best_pct):
+            best_key, best_pct, best_diff = key, pct, diff
+
+    parts = []
+    if best_key:
+        parts.append("本周主线看%s：一周%s %s，最新 %s" % (
+            INSIGHT_RULES[best_key]["name"],
+            "上涨" if best_diff > 0 else "下跌",
+            chg_map[best_key], fmt_insight_num(last_map[best_key])))
+    if ust_bp:
+        bp, v = ust_bp
+        parts.append("美债 10Y %s %sbp 至 %s%%" % (
+            "上行" if bp > 0.5 else ("下行" if bp < -0.5 else "走平"),
+            ("+" if bp > 0 else "") + "%.0f" % bp, "%.2f" % v))
+    headline = "，".join(parts) + "。" if parts else "本周四类资产变动有限，暂无明确主线。"
+
+    return {"headline": headline, "items": items}
+
+
+def load_policies():
+    """优先读取每日联网搜索回填的 data/macro-policies.json，否则回退内置 POLICIES。"""
+    if os.path.exists(POLICIES_FILE):
+        try:
+            data = json.load(open(POLICIES_FILE, encoding="utf-8"))
+            items = data.get("policies") if isinstance(data, dict) else data
+            if items:
+                items = sorted(items, key=lambda p: p.get("date", ""), reverse=True)[:POLICIES_MAX]
+                print("  - 政策：读取外部文件 %s（%d 条）" % (POLICIES_FILE, len(items)))
+                return items
+        except Exception as e:
+            print("  ! 政策文件解析失败，回退内置 POLICIES:", e)
+    return list(POLICIES)
+
+
 def build(prev=None):
     markets = []
 
@@ -239,7 +359,8 @@ def build(prev=None):
     return {
         "updated": datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M"),
         "markets": markets,
-        "policies": POLICIES,
+        "policies": load_policies(),
+        "insight": build_insight(markets),
     }
 
 
@@ -284,5 +405,10 @@ if __name__ == "__main__":
         rng = (pts[0]["d"] + " ~ " + pts[-1]["d"]) if pts else "-"
         print("  -", m["name"], "|", len(pts), "点 |", rng, "| 最新", pts[-1] if pts else "")
     print("  - 政策条目", len(payload["policies"]), "条")
+    ins = payload.get("insight") or {}
+    if ins.get("headline"):
+        print("  - 盘前提示:", ins["headline"])
+        for it in ins.get("items", []):
+            print("      ·", it["k"], it["chg"], "(%s)" % it["tone"])
     if inject_html(payload):
         print("已同步注入 index.html 离线快照")

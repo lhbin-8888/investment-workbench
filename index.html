@@ -374,6 +374,39 @@ body{
   display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;
 }
 
+/* 盘前提示（波动曲线下方） */
+.macro-insight{
+  margin-top:14px;padding:12px 14px 13px;border-radius:10px;
+  background:linear-gradient(180deg,rgba(0,229,255,.07),rgba(0,229,255,.02));
+  border:1px solid rgba(0,229,255,.18);border-left:3px solid var(--accent);
+}
+.macro-insight-h{
+  display:flex;align-items:center;gap:7px;margin-bottom:8px;
+  font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.3px;
+}
+.macro-insight-h .dot{
+  width:6px;height:6px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 0 3px rgba(0,229,255,.15);
+}
+.macro-insight-lead{
+  font-size:12.5px;line-height:1.8;color:var(--text-secondary);margin-bottom:9px;
+}
+.macro-insight-list{display:flex;flex-direction:column;gap:7px}
+.macro-insight-row{
+  display:flex;gap:9px;align-items:flex-start;
+  font-size:12px;line-height:1.75;color:var(--text-muted);
+}
+.macro-insight-row .k{flex-shrink:0;min-width:74px;font-weight:600;color:var(--text-secondary)}
+.macro-insight-row .v{flex:1;min-width:0}
+.macro-insight-row .v em{font-style:normal;font-weight:700;margin-right:4px}
+.macro-insight-row.pos .v em{color:#FF4D4F}
+.macro-insight-row.neg .v em{color:#10B981}
+.macro-insight-row.neu .v em{color:var(--text-dim)}
+.macro-insight-foot{
+  margin-top:10px;padding-top:8px;border-top:1px dashed var(--border);
+  font-size:10.5px;color:var(--text-dim);line-height:1.6;
+}
+
 .macro-sep{
   display:flex;align-items:center;gap:10px;margin:2px 0;
   font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.5px;
@@ -1059,7 +1092,7 @@ function loadMorningReport() {
 
 // ============ 宏观研究页（上半页：全球资产波动 / 下半页：中国宏观政策） ============
 // 离线快照：由 tools/refresh_macro.py 自动注入；用 file:// 直接打开时无法 fetch，回退到这里
-var MACRO_SNAPSHOT = /*MACRO_DATA_START*/{"updated": "2026-09-10 08:45", "markets": [{"key": "gold", "name": "国际黄金（COMEX 黄金连续）", "unit": "美元/盎司", "source": "新浪财经 · 外盘期货", "note": "", "lines": [{"label": "COMEX 黄金", "field": "v", "color": "#F5C542"}], "points": [{"d": "09-03", "v": 4519.9}, {"d": "09-04", "v": 4477.1}, {"d": "09-07", "v": 4451.9}, {"d": "09-08", "v": 4400.0}, {"d": "09-09", "v": 4446.9}, {"d": "09-10", "v": 4441.8}]}, {"key": "brent", "name": "布伦特原油（ICE Brent 连续）", "unit": "美元/桶", "source": "新浪财经 · 外盘期货", "note": "", "lines": [{"label": "布伦特原油", "field": "v", "color": "#FF7A45"}], "points": [{"d": "09-03", "v": 95.86}, {"d": "09-04", "v": 95.85}, {"d": "09-07", "v": 97.26}, {"d": "09-08", "v": 99.33}, {"d": "09-09", "v": 101.74}, {"d": "09-10", "v": 101.3}]}, {"key": "ust", "name": "美债收益率（10 年期 / 30 年期）", "unit": "%", "source": "FRED · DGS10 / DGS30", "note": "美债数据公布较市场价滞后 1—2 个交易日", "lines": [{"label": "10 年期", "field": "v10", "color": "#00E5FF"}, {"label": "30 年期", "field": "v30", "color": "#8B5CF6"}], "points": [{"d": "08-31", "v10": 4.75, "v30": 5.25}, {"d": "09-01", "v10": 4.79, "v30": 5.27}, {"d": "09-02", "v10": 4.79, "v30": 5.27}, {"d": "09-03", "v10": 4.77, "v30": 5.25}, {"d": "09-04", "v10": 4.78, "v30": 5.24}, {"d": "09-08", "v10": 4.8, "v30": 5.25}]}, {"key": "cny", "name": "人民币汇率（USD/CNY）", "unit": "CNY", "source": "Frankfurter · ECB 参考汇率", "note": "数值上行代表人民币贬值、美元升值", "lines": [{"label": "USD/CNY", "field": "v", "color": "#10B981"}], "points": [{"d": "09-02", "v": 6.7215}, {"d": "09-03", "v": 6.7191}, {"d": "09-04", "v": 6.7109}, {"d": "09-07", "v": 6.711}, {"d": "09-08", "v": 6.7105}, {"d": "09-09", "v": 6.7078}]}], "policies": [{"date": "2026-09-07", "tag": "货币政策", "title": "央行等量续作 5000 亿元 3 个月买断式逆回购", "summary": "9 月 7 日央行开展 5000 亿元 3 个月期（89 天）买断式逆回购，同日 7 天期逆回购仅 5 亿元，公开市场净回笼 45 亿元，结束此前连续两个月的加量续作。9 月中长期资金到期压力约 1.78 万亿元（含 5000 亿 6 个月买断式逆回购、6000 亿 MLF、1800 亿国库现金定存）。机构解读为“总量克制、结构优先”，短期降准降息概率偏低，视政府债发行节奏相机抉择。", "source": "中国经济网 / 证券日报"}, {"date": "2026-09-07", "tag": "货币政策", "title": "央行行长潘功胜 G20 会议表态：继续实施适度宽松货币政策", "summary": "8 月 31 日至 9 月 1 日 G20 财长与央行行长会议在美召开。潘功胜表示，央行将持续推进货币政策框架转型、完善利率体系，继续实施好适度宽松的货币政策，为中国经济稳定增长和金融市场平稳运行营造良好的货币金融环境。", "source": "新华财经"}, {"date": "2026-09-04", "tag": "财政政策", "title": "8000 亿元新型政策性金融工具开闸投放", "summary": "2026 年新型政策性金融工具首批资金已在浙江、云南、四川、福建、新疆、湖北等地落地，额度由去年 5000 亿元增至 8000 亿元，投向扩至数字经济、人工智能、低空经济、商业航天等新兴产业，并加大民间投资支持（福建申报项目中民资项目占比近四成）。机构预计可撬动 8 万亿—11 万亿元项目总投资，9—10 月为集中落地窗口，央行以 PSL 配套支持。", "source": "上海证券报 / 证券时报 / 中国证券报"}, {"date": "2026-09-02", "tag": "财政政策", "title": "财政部等优化财政金融协同促内需贴息政策（财金〔2026〕71 号）", "summary": "中小微民营企业新发放流动资金贷款纳入贴息（年化 1 个百分点、期限不超 2 年）；信用卡分期等新发生业务纳入个人消费贷款贴息；经办机构扩至 21 家全国性银行及 3A 以上城商行等；单户中小微贴息贷款上限 5000 万→7500 万元，个人消费贷及信用卡分期贴息上限 3000 元→5000 元/年。自 2026 年 8 月 1 日起施行。", "source": "财政部 / 中国人民银行 / 金融监管总局"}, {"date": "2026-09-01", "tag": "内需消费", "title": "七部门印发《关于推动商品消费扩容升级的实施意见》", "summary": "商务部、发改委、工信部、财政部、农业农村部、文旅部、市场监管总局联合发文，明确到 2030 年社零总额达 60 万亿元左右，培育绿色消费、智能消费、健康消费等十万亿级市场；重点激活汽车、家电等大宗消费，常态化推进以旧换新；强化财政金融支持（用好个人消费贷与服务业经营主体贷款贴息）。", "source": "光明日报 / 央广网"}, {"date": "2026-08-31", "tag": "国务院部署", "title": "国常会部署城市地下管网建设与招商引资高质量发展", "summary": "8 月 31 日国常会听取城市地下管网建设情况汇报（我国管网总长约 390 万公里，“十五五”将建设改造约 77 万公里，纳入《城市更新“十五五”规划》主要指标）；研究促进招商引资高质量发展，要求明确政府招商鼓励与禁止行为清单，从“拼优惠”转向“拼生态”；讨论并原则通过《税收征收管理法（修订草案）》，审议通过《审计法实施条例（修订草案）》。", "source": "新华社 / 中国政府网"}, {"date": "2026-09-03", "tag": "产业政策", "title": "工信部等十部门印发《促进中小企业发展“十五五”规划》", "summary": "提出加大直接融资支持：建立优质中小企业上市培育库，深化区域性股权市场“专精特新”专板建设，高质量建设债券市场“科技板”，设立国家中小企业发展基金二期，带动社会资本投早、投小、投长期、投硬科技。同日工信部表态加快动力电池安全、循环寿命、碳足迹、回收利用等标准制定。", "source": "中国证券报 / 工业和信息化部"}, {"date": "2026-09-02", "tag": "投资抓手", "title": "发改委推进“六张网”重大项目建设", "summary": "国家发改委召开“六张网”（水网、新型电网、算力网、新一代通信网、城市地下管网、物流网）重大项目协调推进机制会，研究完善政银企协作机制与项目库建设。下半年着力推动“六张网”从规划布局转向形成实物工作量，对产业链上下游形成拉动。", "source": "上海证券报"}]}/*MACRO_DATA_END*/;
+var MACRO_SNAPSHOT = /*MACRO_DATA_START*/{"updated": "2026-09-10 22:16", "markets": [{"key": "gold", "name": "国际黄金（COMEX 黄金连续）", "unit": "美元/盎司", "source": "新浪财经 · 外盘期货", "note": "", "lines": [{"label": "COMEX 黄金", "field": "v", "color": "#F5C542"}], "points": [{"d": "09-03", "v": 4519.9}, {"d": "09-04", "v": 4477.1}, {"d": "09-07", "v": 4451.9}, {"d": "09-08", "v": 4400.0}, {"d": "09-09", "v": 4446.9}, {"d": "09-10", "v": 4407.6}]}, {"key": "brent", "name": "布伦特原油（ICE Brent 连续）", "unit": "美元/桶", "source": "新浪财经 · 外盘期货", "note": "", "lines": [{"label": "布伦特原油", "field": "v", "color": "#FF7A45"}], "points": [{"d": "09-03", "v": 95.86}, {"d": "09-04", "v": 95.85}, {"d": "09-07", "v": 97.26}, {"d": "09-08", "v": 99.33}, {"d": "09-09", "v": 101.74}, {"d": "09-10", "v": 104.83}]}, {"key": "ust", "name": "美债收益率（10 年期 / 30 年期）", "unit": "%", "source": "FRED · DGS10 / DGS30", "note": "美债数据公布较市场价滞后 1—2 个交易日", "lines": [{"label": "10 年期", "field": "v10", "color": "#00E5FF"}, {"label": "30 年期", "field": "v30", "color": "#8B5CF6"}], "points": [{"d": "08-31", "v10": 4.75, "v30": 5.25}, {"d": "09-01", "v10": 4.79, "v30": 5.27}, {"d": "09-02", "v10": 4.79, "v30": 5.27}, {"d": "09-03", "v10": 4.77, "v30": 5.25}, {"d": "09-04", "v10": 4.78, "v30": 5.24}, {"d": "09-08", "v10": 4.8, "v30": 5.25}]}, {"key": "cny", "name": "人民币汇率（USD/CNY）", "unit": "CNY", "source": "Frankfurter · ECB 参考汇率", "note": "数值上行代表人民币贬值、美元升值", "lines": [{"label": "USD/CNY", "field": "v", "color": "#10B981"}], "points": [{"d": "09-02", "v": 6.7215}, {"d": "09-03", "v": 6.7191}, {"d": "09-04", "v": 6.7109}, {"d": "09-07", "v": 6.711}, {"d": "09-08", "v": 6.7105}, {"d": "09-09", "v": 6.7078}]}], "policies": [{"date": "2026-09-10", "tag": "金融改革", "title": "《金融强国建设“十五五”规划》正式出台，央行配套印发改革发展规划与 9 份行动方案", "summary": "国新办 9 月 10 日下午 3 时举行“开局起步‘十五五’”主题发布会，央行副行长陆磊宣布《金融强国建设“十五五”规划》正式出台：到 2030 年形成中国特色现代金融体系总体框架，到 2035 年基本建成具有高度适应性、竞争力、普惠性的中国特色现代金融体系。央行同步印发《中国人民银行“十五五”改革发展规划》及 9 份配套行动方案，提出提高直接融资比重、完善多层次金融市场体系、推进人民币国际化、加快建设上海国际金融中心。目前境外主体持有境内人民币金融资产超 11 万亿元，80 多个国家和地区将人民币纳入外汇储备，熊猫债发行超 1.3 万亿元。", "source": "国新办发布会 / 中国人民银行 / 证券时报"}, {"date": "2026-09-10", "tag": "资本市场", "title": "证监会明确“十五五”八大重点：拓宽中长期资金来源、释放并购重组活力", "summary": "证监会副主席李超在国新办发布会阐述“十五五”资本市场八个“进一步”：提高制度包容性、增强内在稳定性、加强监管和投资者保护、健全多层次市场体系、提高上市公司质量、加快建设一流投行和投资机构、建设安全高效金融基础设施、扩大高水平对外开放。要点：今年以来社保、年金、保险等中长期资金合计净买入 A 股超 6000 亿元，持有 A 股流通市值较 2025 年底增长 12.5%；实施更具包容性的发行上市与并购重组制度，将 A 股打造为境内优质企业上市首选地；力争到 2030 年资本市场建立四十周年之际基本形成高质量发展新格局。", "source": "中国证监会 / 国新办发布会 / 界面新闻"}, {"date": "2026-09-10", "tag": "外汇管理", "title": "外汇局：推进银行外汇展业改革，防范跨境资金大进大出风险", "summary": "国家外汇局副局长李斌在国新办发布会表示，“十五五”时期将构建更加便利、开放、安全、智慧的外汇管理体制机制，大力推进银行外汇展业改革，健全“越诚信越便利”“合规者先行”的便利化政策体系；同时健全外汇市场“宏观审慎+微观监管”两位一体管理，完善跨境资本流动宏观审慎管理，有效防范跨境资金大进大出可能形成的系统性风险。", "source": "国家外汇局 / 证券时报"}, {"date": "2026-09-09", "tag": "投资抓手", "title": "发改委“六张网”重大项目协调推进会：加强用地用海环评等要素保障", "summary": "国家发改委副主任岳修虎主持召开“六张网”重大项目协调推进会，研究加强要素保障工作。会议提出充分发挥各级要素保障机制作用，主动加强与项目单位对接，精准高效做好用地、用海、环评等要素保障，共同推动“六张网”重大项目加快落地实施。此前发改委已部署加快 2026 年新型政策性金融工具投放（额度 8000 亿元）。", "source": "国家发展改革委"}, {"date": "2026-09-09", "tag": "地方规划", "title": "北京印发《“十五五”时期高精尖产业发展规划》与数字经济发展规划", "summary": "北京市人民政府印发《北京市“十五五”时期高精尖产业发展规划》，提出到 2030 年发展新质生产力取得重大突破，北京成为具有全球影响力的新兴产业高地、未来产业引领地，推动京津冀成为更具活力的新型工业化示范区；到 2035 年率先基本实现新型工业化。同期印发《北京市“十五五”时期数字经济发展规划》。", "source": "北京市人民政府"}, {"date": "2026-09-09", "tag": "法治监管", "title": "最高法发布 9 件反不正当竞争典型案例，覆盖人工智能、新能源、平台经济", "summary": "最高人民法院发布 9 件 2026 年人民法院反不正当竞争典型案例，内容既包括与民生相关的传统消费领域，也涉及人工智能、新能源、平台经济等新兴和重点领域，旨在完善竞争裁判规则、服务全国统一大市场建设。", "source": "最高人民法院"}, {"date": "2026-09-07", "tag": "货币政策", "title": "央行等量续作 5000 亿元 3 个月买断式逆回购", "summary": "9 月 7 日央行开展 5000 亿元 3 个月期（89 天）买断式逆回购，同日 7 天期逆回购仅 5 亿元，公开市场净回笼 45 亿元，结束此前连续两个月的加量续作。9 月中长期资金到期压力约 1.78 万亿元（含 5000 亿 6 个月买断式逆回购、6000 亿 MLF、1800 亿国库现金定存）。机构解读为“总量克制、结构优先”，短期降准降息概率偏低，视政府债发行节奏相机抉择。", "source": "中国经济网 / 证券日报"}, {"date": "2026-09-04", "tag": "财政政策", "title": "8000 亿元新型政策性金融工具开闸投放", "summary": "2026 年新型政策性金融工具首批资金已在浙江、云南、四川、福建、新疆、湖北等地落地，额度由去年 5000 亿元增至 8000 亿元，投向扩至数字经济、人工智能、低空经济、商业航天等新兴产业，并加大民间投资支持。机构预计可撬动 8 万亿—11 万亿元项目总投资，9—10 月为集中落地窗口，央行以 PSL 配套支持。", "source": "上海证券报 / 证券时报 / 中国证券报"}], "insight": {"headline": "本周主线看布伦特原油：一周上涨 +9.36%，最新 104.83，美债 10Y 上行 +5bp 至 4.80%。", "items": [{"k": "国际黄金", "chg": "-2.48%", "text": "金价周内走弱，黄金矿业与珠宝零售短期承压；若伴随美债实际利率上行，说明避险需求回落，风险偏好相对改善。", "tone": "down"}, {"k": "布伦特原油", "chg": "+9.36%", "text": "油价走强直接利好油气开采、油服、炼化（上游弹性最大），但会压制航空、物流、化纤等中下游成本端。", "tone": "up"}, {"k": "美债 10Y", "chg": "+5bp", "text": "收益率上行对高估值成长股（AI、半导体、创新药）的贴现率不友好，注意高位品种的估值压力；银行、保险等价值板块相对受益。", "tone": "up"}, {"k": "人民币汇率", "chg": "-0.20%", "text": "人民币周内升值（USD/CNY 下行），利好外资流入及航空、造纸等美元负债较重行业，出口链的汇兑收益与价格竞争力相对承压。", "tone": "down"}]}}/*MACRO_DATA_END*/;
 
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -1073,6 +1106,7 @@ function buildMacroShell(){
   h +=     '<div class="macro-head-r"><span id="macroUpdated">更新于 --</span><button class="btn-mini" onclick="renderMacro(true)">刷新数据</button></div>';
   h +=   '</div>';
   h +=   '<div class="macro-grid" id="macroCharts"><div class="macro-loading">正在加载行情数据...</div></div>';
+  h +=   '<div class="macro-insight" id="macroInsight" hidden></div>';
   h += '</div>';
   // ---- 分隔 ----
   h += '<div class="macro-sep">中国宏观政策</div>';
@@ -1131,6 +1165,15 @@ function renderMacro(force){
     var up = document.getElementById('macroUpdated');
     if (up) up.textContent = '更新于 ' + (data.updated || '--');
 
+    // 盘前提示（波动曲线下方）
+    var ibox = document.getElementById('macroInsight');
+    if (ibox) {
+      var idata = (data && data.insight) || null;
+      var hasIns = idata && (idata.headline || (idata.items && idata.items.length));
+      ibox.hidden = !hasIns;
+      ibox.innerHTML = hasIns ? macroInsight(idata) : '';
+    }
+
     if (list2) {
       list2.innerHTML = policies.length
         ? policies.map(function(p){ return policyItem(p); }).join('')
@@ -1178,6 +1221,25 @@ function macroCard(m){
     + '<div class="macro-chart">' + macroChart(pts, lines) + '</div>'
     + '<div class="macro-foot"><span>区间 ' + esc(rng) + '</span><span>来源：' + esc(m.source || '') + '</span></div>'
     + '</div>';
+}
+
+// 盘前提示区块：主线一句话 + 逐品种解读（涨红跌绿）
+function macroInsight(d){
+  var h = '';
+  h += '<div class="macro-insight-h"><span class="dot"></span>盘前提示 · 一周主线</div>';
+  if (d.headline) h += '<div class="macro-insight-lead">' + esc(d.headline) + '</div>';
+  var items = d.items || [];
+  if (items.length) {
+    h += '<div class="macro-insight-list">' + items.map(function(it){
+      var tone = it.tone === 'up' ? 'pos' : (it.tone === 'down' ? 'neg' : 'neu');
+      return '<div class="macro-insight-row ' + tone + '">'
+        + '<span class="k">' + esc(it.k) + '</span>'
+        + '<span class="v"><em>' + esc(it.chg || '') + '</em>'
+        + (it.text ? esc(it.text) : '') + '</span></div>';
+    }).join('') + '</div>';
+  }
+  h += '<div class="macro-insight-foot">由四类资产周变动自动生成，仅为盘前观察视角，不构成投资建议。</div>';
+  return h;
 }
 
 function policyItem(p, i){
