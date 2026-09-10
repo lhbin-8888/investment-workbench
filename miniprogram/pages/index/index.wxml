@@ -1,0 +1,33 @@
+<view class="page">
+  <view class="hero">
+    <view class="hero-logo">投研工作台</view>
+    <view class="hero-slogan">{{slogan}}</view>
+    <view class="hero-date">{{today}}</view>
+  </view>
+
+  <view class="briefing-card" wx:if="{{briefing}}" bindtap="onBriefingTap">
+    <view class="briefing-head">
+      <view class="briefing-tag">每日晨报</view>
+      <view class="briefing-date">{{briefing.date}}</view>
+    </view>
+    <view class="briefing-tip">点击查看全文（文本快照，PDF 版见网页端）</view>
+  </view>
+
+  <view class="group-label">功能模块</view>
+  <view class="card" wx:for="{{modules}}" wx:key="id" bindtap="onModuleTap" data-page="{{item.page}}">
+    <view class="card-icon">{{item.icon}}</view>
+    <view class="card-info">
+      <view class="card-name">{{item.name}}</view>
+      <view class="card-desc">{{item.desc}}</view>
+    </view>
+    <view class="card-arrow">›</view>
+  </view>
+
+  <view class="group-label">快捷入口</view>
+  <view class="quick-grid">
+    <view class="quick-item" wx:for="{{quickLinks}}" wx:key="name" bindtap="onQuickTap" data-name="{{item.name}}">
+      <view class="quick-icon">{{item.icon}}</view>
+      <view class="quick-name">{{item.name}}</view>
+    </view>
+  </view>
+</view>

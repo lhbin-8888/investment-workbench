@@ -1,0 +1,19 @@
+<view class="page">
+  <view class="page-header">
+    <view class="page-title">{{title}}</view>
+    <view class="page-sub">{{sub}}</view>
+  </view>
+
+  <block wx:for="{{sections}}" wx:key="id">
+    <view class="group-label">{{item.name}}</view>
+    <view class="card" wx:for="{{item.items}}" wx:for-item="sub" wx:key="name"
+          bindtap="onTap" data-name="{{sub.name}}">
+      <view class="card-icon">{{sub.icon}}</view>
+      <view class="card-info">
+        <view class="card-name">{{sub.name}}</view>
+        <view class="card-desc">{{sub.desc}}</view>
+      </view>
+      <view class="card-arrow">›</view>
+    </view>
+  </block>
+</view>

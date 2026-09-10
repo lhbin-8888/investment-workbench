@@ -1,0 +1,25 @@
+<view class="page">
+  <view class="profile">
+    <view class="profile-avatar">投</view>
+    <view class="profile-info">
+      <view class="profile-name">{{workspace.name}}</view>
+      <view class="profile-slogan">{{workspace.slogan}}</view>
+    </view>
+  </view>
+
+  <view class="group-label">数据状态</view>
+  <view class="status-card">
+    <view class="status-dot"></view>
+    <view class="status-text">{{workspace.syncStatus}}</view>
+  </view>
+
+  <view class="group-label">关于</view>
+  <view class="card" wx:for="{{aboutItems}}" wx:key="label">
+    <view class="card-info">
+      <view class="card-name">{{item.label}}</view>
+    </view>
+    <view class="card-value">{{item.value}}</view>
+  </view>
+
+  <view class="footer">投研工作台 · 本地数据 · 无需后端</view>
+</view>

@@ -1,1 +1,26 @@
 *.bak*
+.bak/
+
+# WorkBuddy 项目数据
+.workbuddy/
+
+# 临时产物
+archive/temp_*
+tmp/
+temp/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini

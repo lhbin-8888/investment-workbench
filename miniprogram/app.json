@@ -1,0 +1,50 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/market/market",
+    "pages/review/review",
+    "pages/research/research",
+    "pages/analysis/analysis",
+    "pages/strategy/strategy",
+    "pages/templates/templates",
+    "pages/detail/detail",
+    "pages/mine/mine"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#0A0E17",
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "投研工作台",
+    "backgroundColor": "#0A0E17",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#6B7280",
+    "selectedColor": "#00E5FF",
+    "backgroundColor": "#0D1220",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/market/market",
+        "text": "投研分析"
+      },
+      {
+        "pagePath": "pages/review/review",
+        "text": "交易管理"
+      },
+      {
+        "pagePath": "pages/research/research",
+        "text": "投研研究"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
