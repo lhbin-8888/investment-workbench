@@ -1,7 +1,7 @@
 <view class="page">
   <view class="page-header">
     <view class="page-title">投资复盘</view>
-    <view class="page-sub">交易记录与复盘总结</view>
+    <view class="page-sub">复盘总结</view>
   </view>
   <view class="card" wx:for="{{items}}" wx:key="name" bindtap="onTap" data-name="{{item.name}}">
     <view class="card-icon">{{item.icon}}</view>

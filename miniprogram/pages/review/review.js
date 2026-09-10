@@ -18,7 +18,7 @@ Page({
     }));
     this.setData({
       title: group.label,
-      sub: '交易记录 · 日度复盘 · 周度复盘 · 月度复盘',
+      sub: '日度复盘 · 月度复盘',
       items
     });
   },
