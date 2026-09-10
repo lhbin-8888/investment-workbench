@@ -172,6 +172,11 @@ git commit -m "说明"
 git pushall        # 先推 Gitee（秒到），再推 GitHub（保留 Pages 发布）
 ```
 
-- **Gitee**（主）：`git@gitee.com:luo-huaibin/investment-workbench.git`
+- **Gitee**（主）：`git@gitee.com:luo-huaibin/investment-workbench.git`（SSH 秒推）
 - **GitHub**（页面）：`https://github.com/lhbin-8888/investment-workbench.git` → Pages 站点
+  - 另配 SSH 通道 `github-ssh`（`git@github.com:...`，专用密钥 `~/.ssh/id_ed25519_github`）
+  - `pushall` / `pushgithub` **优先走 SSH（22 端口，稳定）**，不通则自动回退 HTTPS 重试
+  - 推送完成后自动用 `ls-remote` 校验远程 SHA，不等就明确提示"未确认，需补推"
 - C 盘旧仓库 `C:\Users\73873\investment-workbench` 已于 2026-09-10 删除，不再重建
+
+> ⚠️ **不要用 `env -u ... git push` 这种写法**：本环境下会导致命令静默不执行、返回 0 却什么都没推（假成功）。用上面封装好的 alias。
