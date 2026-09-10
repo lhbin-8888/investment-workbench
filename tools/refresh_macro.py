@@ -19,10 +19,9 @@ from datetime import datetime, timezone, timedelta
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(ROOT, "data")
 OUT_JSON = os.path.join(DATA_DIR, "macro-weekly.json")
-# 需要同步写入离线快照的页面（本地工作台 + GitHub 仓库副本，存在才写）
+# 需要同步写入离线快照的页面（只写本仓库；不再写 C 盘，任何产出统一落在 D 盘主仓）
 HTML_TARGETS = [
     os.path.join(ROOT, "index.html"),
-    r"C:\Users\73873\investment-workbench\index.html",
 ]
 N = 6  # 每个品种保留的最近观测点数
 

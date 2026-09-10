@@ -193,14 +193,33 @@ def main() -> None:
 
     html = build_html(md_text, a.title, a.subtitle, a.meta)
 
-    tmpdir = pathlib.Path(tempfile.gettempdir())
-    html_path = out.with_suffix(".html") if a.keep_html else tmpdir / f"_md2pdf_{src.stem}.html"
-    html_path.write_text(html, encoding="utf-8")
-
-    render_pdf(html_path, out)
-    print(f"[OK] PDF -> {out}  ({out.stat().st_size/1024:.0f} KB)")
+    # 中间 HTML 一律落在仓库内临时目录（archive/temp_md2pdf，已被 .gitignore 排除），
+    # 不写系统 temp，避免产物散落到 C 盘；渲染完成后自动清理。
+    repo_root = pathlib.Path(__file__).resolve().parent.parent
+    tmp_dir = repo_root / "archive" / "temp_md2pdf"
     if a.keep_html:
-        print(f"[OK] HTML -> {html_path}")
+        html_path = out.with_suffix(".html")
+    else:
+        tmp_dir.mkdir(parents=True, exist_ok=True)
+        html_path = tmp_dir / f"_md2pdf_{src.stem}.html"
+
+    html_path.write_text(html, encoding="utf-8")
+    try:
+        render_pdf(html_path, out)
+        print(f"[OK] PDF -> {out}  ({out.stat().st_size/1024:.0f} KB)")
+        if a.keep_html:
+            print(f"[OK] HTML -> {html_path}")
+    finally:
+        if not a.keep_html:
+            try:
+                html_path.unlink()
+            except OSError:
+                pass
+            try:
+                if tmp_dir.exists() and not any(tmp_dir.iterdir()):
+                    tmp_dir.rmdir()
+            except OSError:
+                pass
 
 
 if __name__ == "__main__":

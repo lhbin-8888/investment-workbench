@@ -64,7 +64,7 @@ python -m http.server 8848
 | --- | --- |
 | `index.html` 中 7 个周报 PDF 链接指向 `行业研究/` 子目录，但文件实际散落在 `05-行业与个股分析/` 根目录 | 将 6 份周报（AI / 人形机器人 / 生物制药，含 md 与 pdf）归档至 `05-行业与个股分析/行业研究/`，链接全部生效 |
 | 根目录散落临时文件 `temp_morning_0901.html` | 移入 `archive/` |
-| 使用指南放在根目录 | 移入 `docs/` |
+| 使用指南放在根目录 | 一度移入 `docs/`；2026-09-10 两份并存造成混淆，已删除 `docs/` 精简版，保留根目录完整版 |
 
 ---
 
@@ -123,3 +123,55 @@ node tools/check-alignment.js
 ### 版本
 
 当前 `1.1.0`（2026-09-02 对齐两端结构）。
+
+---
+
+## 七、存储与清理规范（2026-09-10 确立）
+
+### 1. 唯一存储位置：D 盘
+
+**投研工作台的一切资料、产出、中间文件，一律存放在 `D:\投研工作台` 对应子目录，禁止写入 C 盘。**
+
+- AI 助手生成的报告、周报、分析、抓取数据，直接落盘到对应模块目录（如 `05-行业与个股分析/行业研究/`），**不要**先写到会话工作区再搬运
+- 脚本产出一律用相对 `ROOT` 的路径计算，禁止硬编码任何 `C:\` 路径
+- `start.bat` 中的 `PY=` 指向 Python 解释器安装位置，属于程序运行环境，不受此约束
+
+### 2. 文件归位对照表
+
+| 内容类型 | 落盘位置 |
+| --- | --- |
+| 晨报 / 数据快照 | `data/` |
+| 产业链周报、行业深度 | `05-行业与个股分析/行业研究/` |
+| 个股分析、估值 | `05-行业与个股分析/个股深度/`、`估值模型/` |
+| 盘面记录、板块轮动 | `03-A股盘面信息/` |
+| 复盘、交易记录 | `04-投资复盘/` |
+| 策略、笔记 | `06-投资策略分析/` |
+| **临时 / 中间产物** | `archive/temp_<名称>/`（已 gitignore，用完即删） |
+
+### 3. 临时文件清理
+
+```bash
+# 预览（只列出，不删除）
+python tools/cleanup-temp.py
+
+# 实际清理
+python tools/cleanup-temp.py --apply
+```
+
+清理范围仅限仓库内部：`archive/temp_*`、`*.bak*`、`__pycache__/`、`node_modules/`、`*.tmp`、`.DS_Store` 等。**脚本绝不触碰仓库之外的任何目录。**
+
+`tools/md2pdf.py` 的中间 HTML 也改写在 `archive/temp_md2pdf/`，渲染完成自动删除（加 `--keep-html` 才保留）。
+
+### 4. 版本管理
+
+唯一主仓为 `D:\投研工作台`，双远端：
+
+```bash
+git add -A
+git commit -m "说明"
+git pushall        # 先推 Gitee（秒到），再推 GitHub（保留 Pages 发布）
+```
+
+- **Gitee**（主）：`git@gitee.com:luo-huaibin/investment-workbench.git`
+- **GitHub**（页面）：`https://github.com/lhbin-8888/investment-workbench.git` → Pages 站点
+- C 盘旧仓库 `C:\Users\73873\investment-workbench` 已于 2026-09-10 删除，不再重建
