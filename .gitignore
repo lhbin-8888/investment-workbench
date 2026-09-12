@@ -24,3 +24,6 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# 每日全球要闻：MD 仅本地留档，不推线上（线上只发 PDF）
+01-投研信息收集/宏观研究/*-全球要闻.md
