@@ -16,6 +16,8 @@
 > ⚠️ **必须通过本地 HTTP 服务打开，不能直接双击 `index.html`。**
 > 晨报模块使用 `fetch('data/YYYY-MM-DD-晨报.pdf')` 动态加载，浏览器在 `file://` 协议下会因 CORS 策略拦截，导致晨报一片空白。
 
+> 💡 **线上版（GitHub Pages）**：https://lhbin-8888.github.io/investment-workbench/ —— 无需本地服务，直接浏览器打开，每日 15:30 自动刷新盘面数据。本地改完页面记得 `git pushall` 才同步到线上。
+
 **方式一：双击 `start.bat`**（推荐）
 自动启动本地服务并打开浏览器，默认端口 `8848`。
 
