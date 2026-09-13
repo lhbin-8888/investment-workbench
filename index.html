@@ -50,6 +50,18 @@ body{
 .header-sub{font-size:11px;color:var(--text-muted)}
 .header-right{margin-left:auto;display:flex;align-items:center;gap:16px}
 .header-date{font-size:13px;color:var(--text-muted)}
+.header-link{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:8px;
+  font-size:13px;font-weight:600;color:var(--accent);
+  background:rgba(0,229,255,.08);
+  border:1px solid rgba(0,229,255,.35);
+  text-decoration:none;transition:all .15s;white-space:nowrap;
+}
+.header-link:hover{
+  background:rgba(0,229,255,.16);border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(0,229,255,.12);
+}
 .menu-toggle{
   display:none;background:none;border:none;color:var(--text-primary);
   font-size:1.4rem;cursor:pointer;padding:4px 6px;line-height:1;
@@ -485,6 +497,7 @@ body{
     </div>
   </div>
   <div class="header-right">
+    <a class="header-link" href="https://lhbin-8888.github.io/investment-workbench/" target="_blank" rel="noopener">🌐 线上版</a>
     <span class="header-date" id="headerDate"></span>
   </div>
 </header>
