@@ -473,6 +473,26 @@ body{
   padding-top:6px;border-top:1px solid var(--border);
   display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;
 }
+.sentiment-scroll{
+  overflow-x:auto;margin-top:6px;border:1px solid var(--border);border-radius:10px;
+}
+.sentiment-table{
+  width:100%;min-width:1100px;border-collapse:collapse;font-size:12px;table-layout:fixed;
+}
+.sentiment-table th,
+.sentiment-table td{
+  padding:7px 5px;text-align:center;border:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.sentiment-table th{
+  background:var(--bg-hover);color:var(--text-muted);font-weight:600;font-size:11px;position:sticky;top:0;z-index:2;
+}
+.sentiment-table td{color:var(--text-secondary)}
+.sentiment-table tr:hover td{background:var(--bg-hover)}
+.sentiment-table .s-up{color:#FF4D4F}
+.sentiment-table .s-down{color:#10B981}
+.sentiment-table .s-cycle{color:var(--accent);font-weight:600}
+.sentiment-table .s-num{font-variant-numeric:tabular-nums}
+.sentiment-empty{color:var(--text-dim);font-size:12px;text-align:center;padding:20px}
 .market-toggle{
   display:flex;gap:6px;
 }
@@ -1328,6 +1348,15 @@ function buildMarketShell(){
   h +=   '<div class="market-chart" id="marketBarChart"><div class="macro-loading">正在加载成交额数据...</div></div>';
   h +=   '<div class="market-foot"><span>单位：亿元</span><span>红柱 = 较前一日放量 / 绿柱 = 较前一日缩量</span></div>';
   h += '</div>';
+  // ---- 市场情绪统计表 ----
+  h += '<div class="market-panel">';
+  h +=   '<div class="market-head">';
+  h +=     '<div class="market-head-l"><span class="bar"></span>A股交易信息统计<span class="sub">涨停/连板/炸板/周期</span></div>';
+  h +=     '<div class="market-head-r"><span id="sentimentUpdated">更新于 --</span></div>';
+  h +=   '</div>';
+  h +=   '<div id="sentimentTableBox"><div class="macro-loading">正在加载情绪数据...</div></div>';
+  h +=   '<div class="market-foot"><span>不含 ST、不含新股/退市</span><span>周期根据近期盘面数据自动推断</span></div>';
+  h += '</div>';
   h += '</div>';
   // 文档区
   h += '<div class="docs-section" id="docsSection"></div>';
@@ -1398,6 +1427,7 @@ function renderMarketCharts(force){
 
     lineBox2.innerHTML = marketLineChart(dates, indices, mode);
     barBox2.innerHTML = marketBarChart(dates, turnover);
+    renderSentimentTable();
 
     var up = document.getElementById('marketUpdated');
     if (up) up.textContent = '更新于 ' + (data.updated || '--');
@@ -1522,6 +1552,58 @@ function marketBarChart(dates, turnover){
   });
   s += '</svg>';
   return s;
+}
+
+function loadSentimentData(cb){
+  try {
+    fetch('data/market-sentiment.json', { cache: 'no-store' })
+      .then(function(res){
+        if (!res.ok) throw new Error('http ' + res.status);
+        return res.json();
+      })
+      .then(function(j){
+        if (j && j.rows && j.rows.length) cb(j);
+        else cb(null);
+      })
+      .catch(function(){ cb(null); });
+  } catch (e) { cb(null); }
+}
+
+function renderSentimentTable(){
+  var box = document.getElementById('sentimentTableBox');
+  var up = document.getElementById('sentimentUpdated');
+  if (!box) return;
+  loadSentimentData(function(data){
+    if (up) up.textContent = '更新于 ' + (data && data.updated ? data.updated : '--');
+    if (!data || !data.rows || !data.rows.length) {
+      box.innerHTML = '<div class="sentiment-empty">暂无市场情绪数据，请运行 tools/refresh_sentiment.py 生成 data/market-sentiment.json</div>';
+      return;
+    }
+    var fields = data.fields || [];
+    var headers = {
+      date:'日期', up:'上涨', down:'下跌', limit_up:'涨停', limit_down:'跌停', failed:'炸板',
+      continuous:'连板', actual_limit_up:'实际涨停', cyb_limit_up:'创业板涨停', kcb_limit_up:'科创板涨停',
+      first_board:'一板', two_board:'二连', three_board:'三连', four_board:'四连', five_board:'五连', six_plus:'六连及以上', cycle:'周期'
+    };
+    var html = '<div class="sentiment-scroll"><table class="sentiment-table"><thead><tr>';
+    fields.forEach(function(f){ html += '<th>' + esc(headers[f] || f) + '</th>'; });
+    html += '</tr></thead><tbody>';
+    data.rows.forEach(function(row){
+      html += '<tr>';
+      fields.forEach(function(f){
+        var v = row[f];
+        var cls = '';
+        if (f === 'up') cls = 's-up';
+        else if (f === 'down') cls = 's-down';
+        else if (f === 'cycle') cls = 's-cycle';
+        var txt = (v === null || v === undefined || v === '') ? '-' : String(v);
+        html += '<td class="' + cls + ' s-num">' + esc(txt) + '</td>';
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    box.innerHTML = html;
+  });
 }
 
 function policyItem(p, i){
