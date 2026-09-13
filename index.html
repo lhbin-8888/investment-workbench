@@ -1332,9 +1332,9 @@ function loadMarketData(cb){
   try {
     fetch('data/index-daily.json', { cache: 'no-store' })
       .then(function(res){
-        if (!res.ok) throw new Error('http');
-        var ct = res.headers.get('content-type') || '';
-        if (ct.indexOf('json') === -1) throw new Error('not json');
+        if (!res.ok) throw new Error('http ' + res.status);
+        // 不卡 Content-Type：GitHub Pages 对 .json 可能返回非 application/json，
+        // 只要响应体是合法 JSON 就用，解析失败再回退到内嵌快照（保证线上每日刷新生效）
         return res.json();
       })
       .then(function(j){
