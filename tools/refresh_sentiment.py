@@ -36,6 +36,8 @@ ROOT = Path(__file__).resolve().parent.parent
 INDEX_FILE = ROOT / "data" / "index-daily.json"
 OUT_FILE = ROOT / "data" / "market-sentiment.json"
 
+MAX_DAYS = 15  # 仅保留最近 15 个交易日数据
+
 
 def to_int(x, default=0):
     """把 pandas/numpy 标量转成 Python int，失败返回 default。"""
@@ -307,9 +309,16 @@ def main():
     for i in range(len(rows)):
         rows[i]["cycle"] = judge_cycle(rows, i, idx_closes)
 
+    # 仅保留最近 15 个交易日（防御性截断，避免数据无限累积）
+    period_text = index_data.get("period", "")
+    if len(rows) > MAX_DAYS:
+        rows = rows[-MAX_DAYS:]
+        if rows:
+            period_text = f"2026-{rows[0]['date']} ~ 2026-{rows[-1]['date']}"
+
     payload = {
         "updated": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "period": index_data.get("period", ""),
+        "period": period_text,
         "days": len(rows),
         "fields": [
             "date", "up", "down", "limit_up", "limit_down", "failed",

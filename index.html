@@ -1351,7 +1351,7 @@ function buildMarketShell(){
   // ---- 市场情绪统计表 ----
   h += '<div class="market-panel">';
   h +=   '<div class="market-head">';
-  h +=     '<div class="market-head-l"><span class="bar"></span>A股交易信息统计<span class="sub">涨停/连板/炸板/周期</span></div>';
+  h +=     '<div class="market-head-l"><span class="bar"></span>A股交易信息统计<span class="sub">近15个交易日 · 涨停/连板/炸板/周期</span></div>';
   h +=     '<div class="market-head-r"><span id="sentimentUpdated">更新于 --</span></div>';
   h +=   '</div>';
   h +=   '<div id="sentimentTableBox"><div class="macro-loading">正在加载情绪数据...</div></div>';
@@ -1580,6 +1580,8 @@ function renderSentimentTable(){
       return;
     }
     var fields = data.fields || [];
+    // 仅展示最近 15 个交易日（防御性截断，保证页面永远只显示末 15 行）
+    var showRows = data.rows.slice(-15);
     var headers = {
       date:'日期', up:'上涨', down:'下跌', limit_up:'涨停', limit_down:'跌停', failed:'炸板',
       continuous:'连板', actual_limit_up:'实际涨停', cyb_limit_up:'创业板涨停', kcb_limit_up:'科创板涨停',
@@ -1588,7 +1590,7 @@ function renderSentimentTable(){
     var html = '<div class="sentiment-scroll"><table class="sentiment-table"><thead><tr>';
     fields.forEach(function(f){ html += '<th>' + esc(headers[f] || f) + '</th>'; });
     html += '</tr></thead><tbody>';
-    data.rows.forEach(function(row){
+    showRows.forEach(function(row){
       html += '<tr>';
       fields.forEach(function(f){
         var v = row[f];
