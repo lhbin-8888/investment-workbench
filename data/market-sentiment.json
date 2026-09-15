@@ -1,6 +1,6 @@
 {
-  "updated": "2026-09-14 16:06",
-  "period": "2026-08-25 ~ 2026-09-14",
+  "updated": "2026-09-15 15:32",
+  "period": "2026-08-26 ~ 2026-09-15",
   "days": 15,
   "fields": [
     "date",
@@ -23,25 +23,6 @@
   ],
   "rows": [
     {
-      "date": "08-25",
-      "up": null,
-      "down": null,
-      "limit_up": 65,
-      "limit_down": 2,
-      "failed": 22,
-      "continuous": 9,
-      "actual_limit_up": 65,
-      "cyb_limit_up": 3,
-      "kcb_limit_up": 1,
-      "first_board": 56,
-      "two_board": 5,
-      "three_board": 2,
-      "four_board": 1,
-      "five_board": 1,
-      "six_plus": 0,
-      "cycle": "振荡"
-    },
-    {
       "date": "08-26",
       "up": null,
       "down": null,
@@ -58,7 +39,7 @@
       "four_board": 1,
       "five_board": 1,
       "six_plus": 0,
-      "cycle": "回暖"
+      "cycle": "振荡"
     },
     {
       "date": "08-27",
@@ -306,6 +287,25 @@
       "five_board": 0,
       "six_plus": 0,
       "cycle": "振荡"
+    },
+    {
+      "date": "09-15",
+      "up": 1054,
+      "down": 4103,
+      "limit_up": 32,
+      "limit_down": 27,
+      "failed": 24,
+      "continuous": 7,
+      "actual_limit_up": 32,
+      "cyb_limit_up": 0,
+      "kcb_limit_up": 1,
+      "first_board": 25,
+      "two_board": 3,
+      "three_board": 2,
+      "four_board": 1,
+      "five_board": 1,
+      "six_plus": 0,
+      "cycle": "退潮"
     }
   ]
 }
