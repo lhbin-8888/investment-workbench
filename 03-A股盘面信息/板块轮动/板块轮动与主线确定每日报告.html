@@ -28,8 +28,8 @@
   header .meta input[type=date]{border:none;border-radius:6px;padding:4px 8px;color:var(--txt);font-size:12px;}
   .tag{background:rgba(255,255,255,.2);padding:2px 9px;border-radius:20px;font-size:11px;}
   .disclaimer{font-size:11px;color:var(--sub);margin-top:10px;background:#fff7ef;border-left:3px solid var(--primary);padding:8px 12px;border-radius:6px;}
-  .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px;}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-top:16px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.04);min-width:0;overflow:hidden;}
   .card h2{margin:0 0 12px;font-size:15px;border-left:4px solid var(--primary);padding-left:9px;}
   .card h3{margin:14px 0 8px;font-size:13px;color:var(--sub);}
   .table-wrap{overflow-x:scroll;overflow-y:auto;max-height:400px;width:100%;max-width:100%;border:1px solid var(--line);border-radius:8px 8px 0 0;border-bottom:0;padding-bottom:0;}

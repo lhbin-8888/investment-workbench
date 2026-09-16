@@ -108,9 +108,9 @@ node tools/check-alignment.js
 | --- | --- | --- | --- |
 | 投研分析 | 投研分析 | `pages/market/market` | 3（含每日晨报） |
 | 交易管理 | 交易管理 | `pages/review/review` | 4 |
-| 投研研究 | 投研研究 | `pages/research/research` | 原 16 项，已移除工具与模板、投资笔记、风控体系（精确计数待核对） |
+| 投研研究 | 投研研究 | `pages/research/research` | 9 项（已移除工具与模板、投资笔记、风控体系） |
 
-首页另保留 7 大模块入口，可直达 `analysis` / `strategy` / `templates` 页面（这三个页面不在 tabBar 中）。
+首页另保留 6 大模块入口，可直达 `analysis` / `strategy` 页面（这两个页面不在 tabBar 中）。
 
 ### 小程序端的固有限制
 
