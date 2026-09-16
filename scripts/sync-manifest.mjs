@@ -12,7 +12,7 @@ const moduleDirs = [
   '06-投资策略分析',
   '07-工具与模板'
 ];
-const skipFiles = new Set(['README.md', 'manifest.json']);
+const skipFiles = new Set(['README.md', 'manifest.json', 'sector-rotation-data.json']);
 
 function relativePosix(file) {
   return path.relative(root, file).split(path.sep).join('/');
@@ -22,6 +22,7 @@ function detectType(file) {
   const ext = path.extname(file).toLowerCase();
   if (ext === '.pdf') return 'pdf';
   if (ext === '.json') return 'json';
+  if (ext === '.html' || ext === '.htm') return 'html';
   if (['.xlsx', '.xls', '.csv', '.docx', '.doc', '.pptx', '.ppt'].includes(ext)) return ext.slice(1);
   return 'md';
 }

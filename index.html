@@ -962,6 +962,7 @@ function openDocByIdx(idx) {
   if (!d) return;
   if (d.type === 'pdf' || /\.pdf(\?|$)/i.test(d.file)) { window.open(d.file, '_blank'); return; }
   if (d.type === 'link' || /^https?:\/\//i.test(d.file)) { window.open(d.file, '_blank'); return; }
+  if (d.type === 'html' || /\.html?(\?|$)/i.test(d.file)) { window.open(d.file, '_blank'); return; }
   // md：fetch 内容页内预览
   var prev = document.getElementById('docPreview');
   if (!prev) {

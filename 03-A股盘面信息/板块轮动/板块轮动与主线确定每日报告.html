@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>板块轮动与主线确定 · 每日报告</title>
+<style>
+  :root{
+    --primary:#ED7D31;      /* 橙商务主色 */
+    --primary-d:#c9641f;
+    --up:#e23b3b;           /* 涨=红 */
+    --down:#16a34a;         /* 跌=绿 */
+    --bg:#f5f6f8;
+    --card:#ffffff;
+    --line:#e4e7ec;
+    --txt:#1f2937;
+    --sub:#6b7280;
+    --warn:#dc2626;
+    --ok:#16a34a;
+    --wait:#f59e0b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Microsoft YaHei","PingFang SC",system-ui,Arial,sans-serif;background:var(--bg);color:var(--txt);font-size:13px;line-height:1.5;}
+  .wrap{max-width:1280px;margin:0 auto;padding:18px;}
+  header{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;border-radius:12px;padding:18px 22px;box-shadow:0 4px 14px rgba(237,125,49,.25);}
+  header h1{margin:0;font-size:22px;letter-spacing:1px;}
+  header .meta{margin-top:8px;font-size:12px;opacity:.95;display:flex;flex-wrap:wrap;gap:14px;align-items:center;}
+  header .meta input[type=date]{border:none;border-radius:6px;padding:4px 8px;color:var(--txt);font-size:12px;}
+  .tag{background:rgba(255,255,255,.2);padding:2px 9px;border-radius:20px;font-size:11px;}
+  .disclaimer{font-size:11px;color:var(--sub);margin-top:10px;background:#fff7ef;border-left:3px solid var(--primary);padding:8px 12px;border-radius:6px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;}
+  @media(max-width:980px){.grid{grid-template-columns:1fr;}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  .card h2{margin:0 0 12px;font-size:15px;border-left:4px solid var(--primary);padding-left:9px;}
+  .card h3{margin:14px 0 8px;font-size:13px;color:var(--sub);}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  th,td{border:1px solid var(--line);padding:5px 6px;text-align:center;}
+  th{background:#fafafa;font-weight:600;color:#374151;position:sticky;top:0;}
+  td input,td select{border:1px solid #d1d5db;border-radius:4px;padding:3px 4px;width:100%;font-size:12px;box-sizing:border-box;}
+  td.name input{font-weight:600;}
+  .up{color:var(--up);font-weight:600;}
+  .down{color:var(--down);font-weight:600;}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;}
+  button{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:7px 13px;cursor:pointer;font-size:12px;}
+  button:hover{background:var(--primary-d);}
+  button.ghost{background:#fff;color:var(--primary);border:1px solid var(--primary);}
+  button.ghost:hover{background:#fff7ef;}
+  .pill{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600;}
+  .pill.main{background:#fde8e8;color:var(--up);}
+  .pill.wait{background:#fef3c7;color:#b45309;}
+  .pill.rot{background:#eef2f7;color:var(--sub);}
+  .pill.hot{background:#dc2626;color:#fff;}
+  .score-bar{height:8px;background:#eef2f7;border-radius:5px;overflow:hidden;margin-top:3px;}
+  .score-bar i{display:block;height:100%;background:var(--primary);}
+  .concl{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px;margin-top:16px;}
+  .concl h2{border-left:4px solid var(--primary);padding-left:9px;margin-top:0;}
+  .concl .blk{margin:10px 0;padding:10px 12px;border-radius:8px;}
+  .blk.main{background:#fef2f2;border:1px solid #fbcaca;}
+  .blk.wait{background:#fffbeb;border:1px solid #fde68a;}
+  .blk.hot{background:#fef2f2;border:1px solid #f3b4b4;}
+  .blk.track{background:#f0f7ff;border:1px solid #cfe3ff;}
+  .blk b{color:var(--primary-d);}
+  .kpi{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;}
+  .kpi .box{flex:1;min-width:120px;background:#fafafa;border:1px solid var(--line);border-radius:8px;padding:8px 10px;text-align:center;}
+  .kpi .num{font-size:20px;font-weight:700;color:var(--primary);}
+  .kpi .lbl{font-size:11px;color:var(--sub);}
+  canvas{max-width:100%;}
+  .note{font-size:11px;color:var(--sub);margin-top:6px;}
+  .hidden-print{ }
+  @media print{body{background:#fff;}.toolbar,.note{display:none;}header{box-shadow:none;}.card,.concl{break-inside:avoid;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>板块轮动与主线确定 · 每日报告</h1>
+  <div class="meta">
+    <span>报告日期：<input type="date" id="repDate" value="2026-09-15"></span>
+    <span class="tag">数据来源：通达信</span>
+    <span class="tag" id="modeTag">盘中/收盘后监测</span>
+    <span class="tag">五维打分法 · 满分5分</span>
+  </div>
+</header>
+<div class="disclaimer">
+  ⚠️ 本报告为「板块轮动与主线确定」方法模板：左侧录入当日通达信板块监测数据，右侧自动判定候选主线、过热红线与五维评分。
+  当前预填数据为 <b>2026-09-15（最近完整交易日）示范数据</b>，仅用于演示方法；实时主线请以<b>当日通达信板块指数涨幅排序 ∩ 主力资金净流入排序</b>为准。所有结论不构成投资建议。
+</div>
+
+<div class="toolbar">
+  <button class="ghost" onclick="addRow()">+ 新增板块行</button>
+  <button class="ghost" onclick="loadDemo()">恢复示范数据</button>
+  <button class="ghost" onclick="clearAll()">清空录入</button>
+  <button onclick="window.print()">打印 / 另存PDF</button>
+  <button class="ghost" onclick="exportJSON()">导出数据JSON</button>
+</div>
+
+<div class="grid">
+  <!-- 录入区 -->
+  <div class="card">
+    <h2>① 当日板块监测录入（通达信）</h2>
+    <h3>市场温度</h3>
+    <table id="marketTbl">
+      <tr><th>上涨家数</th><th>下跌家数</th><th>涨停家数</th><th>跌停家数</th><th>成交额(亿)</th><th>量能</th></tr>
+      <tr>
+        <td><input id="mUp" type="number" value="3200"></td>
+        <td><input id="mDn" type="number" value="1900"></td>
+        <td><input id="mZT" type="number" value="110"></td>
+        <td><input id="mDT" type="number" value="12"></td>
+        <td><input id="mAmt" type="number" value="19000"></td>
+        <td>
+          <select id="mVol"><option>增量市</option><option>存量市</option><option>缩量</option></select>
+        </td>
+      </tr>
+    </table>
+    <h3>板块明细（位置分：低位5/中段4/高位2/过热1）</h3>
+    <div style="overflow:auto;max-height:420px;border:1px solid var(--line);border-radius:8px;">
+    <table id="boardTbl">
+      <thead>
+        <tr>
+          <th>板块</th><th>涨幅%</th><th>净流入(亿)</th><th>涨停</th><th>连板</th><th>量比</th>
+          <th>领涨中军</th><th>位置</th><th>上榜天</th><th>催化</th>
+          <th>时间</th><th>资金</th><th>广度</th><th>位置分</th><th>催化分</th>
+        </tr>
+      </thead>
+      <tbody id="boardBody"></tbody>
+    </table>
+    </div>
+    <p class="note">五维各 0–5 分；位置分按「低位启动5 / 趋势中段4 / 高位加速2 / 过热爆量1」填入。催化：政策密集/业绩窗口/事件驱动/无。</p>
+  </div>
+
+  <!-- 分析区 -->
+  <div class="card">
+    <h2>② 自动分析</h2>
+    <div class="kpi" id="kpiBox"></div>
+
+    <h3>涨幅 TOP & 资金 TOP（候选主线 = 双榜交集）</h3>
+    <table id="rankTbl">
+      <thead><tr><th>板块</th><th>涨幅%</th><th>净流入(亿)</th><th>涨停</th><th>标记</th></tr></thead>
+      <tbody id="rankBody"></tbody>
+    </table>
+
+    <h3>情绪热度（过热红线：单日涨停 ≥ 20 家，次日腰斩概率≈66%）</h3>
+    <table id="hotTbl">
+      <thead><tr><th>板块</th><th>涨停家数</th><th>连板高度</th><th>状态</th></tr></thead>
+      <tbody id="hotBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 结论区 -->
+<div class="concl">
+  <h2>③ 今日主线判定结论</h2>
+  <div id="conclBody"></div>
+</div>
+
+</div>
+
+<script>
+const POS_SCORE={'低位启动':5,'趋势中段':4,'高位加速':2,'过热爆量':1};
+const CAT_OPT=['政策密集','业绩窗口','事件驱动','无'];
+const demo=[
+ {n:'商业零售',z:2.4,f:18.6,zt:22,lb:5,vb:2.1,mr:'永辉超市、王府井',pos:'过热爆量',days:3,cat:'政策密集',s:[4,4,5,1,4]},
+ {n:'创新药',z:2.1,f:15.2,zt:21,lb:4,vb:1.9,mr:'药明康德、恒瑞医药',pos:'高位加速',days:2,cat:'事件驱动',s:[3,4,4,2,4]},
+ {n:'军工',z:1.88,f:9.8,zt:8,lb:2,vb:1.4,mr:'中航沈飞',pos:'趋势中段',days:2,cat:'事件驱动',s:[3,3,3,4,3]},
+ {n:'金融',z:1.76,f:12.3,zt:6,lb:1,vb:1.3,mr:'东方财富、中信证券',pos:'低位启动',days:1,cat:'政策密集',s:[2,4,3,5,4]},
+ {n:'低空经济',z:1.63,f:7.5,zt:7,lb:2,vb:1.5,mr:'万丰奥威',pos:'趋势中段',days:3,cat:'政策密集',s:[4,3,3,4,4]},
+ {n:'人工智能',z:1.26,f:6.1,zt:9,lb:2,vb:1.3,mr:'中科曙光',pos:'趋势中段',days:4,cat:'事件驱动',s:[4,3,4,4,3]},
+ {n:'医药生物',z:1.03,f:4.2,zt:5,lb:1,vb:1.2,mr:'迈瑞医疗',pos:'低位启动',days:1,cat:'无',s:[2,2,2,5,2]},
+];
+
+function rowHTML(d){
+  d=d||{n:'',z:'',f:'',zt:'',lb:'',vb:'',mr:'',pos:'趋势中段',days:'',cat:'无',s:[3,3,3,4,3]};
+  return `<tr>
+   <td class="name"><input value="${d.n}" oninput="recalc()"></td>
+   <td><input class="z" type="number" step="0.01" value="${d.z}" oninput="recalc()"></td>
+   <td><input class="f" type="number" step="0.1" value="${d.f}" oninput="recalc()"></td>
+   <td><input class="zt" type="number" value="${d.zt}" oninput="recalc()"></td>
+   <td><input class="lb" type="number" value="${d.lb}" oninput="recalc()"></td>
+   <td><input class="vb" type="number" step="0.1" value="${d.vb}" oninput="recalc()"></td>
+   <td><input class="mr" value="${d.mr}" oninput="recalc()"></td>
+   <td><select class="pos" onchange="recalc()">${['低位启动','趋势中段','高位加速','过热爆量'].map(p=>`<option ${p==d.pos?'selected':''}>${p}</option>`).join('')}</select></td>
+   <td><input class="days" type="number" value="${d.days}" oninput="recalc()"></td>
+   <td><select class="cat" onchange="recalc()">${CAT_OPT.map(c=>`<option ${c==d.cat?'selected':''}>${c}</option>`).join('')}</select></td>
+   <td><select class="s0" onchange="recalc()">${opt(d.s[0])}</td>
+   <td><select class="s1" onchange="recalc()">${opt(d.s[1])}</td>
+   <td><select class="s2" onchange="recalc()">${opt(d.s[2])}</td>
+   <td><select class="s3" onchange="recalc()">${opt(d.s[3])}</td>
+   <td><select class="s4" onchange="recalc()">${opt(d.s[4])}</td>
+  </tr>`;
+}
+function opt(v){let s='';for(let i=0;i<=5;i++)s+=`<option ${i==v?'selected':''}>${i}</option>`;return s;}
+
+function setPos(sel){const tr=sel.closest('tr');tr.querySelector('.s3').value=POS_SCORE[sel.value];}
+function addRow(){document.getElementById('boardBody').insertAdjacentHTML('beforeend',rowHTML());}
+async function loadDemo(){
+  // 先渲染内置示范（file:// 或离线时可用）
+  document.getElementById('boardBody').innerHTML=demo.map(rowHTML).join('');recalc();
+  // 再尝试加载当日数据（HTTP 服务下由自动任务刷新 sector-rotation-data.json）
+  try{
+    const r=await fetch('sector-rotation-data.json',{cache:'no-store'});
+    if(r.ok){const d=await r.json();if(Array.isArray(d)&&d.length){document.getElementById('boardBody').innerHTML=d.map(rowHTML).join('');recalc();}}
+  }catch(e){}
+}
+function clearAll(){document.getElementById('boardBody').innerHTML='';recalc();}
+
+function getData(){
+  const rows=[...document.querySelectorAll('#boardBody tr')];
+  return rows.map(tr=>{
+    const g=c=>tr.querySelector(c).value;
+    return {n:g('.name input'),z:+g('.z'),f:+g('.f'),zt:+g('.zt')||0,lb:+g('.lb')||0,
+      vb:+g('.vb')||0,mr:g('.mr'),pos:g('.pos'),days:+g('.days')||0,cat:g('.cat'),
+      s:[+g('.s0'),+g('.s1'),+g('.s2'),+g('.s3'),+g('.s4')]};
+  }).filter(r=>r.n.trim());
+}
+
+function recalc(){
+  const data=getData();
+  // KPI
+  const mUp=+document.getElementById('mUp').value, mDn=+document.getElementById('mDn').value;
+  const mZT=+document.getElementById('mZT').value, mDT=+document.getElementById('mDT').value;
+  const mAmt=+document.getElementById('mAmt').value, mVol=document.getElementById('mVol').value;
+  const hot=data.filter(r=>r.zt>=20);
+  const cand=data.filter(r=>r.z>0&&r.f>0).length;
+  document.getElementById('kpiBox').innerHTML=`
+    <div class="box"><div class="num">${mUp>mDn?'涨':'跌'}</div><div class="lbl">涨跌比 ${mUp}:${mDn}</div></div>
+    <div class="box"><div class="num">${mZT}</div><div class="lbl">涨停 / 跌停 ${mDT}</div></div>
+    <div class="box"><div class="num">${(mAmt/10000).toFixed(2)}</div><div class="lbl">成交额(万亿) · ${mVol}</div></div>
+    <div class="box"><div class="num" style="color:${hot.length?'var(--warn)':'var(--ok)'}">${hot.length}</div><div class="lbl">过热板块(涨停≥20)</div></div>
+    <div class="box"><div class="num">${cand}</div><div class="lbl">候选主线(双榜正向)</div></div>`;
+
+  // 排名
+  const byZ=[...data].sort((a,b)=>b.z-a.z);
+  const byF=[...data].sort((a,b)=>b.f-a.f);
+  const zTop=new Set(byZ.slice(0,5).map(r=>r.n));
+  const fTop=new Set(byF.slice(0,5).map(r=>r.n));
+  document.getElementById('rankBody').innerHTML=data.sort((a,b)=>b.z-a.z).map(r=>{
+    const both=zTop.has(r.n)&&fTop.has(r.n);
+    return `<tr><td class="name">${r.n}</td>
+      <td class="${r.z>=0?'up':'down'}">${r.z}</td>
+      <td class="${r.f>=0?'up':'down'}">${r.f}</td>
+      <td>${r.zt||'-'}</td>
+      <td>${both?'<span class="pill main">双榜交集·候选主线</span>':(zTop.has(r.n)?'涨幅TOP5':(fTop.has(r.n)?'资金TOP5':'-'))}</td></tr>`;
+  }).join('');
+
+  // 热度
+  document.getElementById('hotBody').innerHTML=[...data].sort((a,b)=>b.zt-a.zt).map(r=>{
+    let st='正常';
+    if(r.zt>=20) st='<span class="pill hot">过热·腰斩风险≈66%</span>';
+    else if(r.zt>=10) st='<span class="pill wait">偏热</span>';
+    return `<tr><td class="name">${r.n}</td><td>${r.zt}</td><td>${r.lb}</td><td>${st}</td></tr>`;
+  }).join('');
+
+  // 五维评分 + 判定
+  data.forEach(r=>{r.score=(r.s[0]+r.s[1]+r.s[2]+r.s[3]+r.s[4])/5;});
+  const judged=[...data].sort((a,b)=>b.score-a.score);
+
+  // 结论
+  const main=judged.filter(r=>r.score>=3.5);
+  const wait=judged.filter(r=>r.score>=2.5&&r.score<3.5);
+  const mainTxt=main.length?main.map(r=>`<b>${r.n}</b>（${r.score.toFixed(2)}分，位置：${r.pos}，催化：${r.cat}）`).join('、'):'暂无（五维均分≥3.5方为真主线）';
+  const waitTxt=wait.length?wait.map(r=>`${r.n}（${r.score.toFixed(2)}分）`).join('、'):'无';
+  const hotTxt=hot.length?hot.map(r=>`<b>${r.n}</b>（涨停${r.zt}家，已触发过热红线，次日家数腰斩概率≈66%，追高性价比下降）`).join('；'):'无';
+  const track=judged.slice(0,3).map(r=>`跟踪 <b>${r.n}</b>：次日是否「缩量换手继续晋级」还是「家数腰斩退潮」；中军是否放量确认机构态度`).join('。');
+  document.getElementById('conclBody').innerHTML=`
+    <div class="blk main"><b>★ 今日主线（五维≥3.5）：</b><br>${mainTxt}</div>
+    <div class="blk wait"><b>◐ 待验证（2.5–3.49）：</b><br>${waitTxt}</div>
+    <div class="blk hot"><b>🔥 过热警示（涨停≥20家）：</b><br>${hotTxt}</div>
+    <div class="blk track"><b>📌 明日跟踪要点：</b><br>${track||'——'}</div>
+    <p class="note">判定规则：时间持续性+资金质量+广度扩散+位置过热(低位/中段优，高位/过热脆)+催化环境，五维均分≥3.5为真主线；同时以「涨幅榜∩资金榜」交集确认候选，涨停≥20家触发过热红线。真正的持续性主线往往在"怀疑它能否继续"时走出来——要跟踪，不预判。</p>`;
+}
+
+
+
+function exportJSON(){
+  const data=getData();
+  const obj={date:document.getElementById('repDate').value,source:'通达信',
+    market:{up:document.getElementById('mUp').value,dn:document.getElementById('mDn').value,
+      zt:document.getElementById('mZT').value,dt:document.getElementById('mDT').value,
+      amt:document.getElementById('mAmt').value,vol:document.getElementById('mVol').value},
+    boards:data};
+  const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`板块轮动日报_${obj.date}.json`;a.click();
+}
+
+// init
+loadDemo();
+</script>
+</body>
+</html>
