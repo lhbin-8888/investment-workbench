@@ -32,7 +32,12 @@
   .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
   .card h2{margin:0 0 12px;font-size:15px;border-left:4px solid var(--primary);padding-left:9px;}
   .card h3{margin:14px 0 8px;font-size:13px;color:var(--sub);}
-  .table-wrap{overflow:auto;max-height:420px;border:1px solid var(--line);border-radius:8px;}
+  .table-wrap{overflow-x:auto;overflow-y:auto;max-height:420px;border:1px solid var(--line);border-radius:8px 8px 0 0;border-bottom:2px solid var(--line);}
+  .table-wrap::-webkit-scrollbar{height:10px;width:10px;}
+  .table-wrap::-webkit-scrollbar-track{background:#f1f1f1;border-radius:0;}
+  .table-wrap::-webkit-scrollbar-thumb{background:#c1c1c1;border-radius:5px;}
+  .table-wrap::-webkit-scrollbar-thumb:hover{background:#a8a8a8;}
+  .table-wrap::-webkit-scrollbar-corner{background:transparent;}
   table{border-collapse:collapse;font-size:11px;width:100%;min-width:1180px;}
   /* 自动分析表格不拉伸，板块列保持自然宽度，避免与录入表对齐后过宽 */
   #rankTbl,#hotTbl{width:auto;min-width:0;max-width:760px;}
