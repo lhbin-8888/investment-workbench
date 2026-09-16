@@ -34,15 +34,25 @@
   .card h2{margin:0 0 12px;font-size:15px;border-left:4px solid var(--primary);padding-left:9px;}
   .card h3{margin:14px 0 8px;font-size:13px;color:var(--sub);}
   .table-wrap{overflow:auto;max-height:420px;border:1px solid var(--line);border-radius:8px;}
-  table{border-collapse:collapse;font-size:11px;width:100%;min-width:1150px;}
-  th,td{border:1px solid var(--line);padding:4px 5px;text-align:center;white-space:nowrap;}
+  table{border-collapse:collapse;font-size:11px;width:100%;min-width:1180px;}
+  th,td{border:1px solid var(--line);padding:4px 4px;text-align:center;white-space:nowrap;}
   th{background:#fafafa;font-weight:600;color:#374151;position:sticky;top:0;}
-  td.name{min-width:76px;}
-  td.mr{min-width:120px;}
-  td.sc,th.sc{min-width:54px;background:#fffbf6;}
-  td input,td select{border:1px solid #d1d5db;border-radius:4px;padding:2px 3px;width:100%;font-size:11px;box-sizing:border-box;}
-  td .score-select{width:46px;text-align:center;padding-right:10px;}
+  td.name,th:nth-child(1){min-width:74px;}
+  td:nth-child(2),th:nth-child(2){width:52px;}
+  td:nth-child(3),th:nth-child(3){width:66px;}
+  td:nth-child(4),th:nth-child(4){width:44px;}
+  td:nth-child(5),th:nth-child(5){width:44px;}
+  td:nth-child(6),th:nth-child(6){width:46px;}
+  td.mr,th:nth-child(7){min-width:120px;}
+  td:nth-child(8),th:nth-child(8){min-width:90px;}
+  td:nth-child(9),th:nth-child(9){width:54px;}
+  td:nth-child(10),th:nth-child(10){min-width:90px;}
+  td.sc,th.sc{min-width:50px;background:#fffbf6;}
+  td.total,th.total{min-width:60px;background:#fff7ef;font-weight:700;}
+  td input,td select{border:1px solid #d1d5db;border-radius:4px;padding:2px 2px;width:100%;font-size:11px;box-sizing:border-box;}
+  td .score-select{width:42px;text-align:center;padding-right:8px;}
   td.name input{font-weight:600;}
+  .tot{color:var(--primary-d);font-weight:700;}
   .up{color:var(--up);font-weight:600;}
   .down{color:var(--down);font-weight:600;}
   .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;}
@@ -126,13 +136,13 @@
         <tr>
           <th>板块</th><th>涨幅%</th><th>净流入(亿)</th><th>涨停</th><th>连板</th><th>量比</th>
           <th>领涨中军</th><th>位置</th><th>上榜天</th><th>催化</th>
-          <th class="sc">时间</th><th class="sc">资金</th><th class="sc">广度</th><th class="sc">位置分</th><th class="sc">催化分</th>
+          <th class="sc">时间</th><th class="sc">资金</th><th class="sc">广度</th><th class="sc">位置分</th><th class="sc">催化分</th><th class="total">合计</th>
         </tr>
       </thead>
       <tbody id="boardBody"></tbody>
     </table>
     </div>
-    <p class="note">五维各 0–5 分；位置分按「低位启动5 / 趋势中段4 / 高位加速2 / 过热爆量1」填入。催化：政策密集/业绩窗口/事件驱动/无。</p>
+    <p class="note">五维各 0–5 分；位置分按「低位启动5 / 趋势中段4 / 高位加速2 / 过热爆量1」填入。催化：政策密集/业绩窗口/事件驱动/无。最右侧「合计」为五维均分，≥3.5 为真主线。</p>
   </div>
 
   <!-- 分析区 -->
@@ -193,6 +203,7 @@ function rowHTML(d){
    <td class="sc"><select class="s2 score-select" onchange="recalc()">${opt(d.s[2])}</td>
    <td class="sc"><select class="s3 score-select" onchange="recalc()">${opt(d.s[3])}</td>
    <td class="sc"><select class="s4 score-select" onchange="recalc()">${opt(d.s[4])}</td>
+   <td class="total"><span class="tot">${((d.s[0]+d.s[1]+d.s[2]+d.s[3]+d.s[4])/5).toFixed(2)}</span></td>
   </tr>`;
 }
 function opt(v){let s='';for(let i=0;i<=5;i++)s+=`<option ${i==v?'selected':''}>${i}</option>`;return s;}
@@ -259,6 +270,13 @@ function recalc(){
 
   // 五维评分 + 判定
   data.forEach(r=>{r.score=(r.s[0]+r.s[1]+r.s[2]+r.s[3]+r.s[4])/5;});
+
+  // 更新合计分列
+  [...document.querySelectorAll('#boardBody tr')].forEach(tr=>{
+    const s=[+tr.querySelector('.s0').value,+tr.querySelector('.s1').value,+tr.querySelector('.s2').value,+tr.querySelector('.s3').value,+tr.querySelector('.s4').value];
+    tr.querySelector('.tot').textContent=((s[0]+s[1]+s[2]+s[3]+s[4])/5).toFixed(2);
+  });
+
   const judged=[...data].sort((a,b)=>b.score-a.score);
 
   // 结论
