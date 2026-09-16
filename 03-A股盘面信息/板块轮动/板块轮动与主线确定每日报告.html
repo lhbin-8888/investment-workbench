@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>板块轮动与主线确定 · 每日报告</title>
+<title>板块轮动与主线确定 · 每日报告 (2026-09-16)</title>
 <style>
   :root{
-    --primary:#ED7D31;      /* 橙商务主色 */
+    --primary:#ED7D31;
     --primary-d:#c9641f;
-    --up:#e23b3b;           /* 涨=红 */
-    --down:#16a34a;         /* 跌=绿 */
+    --up:#e23b3b;
+    --down:#16a34a;
     --bg:#f5f6f8;
     --card:#ffffff;
     --line:#e4e7ec;
@@ -32,14 +32,13 @@
   .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
   .card h2{margin:0 0 12px;font-size:15px;border-left:4px solid var(--primary);padding-left:9px;}
   .card h3{margin:14px 0 8px;font-size:13px;color:var(--sub);}
-  .table-wrap{overflow-x:auto;overflow-y:auto;max-height:420px;border:1px solid var(--line);border-radius:8px 8px 0 0;border-bottom:2px solid var(--line);}
+  .table-wrap{overflow-x:auto;overflow-y:auto;max-height:460px;border:1px solid var(--line);border-radius:8px 8px 0 0;border-bottom:2px solid var(--line);}
   .table-wrap::-webkit-scrollbar{height:10px;width:10px;}
   .table-wrap::-webkit-scrollbar-track{background:#f1f1f1;border-radius:0;}
   .table-wrap::-webkit-scrollbar-thumb{background:#c1c1c1;border-radius:5px;}
   .table-wrap::-webkit-scrollbar-thumb:hover{background:#a8a8a8;}
   .table-wrap::-webkit-scrollbar-corner{background:transparent;}
   table{border-collapse:collapse;font-size:11px;width:100%;min-width:1180px;}
-  /* 自动分析表格不拉伸，板块列保持自然宽度，避免与录入表对齐后过宽 */
   #rankTbl,#hotTbl{width:auto;min-width:0;max-width:760px;}
   #rankTbl td.name,#hotTbl td.name{min-width:120px;text-align:left;}
   th,td{border:1px solid var(--line);padding:4px 4px;text-align:center;white-space:nowrap;}
@@ -89,8 +88,8 @@
   .kpi .lbl{font-size:11px;color:var(--sub);margin-bottom:4px;}
   canvas{max-width:100%;}
   .note{font-size:11px;color:var(--sub);margin-top:6px;}
-  .hidden-print{ }
-  @media print{body{background:#fff;}.toolbar,.note{display:none;}header{box-shadow:none;}.card,.concl{break-inside:avoid;}}
+  .idx{font-size:11px;color:var(--sub);margin-top:8px;background:#f8fafc;border:1px dashed var(--line);border-radius:6px;padding:7px 11px;}
+  @media print{body{background:#fff;}.toolbar,.note,.idx{display:none;}header{box-shadow:none;}.card,.concl{break-inside:avoid;}}
 </style>
 </head>
 <body>
@@ -99,20 +98,27 @@
 <header>
   <h1>板块轮动与主线确定 · 每日报告</h1>
   <div class="meta">
-    <span>报告日期：<input type="date" id="repDate" value="2026-09-15"></span>
-    <span class="tag">数据来源：通达信</span>
-    <span class="tag" id="modeTag">盘中/收盘后监测</span>
+    <span>报告日期：<input type="date" id="repDate" value="2026-09-16"></span>
+    <span class="tag">数据来源：东方财富板块行情(push2)</span>
+    <span class="tag" id="modeTag">收盘后监测 · 2026-09-16</span>
     <span class="tag">五维打分法 · 满分5分</span>
   </div>
 </header>
 <div class="disclaimer">
-  ⚠️ 本报告为「板块轮动与主线确定」方法模板：左侧录入当日通达信板块监测数据，右侧自动判定候选主线、过热红线与五维评分。
-  当前预填数据为 <b>2026-09-15（最近完整交易日）示范数据</b>，仅用于演示方法；实时主线请以<b>当日通达信板块指数涨幅排序 ∩ 主力资金净流入排序</b>为准。所有结论不构成投资建议。
+  ⚠️ 本报告由「板块轮动与主线确定每日报告」自动任务生成。<b>数据来源说明：</b>通达信 MCP 连接器当前未连接，本环境改用
+  <b>东方财富板块行情公开接口（push2）</b>经 <b>ths-advanced-analysis</b> 技能取数（板块涨幅、主力净流入、量比、涨停池、连板高度均为真实收盘数据，2026-09-16）。
+  涨停家数(89)、最高连板(6)、各板块主力净流入/量比均来自东财真实行情；<b>连续上榜天数(days)为基于主题的持续性估计值</b>——本自动化尚未接入历史序列，
+  故「时间持续性」维度分数需多日累计后方可严格校正。实时主线请以当日通达信/东财板块指数排序为准。<b>所有结论不构成投资建议。</b>
+</div>
+
+<div class="idx">
+  📊 主要指数收盘（东财行情）：上证指数 <b>3891.60</b> ｜ 深证成指 <b>13454.74</b> ｜ 创业板指 <b>3311.47</b> ｜ 科创50 <b>1616.19</b>。
+  全市场涨停 <b>89</b> 家，最高连板 <b>6 板</b>（闽东电力·电力）。连板高度标杆：电力（闽东电力 6 板）虽非广度主线（板块涨幅未进前 100、资金未进前 15），但为今日连板高度王，列入情绪温度计观察。
 </div>
 
 <div class="toolbar">
   <button class="ghost" onclick="addRow()">+ 新增板块行</button>
-  <button class="ghost" onclick="loadDemo()">恢复示范数据</button>
+  <button class="ghost" onclick="loadSeed()">恢复今日数据</button>
   <button class="ghost" onclick="clearAll()">清空录入</button>
   <button onclick="window.print()">打印 / 另存PDF</button>
   <button class="ghost" onclick="exportJSON()">导出数据JSON</button>
@@ -121,21 +127,23 @@
 <div class="grid">
   <!-- 录入区 -->
   <div class="card">
-    <h2>① 当日板块监测录入（通达信）</h2>
+    <h2>① 当日板块监测录入（东方财富 · 已预填 2026-09-16 真实数据）</h2>
     <h3>市场温度</h3>
     <table id="marketTbl">
-      <tr><th>上涨家数</th><th>下跌家数</th><th>涨停家数</th><th>跌停家数</th><th>成交额(亿)</th><th>量能</th></tr>
+      <tr><th>上涨家数</th><th>下跌家数</th><th>涨停家数</th><th>跌停家数</th><th>成交额(亿)</th><th>量能</th><th>连板高度</th></tr>
       <tr>
-        <td><input id="mUp" type="number" value="3200"></td>
-        <td><input id="mDn" type="number" value="1900"></td>
-        <td><input id="mZT" type="number" value="110"></td>
-        <td><input id="mDT" type="number" value="12"></td>
-        <td><input id="mAmt" type="number" value="19000"></td>
+        <td><input id="mUp" type="number" placeholder="未抓取" value=""></td>
+        <td><input id="mDn" type="number" placeholder="未抓取" value=""></td>
+        <td><input id="mZT" type="number" value="89"></td>
+        <td><input id="mDT" type="number" placeholder="未抓取" value=""></td>
+        <td><input id="mAmt" type="number" placeholder="未抓取" value=""></td>
         <td>
           <select id="mVol"><option>增量市</option><option>存量市</option><option>缩量</option></select>
         </td>
+        <td><input id="mLB" type="number" value="6"></td>
       </tr>
     </table>
+    <p class="note">全景涨跌家数 / 总成交额本环境未抓取（tdx MCP 未连接，东财 clist 接口对全市场个股有 100 行上限）。涨停 89、连板高度 6 为真实值。</p>
     <h3>板块明细（位置分：低位5/中段4/高位2/过热1）</h3>
     <div class="table-wrap">
     <table id="boardTbl">
@@ -163,7 +171,7 @@
       <tbody id="rankBody"></tbody>
     </table>
 
-    <h3>情绪热度（过热红线：单日涨停 ≥ 20 家，次日腰斩概率≈66%）</h3>
+    <h3>情绪热度（过热红线：单板块涨停 ≥ 20 家，次日腰斩概率≈66%）</h3>
     <table id="hotTbl">
       <thead><tr><th>板块</th><th>涨停家数</th><th>连板高度</th><th>状态</th></tr></thead>
       <tbody id="hotBody"></tbody>
@@ -182,14 +190,17 @@
 <script>
 const POS_SCORE={'低位启动':5,'趋势中段':4,'高位加速':2,'过热爆量':1};
 const CAT_OPT=['政策密集','业绩窗口','事件驱动','无'];
-const demo=[
- {n:'商业零售',z:2.4,f:18.6,zt:22,lb:5,vb:2.1,mr:'永辉超市、王府井',pos:'过热爆量',days:3,cat:'政策密集',s:[4,4,5,1,4]},
- {n:'创新药',z:2.1,f:15.2,zt:21,lb:4,vb:1.9,mr:'药明康德、恒瑞医药',pos:'高位加速',days:2,cat:'事件驱动',s:[3,4,4,2,4]},
- {n:'军工',z:1.88,f:9.8,zt:8,lb:2,vb:1.4,mr:'中航沈飞',pos:'趋势中段',days:2,cat:'事件驱动',s:[3,3,3,4,3]},
- {n:'金融',z:1.76,f:12.3,zt:6,lb:1,vb:1.3,mr:'东方财富、中信证券',pos:'低位启动',days:1,cat:'政策密集',s:[2,4,3,5,4]},
- {n:'低空经济',z:1.63,f:7.5,zt:7,lb:2,vb:1.5,mr:'万丰奥威',pos:'趋势中段',days:3,cat:'政策密集',s:[4,3,3,4,4]},
- {n:'人工智能',z:1.26,f:6.1,zt:9,lb:2,vb:1.3,mr:'中科曙光',pos:'趋势中段',days:4,cat:'事件驱动',s:[4,3,4,4,3]},
- {n:'医药生物',z:1.03,f:4.2,zt:5,lb:1,vb:1.2,mr:'迈瑞医疗',pos:'低位启动',days:1,cat:'无',s:[2,2,2,5,2]},
+// 2026-09-16 真实收盘数据（东方财富 push2，经 ths-advanced-analysis 取数）
+const seed=[
+ {n:'通信设备',z:3.2,f:106.34,zt:6,lb:2,vb:1.08,mr:'光迅科技、中瓷电子',pos:'趋势中段',days:3,cat:'事件驱动',s:[4,5,5,4,4]},
+ {n:'半导体',z:4.82,f:136.51,zt:5,lb:2,vb:1.44,mr:'中微公司、中芯国际',pos:'高位加速',days:4,cat:'政策密集',s:[4,5,5,2,5]},
+ {n:'半导体材料',z:6.14,f:39.36,zt:3,lb:1,vb:1.78,mr:'有研新材、鼎龙股份',pos:'趋势中段',days:3,cat:'政策密集',s:[4,4,4,4,5]},
+ {n:'半导体设备',z:5.03,f:38.91,zt:2,lb:1,vb:1.53,mr:'中微公司、北方华创',pos:'趋势中段',days:4,cat:'政策密集',s:[4,4,4,4,5]},
+ {n:'元件',z:3.17,f:24.93,zt:4,lb:4,vb:1.0,mr:'沪电股份、深南电路',pos:'趋势中段',days:2,cat:'事件驱动',s:[3,3,4,4,4]},
+ {n:'电子化学品',z:4.06,f:26.16,zt:1,lb:2,vb:1.41,mr:'西陇科学、光华科技',pos:'低位启动',days:1,cat:'事件驱动',s:[2,4,3,5,4]},
+ {n:'消费电子',z:2.54,f:14.47,zt:3,lb:1,vb:0.99,mr:'立讯精密、歌尔股份',pos:'低位启动',days:1,cat:'事件驱动',s:[2,3,3,5,4]},
+ {n:'贵金属',z:3.83,f:9.14,zt:0,lb:1,vb:0.94,mr:'山东黄金、赤峰黄金',pos:'低位启动',days:1,cat:'事件驱动',s:[2,3,1,5,4]},
+ {n:'化学制品',z:2.01,f:0.59,zt:5,lb:1,vb:1.03,mr:'中化国际、新亚强',pos:'低位启动',days:1,cat:'无',s:[2,2,3,5,2]}
 ];
 
 function rowHTML(d){
@@ -215,11 +226,10 @@ function rowHTML(d){
 }
 function opt(v){let s='';for(let i=0;i<=5;i++)s+=`<option ${i==v?'selected':''}>${i}</option>`;return s;}
 
-function setPos(sel){const tr=sel.closest('tr');tr.querySelector('.s3').value=POS_SCORE[sel.value];}
 function addRow(){document.getElementById('boardBody').insertAdjacentHTML('beforeend',rowHTML());}
-async function loadDemo(){
-  // 先渲染内置示范（file:// 或离线时可用）
-  document.getElementById('boardBody').innerHTML=demo.map(rowHTML).join('');recalc();
+async function loadSeed(){
+  // 先渲染今日真实数据（离线 file:// 也可用）
+  document.getElementById('boardBody').innerHTML=seed.map(rowHTML).join('');recalc();
   // 再尝试加载当日数据（HTTP 服务下由自动任务刷新 sector-rotation-data.json）
   try{
     const r=await fetch('sector-rotation-data.json',{cache:'no-store'});
@@ -240,20 +250,17 @@ function getData(){
 
 function recalc(){
   const data=getData();
-  // KPI
-  const mUp=+document.getElementById('mUp').value, mDn=+document.getElementById('mDn').value;
-  const mZT=+document.getElementById('mZT').value, mDT=+document.getElementById('mDT').value;
-  const mAmt=+document.getElementById('mAmt').value, mVol=document.getElementById('mVol').value;
+  const mZT=document.getElementById('mZT').value, mDT=document.getElementById('mDT').value;
+  const mLB=document.getElementById('mLB').value;
   const hot=data.filter(r=>r.zt>=20);
   const cand=data.filter(r=>r.z>0&&r.f>0).length;
   document.getElementById('kpiBox').innerHTML=`
-    <div class="box"><div class="lbl">涨跌比</div><div class="num">${mUp}:${mDn}</div></div>
-    <div class="box"><div class="lbl">涨停 / 跌停</div><div class="num">${mZT}<span class="sep">/</span>${mDT}</div></div>
-    <div class="box"><div class="lbl">成交额(万亿) · ${mVol}</div><div class="num">${(mAmt/10000).toFixed(2)}</div></div>
+    <div class="box"><div class="lbl">涨停家数(真实)</div><div class="num">${mZT||'—'}</div></div>
+    <div class="box"><div class="lbl">连板高度(真实)</div><div class="num">${mLB||'—'}</div></div>
+    <div class="box"><div class="lbl">跌停家数</div><div class="num">${mDT||'—'}</div></div>
     <div class="box"><div class="lbl">过热板块(涨停≥20)</div><div class="num" style="color:${hot.length?'var(--warn)':'var(--ok)'}">${hot.length}</div></div>
-    <div class="box"><div class="lbl">候选主线(双榜正向)</div><div class="num">${cand}</div></div>`;
+    <div class="box"><div class="lbl">候选主线(五维≥3.5)</div><div class="num">${data.filter(r=>(r.s[0]+r.s[1]+r.s[2]+r.s[3]+r.s[4])/5>=3.5).length}</div></div>`;
 
-  // 排名
   const byZ=[...data].sort((a,b)=>b.z-a.z);
   const byF=[...data].sort((a,b)=>b.f-a.f);
   const zTop=new Set(byZ.slice(0,5).map(r=>r.n));
@@ -267,7 +274,6 @@ function recalc(){
       <td>${both?'<span class="pill main">双榜交集·候选主线</span>':(zTop.has(r.n)?'涨幅TOP5':(fTop.has(r.n)?'资金TOP5':'-'))}</td></tr>`;
   }).join('');
 
-  // 热度
   document.getElementById('hotBody').innerHTML=[...data].sort((a,b)=>b.zt-a.zt).map(r=>{
     let st='正常';
     if(r.zt>=20) st='<span class="pill hot">过热·腰斩风险≈66%</span>';
@@ -275,40 +281,33 @@ function recalc(){
     return `<tr><td class="name">${r.n}</td><td>${r.zt}</td><td>${r.lb}</td><td>${st}</td></tr>`;
   }).join('');
 
-  // 五维评分 + 判定
   data.forEach(r=>{r.score=(r.s[0]+r.s[1]+r.s[2]+r.s[3]+r.s[4])/5;});
 
-  // 更新合计分列
   [...document.querySelectorAll('#boardBody tr')].forEach(tr=>{
     const s=[+tr.querySelector('.s0').value,+tr.querySelector('.s1').value,+tr.querySelector('.s2').value,+tr.querySelector('.s3').value,+tr.querySelector('.s4').value];
     tr.querySelector('.tot').textContent=((s[0]+s[1]+s[2]+s[3]+s[4])/5).toFixed(2);
   });
 
   const judged=[...data].sort((a,b)=>b.score-a.score);
-
-  // 结论
   const main=judged.filter(r=>r.score>=3.5);
   const wait=judged.filter(r=>r.score>=2.5&&r.score<3.5);
   const mainTxt=main.length?main.map(r=>`<b>${r.n}</b>（${r.score.toFixed(2)}分，位置：${r.pos}，催化：${r.cat}）`).join('、'):'暂无（五维均分≥3.5方为真主线）';
   const waitTxt=wait.length?wait.map(r=>`${r.n}（${r.score.toFixed(2)}分）`).join('、'):'无';
-  const hotTxt=hot.length?hot.map(r=>`<b>${r.n}</b>（涨停${r.zt}家，已触发过热红线，次日家数腰斩概率≈66%，追高性价比下降）`).join('；'):'无';
+  const hotTxt=hot.length?hot.map(r=>`<b>${r.n}</b>（涨停${r.zt}家，已触发过热红线，次日家数腰斩概率≈66%，追高性价比下降）`).join('；'):'无（今日无单板块涨停≥20家，主线未到过热红线）';
   const track=judged.slice(0,3).map(r=>`跟踪 <b>${r.n}</b>：次日是否「缩量换手继续晋级」还是「家数腰斩退潮」；中军是否放量确认机构态度`).join('。');
   document.getElementById('conclBody').innerHTML=`
-    <div class="blk main"><b>★ 今日主线（五维≥3.5）：</b><br>${mainTxt}</div>
-    <div class="blk wait"><b>◐ 待验证（2.5–3.49）：</b><br>${waitTxt}</div>
+    <div class="blk main"><b>★ 今日主线（五维≥3.5，共 ${main.length} 条）：</b><br>${mainTxt}</div>
+    <div class="blk wait"><b>◐ 待验证（2.5–3.49，共 ${wait.length} 条）：</b><br>${waitTxt}</div>
     <div class="blk hot"><b>🔥 过热警示（涨停≥20家）：</b><br>${hotTxt}</div>
     <div class="blk track"><b>📌 明日跟踪要点：</b><br>${track||'——'}</div>
-    <p class="note">判定规则：时间持续性+资金质量+广度扩散+位置过热(低位/中段优，高位/过热脆)+催化环境，五维均分≥3.5为真主线；同时以「涨幅榜∩资金榜」交集确认候选，涨停≥20家触发过热红线。真正的持续性主线往往在"怀疑它能否继续"时走出来——要跟踪，不预判。</p>`;
+    <p class="note">判定规则：时间持续性+资金质量+广度扩散+位置过热(低位/中段优，高位/过热脆)+催化环境，五维均分≥3.5为真主线；同时以「涨幅榜∩资金榜」交集确认候选，涨停≥20家触发过热红线。今日市场为<b>科技自主可控 / AI硬件日</b>：半导体全产业链（材料+6.14%、设备+5.03%、一级半导体+4.82%、电子一级主力净流入 227 亿居首）+ 通信设备（光模块/算力网络，涨停 6 家为全市场最广）双主线共振。真正的持续性主线往往在"怀疑它能否继续"时走出来——要跟踪，不预判。</p>`;
 }
-
-
 
 function exportJSON(){
   const data=getData();
-  const obj={date:document.getElementById('repDate').value,source:'通达信',
-    market:{up:document.getElementById('mUp').value,dn:document.getElementById('mDn').value,
-      zt:document.getElementById('mZT').value,dt:document.getElementById('mDT').value,
-      amt:document.getElementById('mAmt').value,vol:document.getElementById('mVol').value},
+  const obj={date:document.getElementById('repDate').value,source:'东方财富push2(ths-advanced-analysis)',
+    market:{zt:document.getElementById('mZT').value,dt:document.getElementById('mDT').value,
+      lb:document.getElementById('mLB').value,vol:document.getElementById('mVol').value},
     boards:data};
   const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
@@ -316,7 +315,7 @@ function exportJSON(){
 }
 
 // init
-loadDemo();
+loadSeed();
 </script>
 </body>
 </html>
