@@ -55,15 +55,14 @@ const TM = eval('(' + extractVar(html, 'TM') + ')');
 
 /* ---------------- 2. 模块与图标映射 ---------------- */
 
-// 7 大模块 → 小程序页面路由
+// 6 大模块 → 小程序页面路由
 const MODULES = [
   { id: '01-投研信息收集', name: '投研信息收集', icon: '📡', page: '/pages/research/research' },
   { id: '02-资本市场信息', name: '资本市场信息', icon: '🌐', page: '/pages/research/research' },
   { id: '03-A股盘面信息', name: 'A股盘面信息', icon: '📈', page: '/pages/market/market' },
   { id: '04-投资复盘', name: '投资复盘', icon: '📝', page: '/pages/review/review' },
   { id: '05-行业与个股分析', name: '行业与个股分析', icon: '🔍', page: '/pages/analysis/analysis' },
-  { id: '06-投资策略分析', name: '投资策略分析', icon: '🧠', page: '/pages/strategy/strategy' },
-  { id: '07-工具与模板', name: '工具与模板', icon: '🛠️', page: '/pages/templates/templates' }
+  { id: '06-投资策略分析', name: '投资策略分析', icon: '🧠', page: '/pages/strategy/strategy' }
 ];
 
 // 子模块 emoji（网页端用 SVG，小程序无 SVG 组件故用 emoji 对应）
@@ -73,8 +72,7 @@ const ICONS = {
   每日盘面: '📈', 板块轮动: '🎡', 行业板块龙头股分析: '🐲',
   日度复盘: '📅', 月度复盘: '📆',
   行业研究: '🏭', 个股深度: '🎯', 财务分析: '📉', 估值模型: '⚖️',
-  策略回测: '🧪', 组合管理: '💼', 风控体系: '🛡️', 投资笔记: '📓',
-  日报模板: '📋', 周报模板: '🗂️', 复盘模板: '🔁'
+  策略回测: '🧪', 组合管理: '💼'
 };
 
 /* ---------------- 3. 由 README 生成子模块表 ---------------- */
@@ -88,14 +86,6 @@ Object.keys(README).forEach(key => {
     icon: ICONS[name] || '📄',
     desc: README[key]
   };
-});
-
-// 工具与模板的 3 个子项在 NAV 中以 children 形式存在，README 里也有，此处确保齐全
-const TOOLS_CHILD = { 日报模板: 1, 周报模板: 1, 复盘模板: 1 };
-Object.keys(TOOLS_CHILD).forEach(n => {
-  if (!subModules[n]) {
-    subModules[n] = { parent: '07-工具与模板', icon: ICONS[n], desc: README['07-工具与模板|||' + n] || '' };
-  }
 });
 
 /* ---------------- 4. 由 NAV 生成导航分组（对齐网页端三组） ---------------- */

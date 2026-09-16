@@ -8,7 +8,7 @@ Page({
 
   onLoad() {
     const g = app.globalData;
-    const names = ['策略回测', '组合管理', '风控体系', '投资笔记'];
+    const names = ['策略回测', '组合管理'];
     const items = names.map(n => ({
       name: n,
       icon: g.subModules[n].icon,

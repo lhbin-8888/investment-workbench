@@ -9,8 +9,7 @@ const moduleDirs = [
   '03-A股盘面信息',
   '04-投资复盘',
   '05-行业与个股分析',
-  '06-投资策略分析',
-  '07-工具与模板'
+  '06-投资策略分析'
 ];
 const skipFiles = new Set(['README.md', 'manifest.json', 'sector-rotation-data.json']);
 

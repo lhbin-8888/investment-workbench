@@ -34,7 +34,7 @@ Page({
           desc: (g.subModules[name] || {}).desc || ''
         });
       };
-      // 「工具与模板」在网页端是带 children 的聚合入口，此处展开为独立子项
+      // 网页端带 children 的聚合入口，此处展开为独立子项
       if (it.children && it.children.length) {
         it.children.forEach(push);
       } else {

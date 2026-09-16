@@ -39,8 +39,7 @@ python -m http.server 8848
 | `03-A股盘面信息/` | 每日盘面、板块轮动 |
 | `04-投资复盘/` | 日度/月度复盘 |
 | `05-行业与个股分析/` | 行业研究、个股深度、财务分析、估值模型 |
-| `06-投资策略分析/` | 策略回测、组合管理、风控体系、投资笔记 |
-| `07-工具与模板/` | 日报模板、周报模板、复盘模板 |
+| `06-投资策略分析/` | 策略回测、组合管理 |
 | `data/` | 晨报数据（`YYYY-MM-DD-晨报.pdf/.md`） |
 | `miniprogram/` | 微信小程序端 |
 | `archive/` | 历史临时文件归档 |
@@ -109,7 +108,7 @@ node tools/check-alignment.js
 | --- | --- | --- | --- |
 | 投研分析 | 投研分析 | `pages/market/market` | 3（含每日晨报） |
 | 交易管理 | 交易管理 | `pages/review/review` | 4 |
-| 投研研究 | 投研研究 | `pages/research/research` | 16（含工具与模板 3 项） |
+| 投研研究 | 投研研究 | `pages/research/research` | 原 16 项，已移除工具与模板、投资笔记、风控体系（精确计数待核对） |
 
 首页另保留 7 大模块入口，可直达 `analysis` / `strategy` / `templates` 页面（这三个页面不在 tabBar 中）。
 
