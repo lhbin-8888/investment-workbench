@@ -34,7 +34,7 @@
   .card h2{margin:0 0 12px;font-size:15px;border-left:4px solid var(--primary);padding-left:9px;}
   .card h3{margin:14px 0 8px;font-size:13px;color:var(--sub);}
   .table-wrap{overflow:auto;max-height:420px;border:1px solid var(--line);border-radius:8px;}
-  table{border-collapse:collapse;font-size:11px;width:100%;min-width:max-content;}
+  table{border-collapse:collapse;font-size:11px;width:100%;min-width:1150px;}
   th,td{border:1px solid var(--line);padding:4px 5px;text-align:center;white-space:nowrap;}
   th{background:#fafafa;font-weight:600;color:#374151;position:sticky;top:0;}
   td.name{min-width:76px;}
@@ -66,9 +66,10 @@
   .blk.track{background:#f0f7ff;border:1px solid #cfe3ff;}
   .blk b{color:var(--primary-d);}
   .kpi{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;}
-  .kpi .box{flex:1;min-width:120px;background:#fafafa;border:1px solid var(--line);border-radius:8px;padding:8px 10px;text-align:center;}
-  .kpi .num{font-size:20px;font-weight:700;color:var(--primary);}
-  .kpi .lbl{font-size:11px;color:var(--sub);}
+  .kpi .box{flex:1;min-width:120px;background:#fafafa;border:1px solid var(--line);border-radius:8px;padding:10px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .kpi .num{font-size:22px;font-weight:700;color:var(--primary);line-height:1.1;}
+  .kpi .num .sep{font-size:14px;opacity:.65;margin:0 2px;}
+  .kpi .lbl{font-size:11px;color:var(--sub);margin-bottom:5px;}
   canvas{max-width:100%;}
   .note{font-size:11px;color:var(--sub);margin-top:6px;}
   .hidden-print{ }
@@ -228,11 +229,11 @@ function recalc(){
   const hot=data.filter(r=>r.zt>=20);
   const cand=data.filter(r=>r.z>0&&r.f>0).length;
   document.getElementById('kpiBox').innerHTML=`
-    <div class="box"><div class="num">${mUp>mDn?'涨':'跌'}</div><div class="lbl">涨跌比 ${mUp}:${mDn}</div></div>
-    <div class="box"><div class="num">${mZT}</div><div class="lbl">涨停 / 跌停 ${mDT}</div></div>
-    <div class="box"><div class="num">${(mAmt/10000).toFixed(2)}</div><div class="lbl">成交额(万亿) · ${mVol}</div></div>
-    <div class="box"><div class="num" style="color:${hot.length?'var(--warn)':'var(--ok)'}">${hot.length}</div><div class="lbl">过热板块(涨停≥20)</div></div>
-    <div class="box"><div class="num">${cand}</div><div class="lbl">候选主线(双榜正向)</div></div>`;
+    <div class="box"><div class="lbl">涨跌比</div><div class="num">${mUp}:${mDn}</div></div>
+    <div class="box"><div class="lbl">涨停 / 跌停</div><div class="num">${mZT}<span class="sep">/</span>${mDT}</div></div>
+    <div class="box"><div class="lbl">成交额(万亿) · ${mVol}</div><div class="num">${(mAmt/10000).toFixed(2)}</div></div>
+    <div class="box"><div class="lbl">过热板块(涨停≥20)</div><div class="num" style="color:${hot.length?'var(--warn)':'var(--ok)'}">${hot.length}</div></div>
+    <div class="box"><div class="lbl">候选主线(双榜正向)</div><div class="num">${cand}</div></div>`;
 
   // 排名
   const byZ=[...data].sort((a,b)=>b.z-a.z);
