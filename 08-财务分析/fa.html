@@ -197,8 +197,8 @@ async function analyze(code){
   const gp_margin = safeDiv(gp, rev), net_margin = safeDiv(np_, rev);
   const rev_yoy = cur_inc.TOI_RATIO, np_yoy = cur_inc.PARENT_NETPROFIT_RATIO, dpn_yoy = cur_inc.DPN_RATIO;
 
-  let debt_ratio = cur_bal.DEBT_ASSET_RATIO, cur_ratio = cur_bal.CURRENT_RATIO;
-  if(cur_ratio!=null && cur_ratio>10) cur_ratio = cur_ratio/100;
+  let debt_ratio = cur_bal.DEBT_ASSET_RATIO, current_ratio = cur_bal.CURRENT_RATIO;
+  if(current_ratio!=null && current_ratio>10) current_ratio = current_ratio/100;
   const ar = cur_bal.ACCOUNTS_RECE, inv = cur_bal.INVENTORY;
   const ar_turnover = safeDiv(rev, ar), inv_turnover = safeDiv(cost, inv);
 
