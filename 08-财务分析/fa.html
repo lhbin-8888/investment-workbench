@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>个股财务分析 · 投研工作台</title>
+<style>
+:root{--bg:#0f172a;--card:#ffffff;--ink:#1e293b;--sub:#64748b;--line:#e2e8f0;
+--accent:#ed7d31;--good:#16a34a;--warn:#dc2626;--neu:#0ea5e9;--up:#dc2626;--down:#16a34a;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,sans-serif;
+background:#f1f5f9;color:var(--ink);line-height:1.6}
+/* ===== 应用外壳（仅在屏幕显示，打印时隐藏）===== */
+.app{display:flex;flex-direction:column;align-items:center;padding:18px 14px 40px}
+.app-head{width:100%;max-width:980px;background:linear-gradient(135deg,#1e293b,#334155);
+border-radius:14px;padding:18px 22px;margin-bottom:18px;box-shadow:0 6px 18px rgba(15,23,42,.18);color:#e2e8f0}
+.app-head h1{color:#fff;font-size:18px;margin-bottom:12px}
+.app-head .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.app-head input{flex:1;min-width:220px;padding:11px 14px;border:0;border-radius:10px;font-size:15px;
+background:#fff;color:#0f172a}
+.app-head button{padding:11px 22px;border:0;border-radius:10px;background:var(--accent);color:#fff;
+font-size:15px;font-weight:700;cursor:pointer}
+.app-head button:hover{background:#f59e0b}
+.app-head .tip{margin-top:10px;font-size:12.5px;color:#cbd5e1}
+.app-head .msg{margin-top:8px;font-size:13px;min-height:18px}
+.app-head .msg.err{color:#fca5a5}.app-head .msg.ok{color:#86efac}
+.no-print{display:none!important}
+/* ===== 报告主体 ===== */
+.report{max-width:980px;width:100%}
+.report header{background:linear-gradient(135deg,#1e293b,#334155);color:#fff;border-radius:16px;
+padding:26px 30px;margin-bottom:20px;box-shadow:0 8px 24px rgba(15,23,42,.18)}
+.report header h1{font-size:26px;margin-bottom:6px}
+.report header .code{color:#fdba74;font-size:15px;font-weight:600}
+.report header .meta{margin-top:14px;display:flex;flex-wrap:wrap;gap:18px;font-size:14px;color:#cbd5e1}
+.report header .meta b{color:#fff;font-size:18px;display:block}
+.report .up{color:#fca5a5}.report .down{color:#86efac}
+.report section{background:var(--card);border-radius:14px;padding:22px 26px;margin-bottom:18px;
+box-shadow:0 2px 10px rgba(15,23,42,.06);border:1px solid var(--line)}
+.report section h2{font-size:19px;margin-bottom:14px;padding-left:12px;border-left:4px solid var(--accent);color:#0f172a}
+.report table{width:100%;border-collapse:collapse;font-size:14px}
+.report table.grid th,.report table.grid td{border:1px solid var(--line);padding:9px 10px;text-align:center}
+.report table.grid th{background:#f8fafc;color:#475569;font-weight:600}
+.report td.k{text-align:left;color:#334155;font-weight:600;background:#fafafa}
+.report td.v{font-weight:700;color:#0f172a}
+.report td.yoy{color:var(--sub)}
+.report .badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.report .badge.good{background:#dcfce7;color:#15803d}
+.report .badge.warn{background:#fee2e2;color:#b91c1c}
+.report .badge.neu{background:#e0f2fe;color:#0369a1}
+.report .score{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+.report .stars{font-size:34px;color:var(--accent);letter-spacing:4px}
+.report .score .num{font-size:15px;color:var(--sub)}
+.report .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.report .cols h3{font-size:15px;margin-bottom:8px;color:#334155}
+.report .cols ul{list-style:none}
+.report .cols li{padding:6px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.report .cols li:before{content:"•";color:var(--accent);margin-right:8px}
+.report .peers{margin-top:12px;font-size:13px;color:var(--sub)}
+.report .peers .lbl{color:#334155;font-weight:600}
+.report .note{font-size:13.5px;color:var(--sub);background:#fff7ed;border-left:3px solid var(--accent);
+padding:10px 14px;border-radius:8px;margin-top:12px}
+.report .muted{color:var(--sub);font-size:13px}
+.report footer{text-align:center;color:var(--sub);font-size:12px;margin:20px 0;padding-top:10px}
+.report .tag{display:inline-block;background:#fef3e2;color:var(--accent);padding:2px 8px;border-radius:6px;font-size:12px;margin-left:8px}
+.report .export-btn{margin-top:14px;display:inline-block;padding:8px 16px;border:0;border-radius:10px;
+background:#fdba74;color:#1e293b;font-size:14px;font-weight:700;cursor:pointer}
+.report .export-btn:hover{background:#fcd34d}
+/* ===== 仅打印（导出 PDF）显示的封面/水印/页眉 ===== */
+.pdf-watermark,.pdf-runninghead,.pdf-cover{display:none}
+@media print{
+  @page{size:A4;margin:12mm 12mm 14mm 12mm}
+  body{background:#fff;padding:0}
+  .app{padding:0;align-items:stretch}
+  .app-head{display:none!important}
+  .report{max-width:none}
+  .report header{box-shadow:none;border-radius:0}
+  .report section{box-shadow:none;border:1px solid #e2e8f0;break-inside:avoid;page-break-inside:avoid;margin-bottom:12px}
+  .no-print{display:none!important}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .report table.grid{break-inside:auto}
+  .report tr,.report td,.report th{break-inside:avoid;page-break-inside:avoid}
+  .report .wrap,.report{padding-top:6mm}
+  .pdf-watermark{display:block;position:fixed;top:-30%;left:-30%;width:160%;height:160%;
+    z-index:-1;pointer-events:none;overflow:hidden;
+    font-size:20px;line-height:2.6;color:rgba(15,23,42,0.05);
+    transform:rotate(-28deg);word-break:break-all;letter-spacing:1px}
+  .pdf-runninghead{display:flex;position:fixed;top:0;left:0;right:0;height:9mm;
+    align-items:center;justify-content:space-between;padding:0 12mm;
+    font-size:8.5px;color:#64748b;border-bottom:0.4px solid #cbd5e1;background:#fff;z-index:60}
+  .pdf-cover{display:flex;flex-direction:column;justify-content:center;
+    page-break-after:always;height:260mm;padding:18mm 16mm 0;
+    border-bottom:3px solid var(--accent)}
+  .pdf-cover .kicker{font-size:13px;color:var(--accent);letter-spacing:3px;font-weight:700;margin-bottom:20px}
+  .pdf-cover .title{font-size:44px;font-weight:800;color:#0f172a}
+  .pdf-cover .sub{font-size:18px;color:#475569;margin-top:10px}
+  .pdf-cover .meta{font-size:13px;color:#64748b;margin-top:28px;line-height:2}
+  .pdf-cover .note{font-size:11px;color:#94a3b8;margin-top:auto;border-top:1px solid #e2e8f0;padding-top:14px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="app-head no-print">
+    <h1>个股财务数据分析 · 自动报告</h1>
+    <div class="row">
+      <input id="inp" placeholder="输入个股名称或 6 位代码，如 600176 / 中国巨石" onkeydown="if(event.key==='Enter')run()">
+      <button onclick="run()">生成报告</button>
+    </div>
+    <div class="tip">数据源：东方财富三大报表 + 腾讯行情估值（浏览器直连，无需后端）｜ 报告含盈利能力/财务健康/现金流/成长性/同业/估值/综合评分，可一键导出 PDF</div>
+    <div class="msg" id="msg"></div>
+  </div>
+  <div class="report" id="report"></div>
+</div>
+
+<script>
+"use strict";
+const EM_HOST = "https://datacenter-web.eastmoney.com/api/data/v1/get";
+
+/* ---------------- 工具 ---------------- */
+function safeDiv(a,b){ if(b==null||b===0) return null; try{return a/b;}catch(e){return null;} }
+function yi(v){ return v==null ? "—" : (v/1e8).toFixed(2); }
+function pct(v){ return v==null ? "—" : (v.toFixed(2)+"%"); }
+function periodLabel(ds){
+  const d=(ds||"").slice(0,10); if(d.length<7) return d;
+  const [y,m]=d.split("-"); 
+  return ({"03":y+"Q1","06":y+"半年","09":y+"Q3","12":y+"年报"}[m]||d);
+}
+function latestBy(rows){ if(!rows.length) return null; return rows.reduce((a,b)=>((b.REPORT_DATE||"")>(a.REPORT_DATE||""))?b:a); }
+function findPrior(rows,curDate){
+  const ear=rows.filter(r=>((r.REPORT_DATE||"").slice(0,10) < (curDate||"").slice(0,10)));
+  if(!ear.length) return null; return ear.reduce((a,b)=>((b.REPORT_DATE||"")>(a.REPORT_DATE||""))?b:a);
+}
+function median(vals){ vals=vals.filter(v=>v!=null); if(!vals.length) return null; vals.sort((a,b)=>a-b);
+  const n=vals.length; return n%2 ? vals[(n-1)/2] : (vals[n/2-1]+vals[n/2])/2; }
+function marketPrefix(code){
+  if(code[0]==="6"||code[0]==="9") return "sh";
+  if(code[0]==="0"||code[0]==="3") return "sz";
+  if(code[0]==="8"||code[0]==="4") return "bj";
+  return "sh";
+}
+function gbkDecode(buf){ return new TextDecoder("gbk").decode(buf); }
+
+/* ---------------- 数据拉取 ---------------- */
+async function emQuery(report, columns, flt, pagesize){
+  const url = EM_HOST + "?reportName="+report+"&columns="+encodeURIComponent(columns)
+    + "&filter="+encodeURIComponent(flt)+"&pageSize="+pagesize
+    + "&sortColumns=REPORT_DATE&sortTypes=-1&client=PC&source=F10";
+  const r = await fetch(url);
+  const d = await r.json();
+  if(!d.success) return [];
+  return (d.result && d.result.data) || [];
+}
+async function resolveCode(q){
+  if(/^\d{6}$/.test(q)) return q;
+  const rows = await emQuery("RPT_DMSK_FN_INCOME","SECURITY_CODE,SECURITY_NAME_ABBR",'(SECURITY_NAME_ABBR="'+q+'")',5);
+  if(rows.length) return rows[0].SECURITY_CODE;
+  throw new Error("未匹配到股票："+q+"（请确认证券简称，或直接输入 6 位代码，如 600176）");
+}
+async function fetchQuote(code){
+  const url = "https://qt.gtimg.cn/q="+marketPrefix(code)+code;
+  const r = await fetch(url);
+  const buf = await r.arrayBuffer();
+  const txt = gbkDecode(buf);
+  const i = txt.indexOf('="');
+  let part = i>=0 ? txt.slice(i+2) : txt;
+  part = part.replace(/";?\s*$/, "");
+  const f = part.split("~");
+  const num = (idx)=> (f.length>idx && f[idx]) ? parseFloat(f[idx]) : null;
+  return {
+    price: num(3), prev_close: num(4), change_pct: num(32),
+    turnover: num(38), pe_ttm: num(39), mktcap_yi: num(44),
+    quote_time: f.length>30 ? f[30] : ""
+  };
+}
+
+/* ---------------- 核心分析 ---------------- */
+async function analyze(code){
+  code = await resolveCode(code);
+  const inc = await emQuery("RPT_DMSK_FN_INCOME",
+    "SECURITY_CODE,SECURITY_NAME_ABBR,INDUSTRY_CODE,INDUSTRY_NAME,REPORT_DATE,TOTAL_OPERATE_INCOME,OPERATE_COST,PARENT_NETPROFIT,DEDUCT_PARENT_NETPROFIT,TOI_RATIO,PARENT_NETPROFIT_RATIO,DPN_RATIO,OPERATE_PROFIT,TOTAL_PROFIT,INCOME_TAX",
+    '(SECURITY_CODE="'+code+'")', 14);
+  const bal = await emQuery("RPT_DMSK_FN_BALANCE",
+    "SECURITY_CODE,SECURITY_NAME_ABBR,REPORT_DATE,TOTAL_ASSETS,TOTAL_LIABILITIES,TOTAL_EQUITY,DEBT_ASSET_RATIO,CURRENT_RATIO,ACCOUNTS_RECE,INVENTORY,MONETARYFUNDS,FIXED_ASSET",
+    '(SECURITY_CODE="'+code+'")', 14);
+  const cf = await emQuery("RPT_DMSK_FN_CASHFLOW",
+    "SECURITY_CODE,SECURITY_NAME_ABBR,REPORT_DATE,NETCASH_OPERATE,NETCASH_INVEST,CONSTRUCT_LONG_ASSET,SALES_SERVICES",
+    '(SECURITY_CODE="'+code+'")', 14);
+  if(!inc.length || !bal.length) throw new Error("未获取到 "+code+" 的财务数据，可能已退市或非 A 股");
+
+  const cur_inc = latestBy(inc), cur_bal = latestBy(bal), cur_cf = latestBy(cf);
+  const cur_date = (cur_inc.REPORT_DATE||"").slice(0,10);
+  const name = cur_inc.SECURITY_NAME_ABBR || cur_bal.SECURITY_NAME_ABBR || code;
+  const ind_code = cur_inc.INDUSTRY_CODE, ind_name = cur_inc.INDUSTRY_NAME || "—";
+
+  const rev = cur_inc.TOTAL_OPERATE_INCOME, cost = cur_inc.OPERATE_COST;
+  const np_ = cur_inc.PARENT_NETPROFIT, dpn = cur_inc.DEDUCT_PARENT_NETPROFIT;
+  const gp = (rev!=null && cost!=null) ? (rev-cost) : null;
+  const gp_margin = safeDiv(gp, rev), net_margin = safeDiv(np_, rev);
+  const rev_yoy = cur_inc.TOI_RATIO, np_yoy = cur_inc.PARENT_NETPROFIT_RATIO, dpn_yoy = cur_inc.DPN_RATIO;
+
+  let debt_ratio = cur_bal.DEBT_ASSET_RATIO, cur_ratio = cur_bal.CURRENT_RATIO;
+  if(cur_ratio!=null && cur_ratio>10) cur_ratio = cur_ratio/100;
+  const ar = cur_bal.ACCOUNTS_RECE, inv = cur_bal.INVENTORY;
+  const ar_turnover = safeDiv(rev, ar), inv_turnover = safeDiv(cost, inv);
+
+  const op_cf = cur_cf ? cur_cf.NETCASH_OPERATE : null;
+  const capex = cur_cf ? cur_cf.CONSTRUCT_LONG_ASSET : null;
+  const fcf = (op_cf!=null && capex!=null) ? (op_cf-capex) : null;
+  const sales_cash = cur_cf ? cur_cf.SALES_SERVICES : null;
+  const net_cf_ratio = safeDiv(op_cf, np_), rev_cf_ratio = safeDiv(sales_cash, rev);
+
+  const prior_bal = findPrior(bal, cur_date);
+  const equity = cur_bal.TOTAL_EQUITY;
+  const equity0 = prior_bal ? prior_bal.TOTAL_EQUITY : null;
+  const avg_equity = (equity!=null && equity0!=null) ? (equity+equity0)/2 : equity;
+  const roe = safeDiv(np_, avg_equity);
+  const month = cur_date.length>=7 ? cur_date.slice(5,7) : "12";
+  const af = ({"03":4,"06":2,"09":4/3,"12":1}[month]||1);
+  const roe_ann = roe!=null ? roe*af : null;
+
+  const q = await fetchQuote(code);
+  const mktcap = q.mktcap_yi;
+  const shares = (mktcap!=null && q.price) ? (mktcap*1e8/q.price) : null;
+  const eps = (shares!=null && np_!=null) ? safeDiv(np_, shares) : null;
+  const pb = (equity!=null && mktcap!=null) ? safeDiv(mktcap*1e8, equity) : null;
+
+  const current = {rev,rev_yoy,np:np_,np_yoy,dpn,dpn_yoy,gp_margin,net_margin,roe,roe_ann,
+    debt_ratio,current_ratio,ar_turnover,inv_turnover,op_cf,fcf,net_cf_ratio,rev_cf_ratio,eps,
+    equity,assets:cur_bal.TOTAL_ASSETS};
+
+  /* 成长性 */
+  const annual_inc = inc.filter(r=>((r.REPORT_DATE||"").slice(5,7)==="12"))
+    .sort((a,b)=>(a.REPORT_DATE||"")<(b.REPORT_DATE||"")?-1:1);
+  const annual_bal = {};
+  bal.filter(r=>((r.REPORT_DATE||"").slice(5,7)==="12")).forEach(r=>{ annual_bal[r.REPORT_DATE.slice(0,4)]=r; });
+  const trend = [];
+  annual_inc.forEach(r=>{
+    const y=r.REPORT_DATE.slice(0,4);
+    const rv=r.TOTAL_OPERATE_INCOME, npp=r.PARENT_NETPROFIT, d=r.DEDUCT_PARENT_NETPROFIT, c=r.OPERATE_COST;
+    const g=(rv!=null&&c!=null)?(rv-c):null;
+    const gm=safeDiv(g,rv), nm=safeDiv(npp,rv);
+    const be=annual_bal[y]; const eq=be?be.TOTAL_EQUITY:null;
+    const be0=annual_bal[String(parseInt(y)-1)]; const eq0=be0?be0.TOTAL_EQUITY:null;
+    const avgeq=(eq!=null&&eq0!=null)?(eq+eq0)/2:eq;
+    const rk=safeDiv(npp,avgeq);
+    const dr=be?be.DEBT_ASSET_RATIO:null;
+    trend.push({period:y+"年报",rev:rv,np:npp,dpn:d,gp_margin:gm,net_margin:nm,roe:rk,debt_ratio:dr});
+  });
+  const cagr={};
+  if(annual_inc.length>=2){
+    const n=annual_inc.length-1;
+    const rev0=annual_inc[0].TOTAL_OPERATE_INCOME, rev1=annual_inc[annual_inc.length-1].TOTAL_OPERATE_INCOME;
+    const np0=annual_inc[0].PARENT_NETPROFIT, np1=annual_inc[annual_inc.length-1].PARENT_NETPROFIT;
+    if(rev0&&rev1) cagr.rev_cagr=((Math.pow(rev1/rev0,1/n))-1)*100;
+    if(np0&&np1) cagr.np_cagr=((Math.pow(np1/np0,1/n))-1)*100;
+    cagr.years=n;
+  }
+
+  /* 同业 */
+  const industry={ind_name,peers:[],avg:{},rank_np:null,rank_gp:null,count:0,top3:[]};
+  if(ind_code){
+    const peer_inc = await emQuery("RPT_DMSK_FN_INCOME",
+      "SECURITY_CODE,SECURITY_NAME_ABBR,REPORT_DATE,TOTAL_OPERATE_INCOME,OPERATE_COST,PARENT_NETPROFIT,DEDUCT_PARENT_NETPROFIT",
+      '(INDUSTRY_CODE="'+ind_code+'")', 80);
+    const peer_bal = await emQuery("RPT_DMSK_FN_BALANCE",
+      "SECURITY_CODE,REPORT_DATE,TOTAL_EQUITY,DEBT_ASSET_RATIO",
+      '(INDUSTRY_CODE="'+ind_code+'")', 80);
+    const inc_map={}, bal_map={};
+    peer_inc.forEach(r=>{ const c=r.SECURITY_CODE;
+      if(!inc_map[c]||(r.REPORT_DATE||"")>inc_map[c].REPORT_DATE) inc_map[c]=r; });
+    peer_bal.forEach(r=>{ const c=r.SECURITY_CODE;
+      if(!bal_map[c]||(r.REPORT_DATE||"")>bal_map[c].REPORT_DATE) bal_map[c]=r; });
+    const peers=[];
+    peer_inc.length; // noop
+    Object.keys(inc_map).forEach(c=>{
+      const r=inc_map[c];
+      const rv=r.TOTAL_OPERATE_INCOME, cst=r.OPERATE_COST;
+      const npp=r.PARENT_NETPROFIT, d=r.DEDUCT_PARENT_NETPROFIT;
+      const b=bal_map[c];
+      const dr=b?b.DEBT_ASSET_RATIO:null, eq=b?b.TOTAL_EQUITY:null;
+      const g=(rv!=null&&cst!=null)?(rv-cst):null;
+      const gm=safeDiv(g,rv), nm=safeDiv(npp,rv);
+      if(npp!=null&&eq!=null) peers._roe=(peers._roe||[]).concat(npp/eq);
+      peers.push({code:c,name:r.SECURITY_NAME_ABBR,rev:rv,np:npp,dpn:d,gp_margin:gm,net_margin:nm,debt_ratio:dr,is_target:c===code});
+    });
+    const roe_list = peers._roe || []; delete peers._roe;
+    const excl = peers.filter(p=>!p.is_target);
+    const profit_base = excl.filter(p=>(p.np||0)>0);
+    const base = profit_base.length ? profit_base : (excl.length?excl:peers);
+    const avg={ gp_margin:median(base.map(p=>p.gp_margin)), net_margin:median(base.map(p=>p.net_margin)), debt_ratio:median(base.map(p=>p.debt_ratio)) };
+    const ranked_np=[...peers].sort((a,b)=>(b.np||-1e18)-(a.np||-1e18));
+    const ranked_gp=[...peers].filter(p=>p.gp_margin!=null).sort((a,b)=>b.gp_margin-a.gp_margin);
+    industry.peers=peers; industry.avg=avg; industry.count=peers.length;
+    industry.rank_np = ranked_np.findIndex(p=>p.is_target)>=0 ? ranked_np.findIndex(p=>p.is_target)+1 : null;
+    industry.rank_gp = ranked_gp.findIndex(p=>p.is_target)>=0 ? ranked_gp.findIndex(p=>p.is_target)+1 : null;
+    industry.top3 = ranked_np.slice(0,3);
+    industry.avg_roe = roe_list.length ? roe_list.reduce((a,b)=>a+b,0)/roe_list.length : null;
+  }
+
+  const score = scoreHealth(current, cagr, industry);
+  return { meta:{code,name,ind_name,ind_code,period:periodLabel(cur_date),report_date:cur_date,
+      price:q.price,pe_ttm:q.pe_ttm,pb,mktcap_yi:mktcap,change_pct:q.change_pct,turnover:q.turnover,quote_time:q.quote_time},
+    current, trend, cagr, industry, score };
+}
+
+function scoreHealth(cur,cagr,industry){
+  let pos=0, neg=0; const good=[], warn=[];
+  function judge(cp,wp,wn,gt,wt){ if(cp){pos+=wp;good.push(gt);}else{neg+=wn;if(wt)warn.push(wt);} }
+  const gm=cur.gp_margin||0, nm=cur.net_margin||0, ra=cur.roe_ann||0;
+  const dr=cur.debt_ratio, ncr=cur.net_cf_ratio, ry=cur.rev_yoy, ny=cur.np_yoy, cr=cur.current_ratio;
+  if(gm>=0.50) judge(true,2,0,"毛利率≥50%（卓越级盈利能力）","");
+  else if(gm>=0.30) judge(true,1,0,"毛利率≥30%（盈利达标）","");
+  else judge(false,0,1,"","毛利率<30%，盈利能力偏弱");
+  if(nm>=0.25) judge(true,2,0,"净利率≥25%（卓越）","");
+  else if(nm>=0.15) judge(true,1,0,"净利率≥15%（优秀）","");
+  else judge(false,0,1,"","净利率<15%，盈利质量一般");
+  if(ra>=0.20) judge(true,2,0,"年化ROE≥20%（卓越）","");
+  else if(ra>=0.15) judge(true,1,0,"年化ROE≥15%（优秀）","");
+  else judge(false,0,1,"","年化ROE<15%，资本回报不足");
+  if(dr!=null){
+    if(dr>=30&&dr<=60) judge(true,1,0,"资产负债率30-60%（稳健）","");
+    else if(dr<30) judge(true,1,0,"资产负债率<30%（杠杆极低）","");
+    else if(dr>70) judge(false,0,2,"","资产负债率>70%，杠杆偏高");
+    else judge(false,0,1,"","资产负债率60-70%，需关注");
+  }
+  if((cur.op_cf||0)>0) judge(true,1,0,"经营现金流为正","");
+  else judge(false,0,1,"","经营现金流为负");
+  if(ncr!=null){
+    if(ncr>=1.0) judge(true,1,0,"净现比≥1（利润含金量高）","");
+    else if(ncr>=0.8) judge(true,0.5,0,"净现比0.8-1.0（尚可）","");
+    else judge(false,0,1,"","净现比<0.8，利润含水分");
+  }
+  if(cr!=null){
+    if(cr>=1.5) judge(true,1,0,"流动比率≥1.5（短期偿债充裕）","");
+    else if(cr>=1.0) judge(true,0.5,0,"流动比率1.0-1.5（中性）","");
+    else judge(false,0,1,"","流动比率<1，短期偿债偏紧");
+  }
+  if(ry!=null){ if(ry>15) judge(true,1,0,"营收同比>15%（高成长）",""); else if(ry<0) judge(false,0,1,"","营收同比负增长"); }
+  if(ny!=null){ if(ny>15) judge(true,1,0,"净利同比>15%（高成长）",""); else if(ny<0) judge(false,0,1,"","净利同比负增长"); }
+  if(industry.avg && industry.avg.gp_margin!=null && gm!=null){
+    if(gm>industry.avg.gp_margin) judge(true,1,0,"毛利率高于行业平均（成本优势）","");
+    else judge(false,0,0.5,"","毛利率低于行业平均");
+  }
+  const max_pos = 2+2+2+1+1+1+1+1+1+1+1;
+  const ratio = max_pos ? pos/max_pos : 0;
+  const stars = Math.round(Math.min(5, Math.max(0, ratio*5))*2)/2;
+  return {stars, pos, neg, good, warn};
+}
+
+/* ---------------- 渲染 ---------------- */
+function badge(text,kind){ return '<span class="badge '+kind+'">'+text+'</span>'; }
+function fmtBadge(v,good_thr,warn_thr,unit,inv){
+  if(v==null) return ["—","neu"];
+  let kind="neu";
+  if(good_thr!=null){
+    if(inv) kind = v<=good_thr ? "good" : (warn_thr!=null&&v>=warn_thr?"warn":"neu");
+    else kind = v>=good_thr ? "good" : (warn_thr!=null&&v<=warn_thr?"warn":"neu");
+  }
+  return [(v.toFixed(2)+unit), kind];
+}
+function render(R){
+  const m=R.meta, cur=R.current, ind=R.industry, sc=R.score;
+  const up=(m.change_pct||0)>=0; const chgCls=up?"up":"down";
+  const full=Math.floor(sc.stars), half=(sc.stars%1)!==0;
+  const starStr="★".repeat(full)+(half?"½":"")+"☆".repeat(5-full-(half?1:0));
+  const com=cur;
+  // 核心数据
+  const coreRows=[
+    ["营业总收入", yi(com.rev)+" 亿", pct(com.rev_yoy), badge(com.rev_yoy>15?"优秀":"观察", com.rev_yoy>15?"good":"neu")],
+    ["归母净利润", yi(com.np)+" 亿", pct(com.np_yoy), badge(com.np_yoy>15?"优秀":"观察", com.np_yoy>15?"good":"neu")],
+    ["扣非净利润", yi(com.dpn)+" 亿", pct(com.dpn_yoy), badge(com.dpn_yoy>0?"无水分":"观察", com.dpn_yoy>0?"good":"neu")],
+    (function(){const t=cur.gp_margin*100;const k=fmtBadge(t,50,30,"%")[1];return ["毛利率",t.toFixed(2)+"%","—",badge(t>=50?"卓越":(t>=30?"优秀":"观察"),k)];})(),
+    (function(){const t=cur.net_margin*100;const k=fmtBadge(t,25,15,"%")[1];return ["净利率",t.toFixed(2)+"%","—",badge(t>=25?"卓越":(t>=15?"优秀":"观察"),k)];})(),
+    (function(){const t=(cur.roe_ann||0)*100;const k=fmtBadge(t,20,15,"%")[1];return ["ROE(年化)",t.toFixed(2)+"%","—",badge(t>=20?"卓越":(t>=15?"优秀":"观察"),k)];})(),
+    (function(){const t=cur.debt_ratio;const k=t!=null&&t>=30&&t<=60?"good":(t!=null&&t>70?"warn":"neu");return ["资产负债率",(t==null?"—":t.toFixed(2)+"%"),"—",badge(t!=null&&t<=60?"健康":"偏高",k)];})(),
+    ["经营现金流净额", yi(com.op_cf)+" 亿", "—", badge(com.op_cf>0?"优秀":"警惕", com.op_cf>0?"good":"warn")],
+    (function(){const t=(cur.net_cf_ratio||0)*100;const k=fmtBadge(t,100,80,"%")[1];return ["净现比",(cur.net_cf_ratio==null?"—":t.toFixed(2)+"%"),"—",badge(cur.net_cf_ratio>=1?"优秀":(cur.net_cf_ratio>=0.8?"尚可":"警惕"),k)];})(),
+    ["自由现金流", yi(com.fcf)+" 亿", "—", badge(com.fcf>0?"为正":"为负", com.fcf>0?"good":"warn")],
+    ["基本EPS", cur.eps==null?"—":cur.eps.toFixed(4), "—", "—"],
+  ];
+  const coreHtml = coreRows.map(r=>'<tr><td class="k">'+r[0]+'</td><td class="v">'+r[1]+'</td><td class="yoy">'+r[2]+'</td><td>'+r[3]+'</td></tr>').join("");
+
+  // 成长性
+  let trendHtml="";
+  if(R.trend.length){
+    const head=R.trend.map(t=>"<th>"+t.period+"</th>").join("");
+    const trow=(label,fn)=>'<tr><td class="k">'+label+'</td>'+R.trend.map(t=>{const v=fn(t);return "<td>"+(v==null?"—":(yi(v)+" 亿"))+"</td>";}).join("")+'</tr>';
+    const trowPct=(label,fn)=>'<tr><td class="k">'+label+'</td>'+R.trend.map(t=>{const v=fn(t);return "<td>"+(v==null?"—":pct(v*100))+"</td>";}).join("")+'</tr>';
+    trendHtml='<table class="grid"><thead><tr><th>指标</th>'+head+'</tr></thead><tbody>'
+      +trow("营业收入",t=>t.rev)+trow("归母净利润",t=>t.np)+trow("扣非净利润",t=>t.dpn)
+      +trowPct("毛利率",t=>t.gp_margin)+trowPct("净利率",t=>t.net_margin)+trowPct("ROE",t=>t.roe)+trowPct("资产负债率",t=>t.debt_ratio)
+      +"</tbody></table>";
+  }
+  let cagrTxt="";
+  if(R.cagr && R.cagr.rev_cagr!=null){
+    cagrTxt="近 "+R.cagr.years+" 年营收 CAGR <b>"+pct(R.cagr.rev_cagr)+"</b> ｜ 净利润 CAGR <b>"+pct(R.cagr.np_cagr)+"</b>";
+  }
+  // 健康核查
+  const hb=[
+    ["资产负债率", pct(cur.debt_ratio), (cur.debt_ratio!=null&&cur.debt_ratio<=60)?"✅ 杠杆安全":"⚠ 偏高"],
+    ["经营现金流", yi(cur.op_cf)+" 亿", (cur.op_cf||0)>0?"✅ 与利润同向":"⚠ 为负"],
+    ["净现比", pct((cur.net_cf_ratio||0)*100), (cur.net_cf_ratio||0)>=1?"✅ 利润含金量高":((cur.net_cf_ratio||0)>=0.8?"中性偏可":"⚠ 低于1，需警惕")],
+    ["收入现金比", pct((cur.rev_cf_ratio||0)*100), (cur.rev_cf_ratio||0)>=1?"✅ 回款良好":"中性偏可"],
+    ["自由现金流", yi(cur.fcf)+" 亿", (cur.fcf||0)>0?"✅ 真正赚钱":"⚠ 为负"],
+    ["流动比率", cur.current_ratio==null?"—":cur.current_ratio.toFixed(2), (cur.current_ratio||0)>=1.5?"✅ 充裕":((cur.current_ratio||0)>=1?"中性":"⚠ 偏紧")],
+    ["应收账款周转率", cur.ar_turnover==null?"—":cur.ar_turnover.toFixed(2), "越高回款越快"],
+    ["存货周转率", cur.inv_turnover==null?"—":cur.inv_turnover.toFixed(2), "越高周转越快"],
+  ];
+  const healthHtml=hb.map(x=>'<tr><td class="k">'+x[0]+'</td><td class="v">'+x[1]+'</td><td>'+x[2]+'</td></tr>').join("");
+
+  // 行业对比
+  let indHtml="", peersHtml="";
+  if(ind.avg && ind.avg.gp_margin!=null){
+    const a=ind.avg;
+    indHtml='<table class="grid"><thead><tr><th>对比项</th><th>'+m.name+'</th><th>行业平均</th><th>结论</th></tr></thead><tbody>'
+      +'<tr><td class="k">毛利率</td><td>'+pct(cur.gp_margin*100)+'</td><td>'+pct(a.gp_margin*100)+'</td><td>'+(cur.gp_margin>a.gp_margin?"✅ 成本优势":"低于行业")+'</td></tr>'
+      +'<tr><td class="k">净利率</td><td>'+pct(cur.net_margin*100)+'</td><td>'+pct(a.net_margin*100)+'</td><td>'+(cur.net_margin>a.net_margin?"✅ 更优":"低于行业")+'</td></tr>'
+      +'<tr><td class="k">资产负债率</td><td>'+pct(cur.debt_ratio)+'</td><td>'+pct(a.debt_ratio)+'</td><td>'+(cur.debt_ratio!=null&&cur.debt_ratio<(a.debt_ratio||999)?"✅ 更稳健":"高于行业")+'</td></tr>'
+      +'<tr><td class="k">归母净利润</td><td>'+yi(cur.np)+' 亿</td><td>—</td><td>行业第 '+ind.rank_np+' / 共 '+ind.count+' 家</td></tr>'
+      +"</tbody></table>";
+    const top3=ind.top3||[];
+    peersHtml='<div class="peers"><span class="lbl">同业龙头(按净利)：</span>'+top3.map(p=>p.name+"("+yi(p.np)+"亿)").join(" ｜ ")+'</div>';
+  } else {
+    indHtml='<p class="muted">未获取到同业数据。</p>';
+  }
+
+  // 估值
+  const valHtml='<table class="grid"><thead><tr><th>指标</th><th>数值</th><th>说明</th></tr></thead><tbody>'
+    +'<tr><td class="k">股价</td><td>'+(m.price==null?"—":m.price.toFixed(2))+' 元</td><td>当日涨跌 '+(m.change_pct==null?"—":m.change_pct.toFixed(2))+'%</td></tr>'
+    +'<tr><td class="k">PE(TTM)</td><td>'+(m.pe_ttm==null?"—":m.pe_ttm.toFixed(2))+'</td><td>'+(m.pe_ttm?"估值分位需结合历史":"—")+'</td></tr>'
+    +'<tr><td class="k">PB</td><td>'+(m.pb==null?"—":m.pb.toFixed(2))+'</td><td>市净率</td></tr>'
+    +'<tr><td class="k">总市值</td><td>'+(m.mktcap_yi==null?"—":m.mktcap_yi.toFixed(2))+' 亿</td><td>换手率 '+(m.turnover==null?"—":m.turnover.toFixed(2))+'%</td></tr>'
+    +"</tbody></table>";
+
+  const goodHtml=(sc.good.length?sc.good.map(g=>"<li>"+g+"</li>").join(""):"<li>—</li>");
+  const warnHtml=(sc.warn.length?sc.warn.map(w=>"<li>"+w+"</li>").join(""):"<li>—</li>");
+
+  let trendNote="";
+  if(R.trend.length>=2){
+    const last=R.trend[R.trend.length-1], first=R.trend[0];
+    const revG=(last.rev||0)>(first.rev||0), npG=(last.np||0)>(first.np||0);
+    trendNote="近 "+R.trend.length+" 个年报窗口，营收"+(revG?"持续增长":"回落")+"、归母净利润"+(npG?"持续增长":"回落")+"；毛利率由 "+pct(first.gp_margin*100)+" 变动至 "+pct(last.gp_margin*100)+"，"+(last.gp_margin>first.gp_margin?"竞争力增强":"承压")+"。";
+  }
+  const potential="综合盈利能力、财务健康度与行业地位，"+m.name+" 在"+ind.ind_name+"板块中"+((ind.rank_np&&ind.rank_np<=3)?"处于领先梯队":"具备一定竞争力")+"。 "+(trendNote||"建议结合行业周期进一步研判。");
+
+  const today=new Date().toISOString().slice(0,10);
+  const genTime=formatNow();
+  const watermark=("投研工作台 · 仅供研究参考　").repeat(40);
+  const starNum=sc.stars.toFixed(1);
+
+  return ''
++'<div class="pdf-watermark">'+watermark+'</div>'
++'<div class="pdf-runninghead"><span>投研工作台 · 个股财务分析</span><span>'+m.name+'（'+m.code+'）· '+m.period+'</span><span>'+today+'</span></div>'
++'<div class="pdf-cover">'
++'  <div class="kicker">投研工作台 · 个股财务分析报告</div>'
++'  <div class="title">'+m.name+'</div>'
++'  <div class="sub">'+m.code+' · '+m.ind_name+' · '+m.period+' 报告期</div>'
++'  <div class="meta">财务健康度评分 '+starNum+' / 5　｜　数据截止 '+m.report_date+'<br>生成时间 '+genTime+'</div>'
++'  <div class="note">本报告由 AI 依据公开财务数据自动生成，仅供研究参考，不构成投资建议。</div>'
++'</div>'
++'<div class="wrap">'
++'<header>'
++'<h1>'+m.name+' <span class="code">'+m.code+' · '+m.ind_name+'</span></h1>'
++'<div>财务分析报告　报告期：<b>'+m.period+'</b>（数据截止 '+m.report_date+'）</div>'
++'<div class="meta">'
++'<div><b>'+(m.price==null?"—":m.price.toFixed(2))+'</b>股价(元) <span class="'+chgCls+'">'+(m.change_pct==null?"—":m.change_pct.toFixed(2))+'%</span></div>'
++'<div><b>'+(m.pe_ttm==null?"—":m.pe_ttm.toFixed(2))+'</b>PE(TTM)</div>'
++'<div><b>'+(m.pb==null?"—":m.pb.toFixed(2))+'</b>PB</div>'
++'<div><b>'+(m.mktcap_yi==null?"—":m.mktcap_yi.toFixed(2))+'</b>总市值(亿)</div>'
++'<div><b>'+(m.turnover==null?"—":m.turnover.toFixed(2))+'%</b>换手率</div>'
++'<button class="no-print export-btn" onclick="window.print()">&#11015; 导出 PDF</button>'
++'</div></header>'
++'<section><h2>一、最新报告期核心数据 <span class="tag">盈利能力 · 财务健康</span></h2>'
++'<table class="grid"><thead><tr><th>指标</th><th>数值</th><th>同比</th><th>评判</th></tr></thead><tbody>'+coreHtml+'</tbody></table></section>'
++'<section><h2>二、成长性 <span class="tag">CAGR · 趋势</span></h2>'+trendHtml
++'<div class="note">'+cagrTxt+'　'+trendNote+'</div></section>'
++'<section><h2>三、财务健康度核查 <span class="tag">现金流 · 偿债 · 周转</span></h2>'
++'<table class="grid"><thead><tr><th>维度</th><th>数据</th><th>结论</th></tr></thead><tbody>'+healthHtml+'</tbody></table></section>'
++'<section><h2>四、行业横向对比 <span class="tag">'+m.ind_name+'</span></h2>'+indHtml+peersHtml+'</section>'
++'<section><h2>五、估值水平</h2>'+valHtml+'</section>'
++'<section><h2>六、综合结论</h2>'
++'<div class="score"><div class="stars">'+starStr+'</div><div class="num">财务健康度评分 '+starNum+' / 5　（依据文档评判标准自动测算）</div></div>'
++'<div class="cols"><div><h3>✅ 健康方面</h3><ul>'+goodHtml+'</ul></div>'
++'<div><h3>⚠ 需警惕方面</h3><ul>'+warnHtml+'</ul></div></div>'
++'<div class="note"><b>发展潜力判断：</b>'+potential+'</div></section>'
++'<section><h2>七、后续跟踪清单</h2>'
++'<table class="grid"><thead><tr><th>跟踪指标</th><th>观察意义</th></tr></thead><tbody>'
++'<tr><td class="k">毛利率趋势（是否维持高位）</td><td>盈利拐点信号</td></tr>'
++'<tr><td class="k">净现比是否回升至 1 以上</td><td>利润质量验证</td></tr>'
++'<tr><td class="k">经营现金流 vs 资本开支差额</td><td>自由现金流转正能力</td></tr>'
++'<tr><td class="k">行业新增产能投产节奏</td><td>决定景气延续时长</td></tr>'
++'<tr><td class="k">下游需求与订单边际变化</td><td>需求端验证</td></tr>'
++'</tbody></table></section>'
++'<footer>本报告由「投研工作台·财务分析」自动生成，数据来源：东方财富 / 腾讯财经，生成于 '+today+'。财务数据仅作研究参考，不构成投资建议。</footer>'
++'</div>';
+}
+function formatNow(){
+  const d=new Date(); const p=n=>String(n).padStart(2,"0");
+  return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes());
+}
+
+/* ---------------- 交互 ---------------- */
+const msgEl=document.getElementById("msg");
+const reportEl=document.getElementById("report");
+async function run(){
+  const q=(document.getElementById("inp").value||"").trim();
+  if(!q){ msgEl.textContent="请输入个股名称或代码"; msgEl.className="msg err"; return; }
+  msgEl.textContent="正在拉取数据并生成报告…"; msgEl.className="msg"; reportEl.innerHTML="";
+  try{
+    const R=await analyze(q);
+    reportEl.innerHTML=render(R);
+    msgEl.textContent="已完成："+R.meta.name+"("+R.meta.code+") · 评分 "+R.score.stars.toFixed(1)+"/5";
+    msgEl.className="msg ok";
+  }catch(e){
+    reportEl.innerHTML='<div class="report"><section><h2>分析失败</h2><p>'+e.message+'</p>'
+      +'<p class="muted">可能原因：网络不可达、名称未匹配到 A 股代码、或该标的无公开财务数据。</p></section></div>';
+    msgEl.textContent="失败："+e.message; msgEl.className="msg err";
+  }
+}
+// 支持 ?code= 直达（iframe 外部可传参）
+(function(){
+  const ps=new URLSearchParams(location.search);
+  const c=ps.get("code");
+  if(c){ document.getElementById("inp").value=c; run(); }
+})();
+</script>
+</body>
+</html>

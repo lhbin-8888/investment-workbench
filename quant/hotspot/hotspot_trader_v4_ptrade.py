@@ -143,6 +143,10 @@ COOL_DOWN_DAYS = 3                  # 止损后冷静期（交易日）
 STAGE_ZT_MIN = 2                    # 进入启动期所需最小当日涨停家数
 TOP_MAIN_LINES = 3                  # 主线板块数量
 MAX_SECTOR_SIZE = 80                # 成分数超过此值的板块不参与主线评选
+# ★V4.1 修复★ 主线规模准入：1~2 成分板块无"跟涨"空间（其唯一/少数标的若封板即被剔除），
+# 在回测中导致"主线 3 条全是 1 成分封板板块 → 每天 0 候选 → 整段 0 成交"。
+MIN_MAIN_SECTOR_SIZE = 3            # 主线最低成分数（全量口径，来自 sector_map）
+MIN_MAIN_FOLLOWERS = 2             # 封板龙头之外至少要有这么多可买跟涨标的（n_feat - zt_cnt）
 MAX_CANDIDATES = 10                 # 每日候选上限（3 主线 × 2 只 = 6，此值留余量）
 HOT_GAIN_MIN = 4.0                  # 成分入选板块强度统计 / 启动期候选的最小区间涨幅(%)
 DIFFUSE_VR_MAX = 1.5                # 扩散期"回踩"要求：量比下限（缩量）
@@ -165,6 +169,10 @@ BROAD_TAG_BLACKLIST = (             # 宽口径属性标签（非题材），禁
 MARKET_ZT_FLOOR = 25                # 板块池内涨停家数低于此值 → 停开新仓
 INDEX_FOR_REGIME = "000300.SS"
 INDEX_BARS = 60
+# ★V4.1★ 市场开关：是否额外要求沪深300 站上 MA20 才开仓。
+# 纯热点/情绪策略对宽基趋势不敏感（热点常在震荡/弱势中更活跃），该硬开关曾把回测中
+# 唯一一只候选（002815）也拦掉。弱势市想放开，可设 False，仅保留涨停家数广度地板。
+REGIME_USE_INDEX_MA20 = True
 
 # ---- 经济性预算 ----
 COST_PER_SIDE = 0.0035              # 单边成本（佣金0.03%+滑点0.2%+冲击0.1%+印花税均摊）
@@ -970,8 +978,24 @@ def classify_stage(sig, hist):
 
 
 def _main_line_groups(signals):
-    """主线：归一化强度排序 + 宽口径剔除 + 体量上限 + Jaccard 去重。"""
-    sigs = sorted(signals, key=lambda s: s["strength"], reverse=True)
+    """★V4.1 修复★ 主线：规模准入 + 跟涨标的下限 + 宽口径剔除 + Jaccard 去重 + 广度优先排序。
+
+    旧版按归一化 strength 排序。strength 的 zt_rate 项给"封板率" 50 分上限，
+    导致 1 成分板块（其唯一标的封板 → 封板率 100% → 强度≈90~100）永远霸榜。
+    但 _pick_candidates 会剔除已封板标的，单成分板块因此永远产不出候选 →
+    回测整段（8/26~9/11）每日 0 候选、0 成交。
+
+    修复：
+      ① 主线必须有足够成分（MIN_MAIN_SECTOR_SIZE）且封板龙头之外还有 >=
+         MIN_MAIN_FOLLOWERS 只可买跟涨标的，否则不参与评选；
+      ② 排序改用"广度优先评分"（封板龙头数×权重 + 可跟涨成分数×权重 + 板块均幅），
+         让真正有广度的热点板块排到前面，而不是单票封板的小板块。
+    """
+    def ml_score(s):
+        followers = max(0, s["n_feat"] - s["zt_cnt"])
+        return s["zt_cnt"] * 3.0 + followers * 1.5 + s["avg_pct"] * 0.3
+
+    sigs = sorted(signals, key=ml_score, reverse=True)
     picks, skipped = [], []
     for s in sigs:
         if len(picks) >= TOP_MAIN_LINES:
@@ -987,6 +1011,13 @@ def _main_line_groups(signals):
             continue
         if len(cs) > MAX_SECTOR_SIZE:
             skipped.append("{}(成分{})".format(name, len(cs)))
+            continue
+        if len(cs) < MIN_MAIN_SECTOR_SIZE:
+            skipped.append("{}(成分{}<{})".format(name, len(cs), MIN_MAIN_SECTOR_SIZE))
+            continue
+        followers = s["n_feat"] - s["zt_cnt"]
+        if followers < MIN_MAIN_FOLLOWERS:
+            skipped.append("{}(可跟涨{}<{})".format(name, followers, MIN_MAIN_FOLLOWERS))
             continue
         dup = False
         for p in picks:
@@ -1112,13 +1143,14 @@ def market_regime_ok():
     if g.feat and zt < MARKET_ZT_FLOOR:
         log.info("[市场开关] 昨日池内涨停约 {} 家 < 阈值 {} → 停开新仓".format(zt, MARKET_ZT_FLOOR))
         return False
-    rows = g.index_rows
-    if rows:
-        closes = [r[1] for r in rows]
-        ma20 = _ma(closes, 20)
-        if ma20 and closes and closes[-1] < ma20:
-            log.info("[市场开关] 指数 {:.1f} < MA20 {:.1f} → 停开新仓".format(closes[-1], ma20))
-            return False
+    if REGIME_USE_INDEX_MA20:
+        rows = g.index_rows
+        if rows:
+            closes = [r[1] for r in rows]
+            ma20 = _ma(closes, 20)
+            if ma20 and closes and closes[-1] < ma20:
+                log.info("[市场开关] 指数 {:.1f} < MA20 {:.1f} → 停开新仓".format(closes[-1], ma20))
+                return False
     return True
 
 
@@ -1193,6 +1225,12 @@ def _run_signal_layer(context):
         h = g.prev_signal.get(s["sector"]) or []
         s["stage"] = classify_stage(s, h[-2:])
     mains = _main_line_groups(signals)
+    if mains:
+        log.info("[主线确定] " + " | ".join(
+            "{}（成分{} 封板{} 可跟涨{} 阶段{}）".format(
+                m["sector"], len(g.sector_codes.get(m["sector"], [])),
+                m["zt_cnt"], max(0, m["n_feat"] - m["zt_cnt"]), m["stage"])
+            for m in mains))
     for s in signals:
         s["is_main"] = s in mains
     # 信号榜

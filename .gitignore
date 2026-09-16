@@ -27,3 +27,8 @@ desktop.ini
 
 # 每日全球要闻：MD 仅本地留档，不推线上（线上只发 PDF）
 01-投研信息收集/宏观研究/*-全球要闻.md
+
+# 财务分析模块：自动生成的报告与 PDF（临时 HTML 已由 archive/temp_* 覆盖）
+08-财务分析/财务分析_*.html
+08-财务分析/财务分析_*.pdf
+archive/temp_fa/
