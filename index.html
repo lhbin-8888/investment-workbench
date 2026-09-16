@@ -752,12 +752,10 @@ function selectItem(el) {
 
   if (isTplItem) {
     // Show template preview
-    html += '<div class="readme-card"><h2>' + name + '</h2><div class="desc">' + desc + '</div></div>';
     html += '<div class="tpl-preview"><div class="tpl-header"><h3><span class="tag">模板预览</span> ' + name + '.md</h3></div>';
     html += '<div class="tpl-body">' + renderMD(TM[name]) + '</div></div>';
   } else if (name === '工具与模板') {
     // Show template list
-    html += '<div class="readme-card"><h2>工具与模板</h2><div class="desc">存放投研工作所需的各类模板文件，包括日报、周报、复盘等结构化模板。</div></div>';
     html += '<div class="tpl-list">';
     ['日报模板','周报模板','复盘模板'].forEach(function(tn){
       html += '<div class="tpl-list-item" onclick="selectByName(\'07-工具与模板\',\'\'+tn+\'\')">';
@@ -768,9 +766,6 @@ function selectItem(el) {
     html += '</div>';
   } else if (name === '每日晨报') {
     // 每日晨报：异步加载 01-投研信息收集/每日晨报/ 最新晨报 PDF（内嵌 PDF 查看器展示）
-    html += '<div class="readme-card"><h2><span class="breadcrumb">' + dirKey + ' /</span> ' + name + '</h2>';
-    html += '<div class="desc">每日盘前晨报，覆盖隔夜市场与A股资金面；正文归档于 01-投研信息收集/每日晨报/。</div>';
-    html += '<div class="meta">自动加载：01-投研信息收集/每日晨报/ 目录下最新一份按日期命名的晨报 PDF（YYYY-MM-DD-晨报.pdf）</div></div>';
     html += '<div class="tpl-preview"><div class="tpl-header"><h3><span class="tag">每日晨报</span> <span id="morningReportTitle">正在加载...</span></h3></div>';
     html += '<div class="tpl-body" id="morningReportBody" style="padding:0"><div class="empty-text">正在加载晨报数据...</div></div></div>';
   } else if (name === '每日盘面') {
@@ -783,10 +778,7 @@ function selectItem(el) {
     // 板块轮动：直接嵌入报告页面（数据由 sector-rotation-data.json 每日 16:00 自动刷新）
     html += buildSectorRotationShell();
   } else {
-    // 普通板块：readme 说明 + 文档列表（manifest + localStorage 合并）
-    html += '<div class="readme-card"><h2><span class="breadcrumb">' + dirKey + ' /</span> ' + name + '</h2>';
-    html += '<div class="desc">' + (desc || '暂无描述信息') + '</div>';
-    html += '<div class="meta">来源：' + dirKey + '/' + name + '/README.md</div></div>';
+    // 普通板块：文档列表（manifest + localStorage 合并）
     html += '<div class="docs-section" id="docsSection"></div>';
   }
 
