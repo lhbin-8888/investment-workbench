@@ -16,7 +16,7 @@
 > ⚠️ **必须通过本地 HTTP 服务打开，不能直接双击 `index.html`。**
 > 晨报模块使用 `fetch('data/YYYY-MM-DD-晨报.pdf')` 动态加载，浏览器在 `file://` 协议下会因 CORS 策略拦截，导致晨报一片空白。
 
-> 💡 **线上版（GitHub Pages）**：https://lhbin-8888.github.io/investment-workbench/ —— 无需本地服务，直接浏览器打开，每日 15:30 自动刷新盘面数据。本地改完页面记得 `git pushall` 才同步到线上。
+> 💡 **线上版（GitHub Pages）**：https://lhbin-8888.github.io/investment-workbench/ —— 无需本地服务，直接浏览器打开，每日 15:30 自动刷新盘面数据。本地改完页面，**双击根目录 `publish.bat` 即可一键提交并发布到线上**（gitee + GitHub 双通道，推送后自动校验）。
 
 **方式一：双击 `start.bat`**（推荐）
 自动启动本地服务并打开浏览器，默认端口 `8848`。
@@ -128,7 +128,27 @@ node tools/check-alignment.js
 
 ---
 
-## 七、存储与清理规范（2026-09-10 确立）
+## 七、一键发布（部署到线上）
+
+线上版由 GitHub Pages 从 `main` 分支自动构建。本地改完任何页面/数据后，双击根目录 **`publish.bat`** 即可一键发布：
+
+1. `git add -A`（仅纳入源码；`.gitignore` 已排除生成报告/PDF、`__pycache__`、`.workbuddy` 本地记忆等）
+2. 带时间戳 `git commit`（仅在确有改动时）
+3. 双通道推送并远程校验 SHA：
+   - **Gitee**：`main→main` 与 `main→master` 都推（Gitee Pages 可能走 master）
+   - **GitHub**：SSH 通道优先，失败自动回退 HTTPS（关闭系统代理），最多重试 3 次
+   - 推送后比对 gitee / github-ssh 的 HEAD 与本地是否一致，不一致会给出告警
+
+```bash
+# 也可命令行手动跑（效果相同）
+python tools/publish_workbench.py
+```
+
+> 说明：脚本复用仓库 `.git/config` 中已验证的 `pushall` 策略（SSH 优先、gitee+github 双推、推送后校验），并额外补上「自动提交」一步，真正一键搞定。若某次网络中断未同步，重复运行即可。
+
+---
+
+## 八、存储与清理规范（2026-09-10 确立）
 
 ### 1. 唯一存储位置：D 盘
 
