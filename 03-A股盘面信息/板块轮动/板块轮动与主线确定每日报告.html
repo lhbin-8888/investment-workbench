@@ -29,12 +29,14 @@
   .tag{background:rgba(255,255,255,.2);padding:2px 9px;border-radius:20px;font-size:11px;}
   .disclaimer{font-size:11px;color:var(--sub);margin-top:10px;background:#fff7ef;border-left:3px solid var(--primary);padding:8px 12px;border-radius:6px;}
   .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px;}
-  @media(min-width:1500px){.grid{grid-template-columns:1fr 1fr;}}
   .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
   .card h2{margin:0 0 12px;font-size:15px;border-left:4px solid var(--primary);padding-left:9px;}
   .card h3{margin:14px 0 8px;font-size:13px;color:var(--sub);}
   .table-wrap{overflow:auto;max-height:420px;border:1px solid var(--line);border-radius:8px;}
   table{border-collapse:collapse;font-size:11px;width:100%;min-width:1180px;}
+  /* 自动分析表格不拉伸，板块列保持自然宽度，避免与录入表对齐后过宽 */
+  #rankTbl,#hotTbl{width:auto;min-width:0;max-width:760px;}
+  #rankTbl td.name,#hotTbl td.name{min-width:120px;text-align:left;}
   th,td{border:1px solid var(--line);padding:4px 4px;text-align:center;white-space:nowrap;}
   th{background:#fafafa;font-weight:600;color:#374151;position:sticky;top:0;}
   td.name,th:nth-child(1){min-width:74px;}
