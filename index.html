@@ -449,6 +449,30 @@ body{
   .macro-grid{grid-template-columns:minmax(0,1fr)}
 }
 
+/* ============================ 板块轮动页 ============================ */
+.sector-wrap{display:flex;flex-direction:column;gap:14px}
+.sector-panel{
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:14px;overflow:hidden;
+}
+.sector-head{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;padding:12px 20px;background:var(--bg-active);border-bottom:1px solid var(--border);
+  flex-wrap:wrap;
+}
+.sector-head h3{font-size:14px;color:var(--text-primary);display:inline-flex;align-items:center;gap:8px;margin:0}
+.sector-head .tag{
+  font-size:11px;padding:2px 8px;border-radius:4px;
+  background:linear-gradient(90deg,var(--accent),var(--accent-purple));color:#fff;
+}
+.sector-head .meta{font-size:12px;color:var(--text-dim);white-space:nowrap}
+.sector-body{min-height:600px;background:#fff}
+.sector-body iframe{width:100%;height:960px;border:0;display:block;background:#fff}
+
+@media(max-width:768px){
+  .sector-body iframe{height:720px}
+}
+
 /* ============================ 每日盘面页 ============================ */
 .market-wrap{display:flex;flex-direction:column;gap:14px}
 .market-panel{
@@ -758,6 +782,9 @@ function selectItem(el) {
   } else if (dirKey === '01-投研信息收集' && name === '宏观研究') {
     // 宏观研究：上半页 = 全球资产近一周波动曲线；下半页 = 中国宏观政策信息
     html += buildMacroShell();
+  } else if (dirKey === '03-A股盘面信息' && name === '板块轮动') {
+    // 板块轮动：直接嵌入报告页面（数据由 sector-rotation-data.json 每日 16:00 自动刷新）
+    html += buildSectorRotationShell();
   } else {
     // 普通板块：readme 说明 + 文档列表（manifest + localStorage 合并）
     html += '<div class="readme-card"><h2><span class="breadcrumb">' + dirKey + ' /</span> ' + name + '</h2>';
@@ -789,9 +816,13 @@ function selectItem(el) {
   if (name === '每日盘面') {
     renderMarketCharts();
   }
+  // 板块轮动：直接嵌入报告页面
+  if (dirKey === '03-A股盘面信息' && name === '板块轮动') {
+    renderSectorRotation();
+  }
 
   // 普通板块：渲染文档卡片列表（manifest + localStorage 合并）
-  if (!isTplItem && name !== '工具与模板' && name !== '每日晨报' && name !== '每日盘面') {
+  if (!isTplItem && name !== '工具与模板' && name !== '每日晨报' && name !== '每日盘面' && !(dirKey === '03-A股盘面信息' && name === '板块轮动')) {
     currentSection = name;
     renderDocList(name, '');
   } else {
@@ -1318,6 +1349,28 @@ function macroInsight(d){
   }
   h += '<div class="macro-insight-foot">由四类资产周变动自动生成，仅为盘前观察视角，不构成投资建议。</div>';
   return h;
+}
+
+// ============ 板块轮动页（直接嵌入报告，数据由 sector-rotation-data.json 刷新） ============
+function buildSectorRotationShell(){
+  var h = '';
+  h += '<div class="sector-wrap">';
+  h += '<div class="sector-panel">';
+  h +=   '<div class="sector-head">';
+  h +=     '<h3><span class="tag">板块轮动</span> 板块轮动与主线确定 · 每日报告</h3>';
+  h +=     '<span class="meta">数据源：通达信 · 每日 16:00 自动刷新</span>';
+  h +=   '</div>';
+  h +=   '<div class="sector-body" id="sectorBody"><div class="macro-loading">正在加载板块轮动报告...</div></div>';
+  h += '</div>';
+  h += '</div>';
+  return h;
+}
+
+function renderSectorRotation(){
+  var box = document.getElementById('sectorBody');
+  if (!box) return;
+  var url = '03-A股盘面信息/板块轮动/板块轮动与主线确定每日报告.html';
+  box.innerHTML = '<iframe src="' + url + '" title="板块轮动与主线确定每日报告" style="width:100%;height:960px;border:0;display:block;background:#fff;"></iframe>';
 }
 
 // ============ 每日盘面页（上半页：四大指数15日走势 / 下半页：A股成交额） ============
