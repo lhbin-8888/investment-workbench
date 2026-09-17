@@ -42,14 +42,33 @@ font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:no
 .btn.danger{color:var(--warn);border-color:rgba(220,38,38,.28)}
 .btn.danger:hover{background:#fef2f2;border-color:rgba(220,38,38,.5)}
 
-/* ===== 分区卡片 ===== */
-.sections{display:flex;flex-direction:column;gap:12px}
+/* ===== 分区：九宫格 ===== */
+.sections{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch}
 .sec{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;
-box-shadow:0 1px 3px rgba(15,23,42,.06)}
-.sec-hit{border-color:var(--accent);box-shadow:0 0 0 3px rgba(237,125,49,.16)}
+box-shadow:0 1px 3px rgba(15,23,42,.06);display:flex;flex-direction:column;
+transition:box-shadow .16s ease,border-color .16s ease,transform .16s ease}
+/* 收起态 = 九宫格中的一格 */
+.sec.collapsed{cursor:pointer;min-height:198px}
+.sec.collapsed:hover{border-color:rgba(237,125,49,.55);box-shadow:0 8px 20px rgba(15,23,42,.10);
+transform:translateY(-2px)}
+/* 展开态 = 横跨整行，进入编辑 */
+.sec:not(.collapsed){grid-column:1/-1}
+.sec-hit{border-color:var(--accent)!important;box-shadow:0 0 0 3px rgba(237,125,49,.20)!important}
 .sec-head{display:flex;align-items:center;gap:11px;padding:11px 13px;
 background:linear-gradient(180deg,#fff,#f8fafc)}
 .sec:not(.collapsed) .sec-head{border-bottom:1px solid var(--line)}
+/* 收起态：顶部色条 + 编号/名称/状态三列 + 操作按钮独占第二行 */
+.sec.collapsed::before{content:'';display:block;height:3px;flex:0 0 3px;
+background:linear-gradient(90deg,var(--accent),var(--accent-d))}
+.sec.collapsed .sec-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;
+grid-template-areas:"no name state" "ops ops ops";gap:9px 8px;align-items:center;
+padding:12px 12px 10px;background:#fff}
+.sec.collapsed .sec-no{grid-area:no}
+.sec.collapsed .sec-name{grid-area:name;font-size:14.5px;padding:6px 8px;background:#f8fafc}
+.sec.collapsed .sec-name:hover{background:#eef2f7}
+.sec.collapsed .sec-state{grid-area:state}
+.sec.collapsed .sec-ops{grid-area:ops;justify-content:flex-end;
+border-top:1px dashed var(--line);padding-top:9px}
 .sec-no{width:38px;height:38px;flex:0 0 38px;border-radius:10px;background:var(--head);color:#fff;
 font-weight:800;font-size:13.5px;display:flex;align-items:center;justify-content:center;letter-spacing:.4px}
 .sec-name{flex:1;min-width:0;border:1px solid transparent;background:transparent;font-size:15.5px;
@@ -63,7 +82,10 @@ white-space:nowrap;border:1px solid var(--line);font-weight:600}
 .sec-state.filled{background:rgba(22,163,74,.10);color:#15803d;border-color:rgba(22,163,74,.28)}
 .sec-ops{display:flex;gap:5px;flex:0 0 auto}
 .sec-glance{display:flex;gap:7px;flex-wrap:wrap;padding:0 14px 11px 62px}
-.sec.collapsed .sec-glance{padding-bottom:12px}
+/* 收起态摘要：纵向清单 + 长文本截断 + 贴卡片底部（保证九宫格等高对齐） */
+.sec.collapsed .sec-glance{flex-direction:column;gap:6px;padding:0 12px 13px;margin-top:auto}
+.sec.collapsed .chip{max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;
+white-space:nowrap}
 .sec:not(.collapsed) .sec-glance{display:none}
 .chip{font-size:11.5px;padding:3px 9px;border-radius:999px;background:#f8fafc;
 border:1px solid var(--line);color:var(--sub)}
@@ -115,8 +137,12 @@ border-top:1px solid var(--line);background:#f8fafc}
 .sec-foot .upd{margin-left:auto;font-size:11.5px;color:var(--sub)}
 .foot{margin-top:16px;font-size:12px;color:var(--sub);text-align:center;line-height:1.8}
 .empty-hint{padding:28px;text-align:center;color:var(--sub);font-size:13px;background:#fff;
-border:1px dashed var(--line);border-radius:14px}
+border:1px dashed var(--line);border-radius:14px;grid-column:1/-1}
+@media (max-width:900px){
+  .sections{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 @media (max-width:640px){
+  .sections{grid-template-columns:1fr}
   .sec-glance{padding-left:14px}
   .sec-name{font-size:14.5px}
   .field.wide{grid-column:span 1}
@@ -126,8 +152,8 @@ border:1px dashed var(--line);border-radius:14px}
 <body>
 <div class="app">
   <div class="app-head">
-    <h1>&#128202; 策略回测工作台 <span class="badge">分区管理</span></h1>
-    <div class="tip">每个分区展示一种策略：<b>策略名称</b>（手动填写）· <b>策略程序文件</b> · <b>策略说明与使用文档</b> · <b>策略回测情况</b> · <b>策略风险与注意事项</b>。内容自动保存在本机浏览器，可导出 / 导入 JSON 备份。</div>
+    <h1>&#128202; 策略回测工作台 <span class="badge">九宫格 · 分区管理</span></h1>
+    <div class="tip">默认 <b>9 个分区以九宫格排布</b>（3 列，可手动增加分区）——<b>点宫格即可展开编辑</b>，编辑完点「收起」回到九宫格。每格展示一种策略：<b>策略名称</b>（手动填写）· <b>策略程序文件</b> · <b>策略说明与使用文档</b> · <b>策略回测情况</b> · <b>策略风险与注意事项</b>。内容自动保存在本机浏览器，可导出 / 导入 JSON 备份。</div>
     <div class="row">
       <input type="text" id="q" placeholder="&#128269; 搜索策略名称 / 说明 / 风险关键词">
       <button class="btn primary" id="btnAdd">＋ 增加分区</button>
@@ -483,7 +509,22 @@ secBox.addEventListener('input', function(e){
 
 secBox.addEventListener('click', function(e){
   var btn = e.target.closest ? e.target.closest('[data-act]') : null;
-  if(!btn) return;
+  if(!btn){
+    /* 九宫格：点宫格空白处直接展开编辑（输入框 / 链接 / 按钮自身除外） */
+    var g = e.target.closest ? e.target.closest('.sec.collapsed') : null;
+    var tag = String(e.target.tagName || '').toUpperCase();
+    if(g && !/^(INPUT|TEXTAREA|SELECT|A|BUTTON|LABEL)$/.test(tag)){
+      var gi = Number(g.dataset.idx);
+      if(secs[gi]){
+        secs[gi].collapsed = false;
+        g.classList.remove('collapsed');
+        var tg = g.querySelector('[data-act="toggle"]');
+        if(tg) tg.textContent = '收起';
+        saveSoon(); resize();
+      }
+    }
+    return;
+  }
   var card = btn.closest('.sec');
   if(!card) return;
   var i = Number(card.dataset.idx), act = btn.dataset.act, s = secs[i];
