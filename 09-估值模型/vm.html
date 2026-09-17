@@ -13,139 +13,542 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,sans-serif;
 background:#f1f5f9;color:var(--ink);line-height:1.6}
+/* ===== 应用外壳（仅屏幕显示，打印隐藏）===== */
 .app{display:flex;flex-direction:column;align-items:center;padding:18px 14px 40px}
 .app-head{width:100%;max-width:980px;background:linear-gradient(135deg,#1e293b,#334155);
-border-radius:14px;padding:18px 22px;margin-bottom:14px;box-shadow:0 6px 18px rgba(15,23,42,.18);color:#e2e8f0}
+border-radius:14px;padding:18px 22px;margin-bottom:18px;box-shadow:0 6px 18px rgba(15,23,42,.18);color:#e2e8f0}
 .app-head h1{color:#fff;font-size:18px;margin-bottom:12px}
 .app-head .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 .app-head input{flex:1;min-width:220px;padding:11px 14px;border:0;border-radius:10px;font-size:15px;
 background:#fff;color:#0f172a}
-.app-head button[type=submit]{padding:11px 22px;border:0;border-radius:10px;background:var(--accent);color:#fff;
+.app-head button{padding:11px 22px;border:0;border-radius:10px;background:var(--accent);color:#fff;
 font-size:15px;font-weight:700;cursor:pointer}
-.app-head button[type=submit]:hover{background:#f59e0b}
+.app-head button:hover{background:#f59e0b}
 .app-head .tip{margin-top:10px;font-size:12.5px;color:#cbd5e1}
 .app-head .msg{margin-top:8px;font-size:13px;min-height:18px}
 .app-head .msg.err{color:#fca5a5}.app-head .msg.ok{color:#86efac}
-.actions{width:100%;max-width:980px;display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-.actions button{padding:10px 18px;border:0;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;
-background:#e2e8f0;color:#334155}
-.actions button.primary{background:var(--accent);color:#fff}
-.actions button:disabled{opacity:.45;cursor:not-allowed}
-.actions button.primary:hover:not(:disabled){background:#f59e0b}
-.preview-wrap{width:100%;max-width:980px}
-.preview-wrap .ph-intro{background:#fff;border:1px dashed var(--line);border-radius:12px;
-padding:40px 24px;text-align:center;color:var(--sub);font-size:14px}
-#preview{width:100%;min-height:1000px;border:1px solid var(--line);border-radius:12px;background:#fff;display:block}
+/* ===== 报告主体 ===== */
+.report{max-width:980px;width:100%}
+.report header{background:linear-gradient(135deg,#1e293b,#334155);color:#fff;border-radius:16px;
+padding:26px 30px;margin-bottom:20px;box-shadow:0 8px 24px rgba(15,23,42,.18)}
+.report header h1{font-size:26px;margin-bottom:6px}
+.report header .code{color:#fdba74;font-size:15px;font-weight:600}
+.report header .meta{margin-top:14px;display:flex;flex-wrap:wrap;gap:18px;font-size:14px;color:#cbd5e1}
+.report header .meta b{color:#fff;font-size:18px;display:block}
+.report .up{color:#fca5a5}.report .down{color:#86efac}
+.report section{background:var(--card);border-radius:14px;padding:22px 26px;margin-bottom:18px;
+box-shadow:0 2px 10px rgba(15,23,42,.06);border:1px solid var(--line)}
+.report section h2{font-size:19px;margin-bottom:14px;padding-left:12px;border-left:4px solid var(--accent);color:#0f172a}
+.report table{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+.report table.grid th,.report table.grid td{border:1px solid var(--line);padding:9px 10px;text-align:center}
+.report table.grid th{background:#f8fafc;color:#475569;font-weight:600}
+.report td.k{text-align:left;color:#334155;font-weight:600;background:#fafafa}
+.report td.v{font-weight:700;color:#0f172a}
+.report .badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:13px;font-weight:700}
+.report .badge.neu{background:#e0f2fe;color:#0369a1}
+.report .note{font-size:13.5px;color:var(--sub);background:#fff7ed;border-left:3px solid var(--accent);
+padding:10px 14px;border-radius:8px;margin-top:12px}
+.report .muted{color:var(--sub);font-size:13px}
+.report footer{text-align:center;color:var(--sub);font-size:12px;margin:20px 0;padding-top:10px}
+.report .tag{display:inline-block;background:#fef3e2;color:var(--accent);padding:2px 8px;border-radius:6px;font-size:12px;margin-left:8px}
+.report .export-btn{margin-top:14px;display:inline-block;padding:8px 16px;border:0;border-radius:10px;
+background:#fdba74;color:#1e293b;font-size:14px;font-weight:700;cursor:pointer}
+.report .export-btn:hover{background:#fcd34d}
+/* ===== 仅打印（导出 PDF）显示的封面/水印/页眉 ===== */
+.pdf-watermark,.pdf-runninghead,.pdf-cover{display:none}
+@media print{
+  @page{size:A4;margin:12mm 12mm 14mm 12mm}
+  body{background:#fff;padding:0}
+  .app{padding:0;align-items:stretch}
+  .app-head{display:none!important}
+  .report{max-width:none}
+  .report header{box-shadow:none;border-radius:0}
+  .report section{box-shadow:none;border:1px solid #e2e8f0;break-inside:avoid;page-break-inside:avoid;margin-bottom:12px}
+  .no-print{display:none!important}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .report table.grid{break-inside:auto}
+  .report tr,.report td,.report th{break-inside:avoid;page-break-inside:avoid}
+  .report .wrap,.report{padding-top:6mm}
+  .pdf-watermark{display:block;position:fixed;top:-30%;left:-30%;width:160%;height:160%;
+    z-index:-1;pointer-events:none;overflow:hidden;
+    font-size:20px;line-height:2.6;color:rgba(15,23,42,0.05);
+    transform:rotate(-28deg);word-break:break-all;letter-spacing:1px}
+  .pdf-runninghead{display:flex;position:fixed;top:0;left:0;right:0;height:9mm;
+    align-items:center;justify-content:space-between;padding:0 12mm;
+    font-size:8.5px;color:#64748b;border-bottom:0.4px solid #cbd5e1;background:#fff;z-index:60}
+  .pdf-cover{display:flex;flex-direction:column;justify-content:center;
+    page-break-after:always;height:260mm;padding:18mm 16mm 0;
+    border-bottom:3px solid var(--accent)}
+  .pdf-cover .kicker{font-size:13px;color:var(--accent);letter-spacing:3px;font-weight:700;margin-bottom:20px}
+  .pdf-cover .title{font-size:44px;font-weight:800;color:#0f172a}
+  .pdf-cover .sub{font-size:18px;color:#475569;margin-top:10px}
+  .pdf-cover .meta{font-size:13px;color:#64748b;margin-top:28px;line-height:2}
+  .pdf-cover .note{font-size:11px;color:#94a3b8;margin-top:auto;border-top:1px solid #e2e8f0;padding-top:14px}
+}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="app-head no-print">
-    <h1>个股估值模型 · 自动报告</h1>
-    <form id="frm" class="row" action="/vm/analyze" method="get" target="preview" onsubmit="return onSub()">
-      <input id="inp" name="code" placeholder="输入个股名称或 6 位代码，如 600176 / 中国巨石">
-      <button type="submit">生成报告</button>
-    </form>
-    <div class="tip">估值逻辑严格遵循「个股估值」技能：先判类型 → 再选主尺（DCF / PE / PEG / PS / PB）→ 两把尺子交叉验证，输出内在价值区间与安全边际。数据：东方财富财务三大报表 + 腾讯行情估值。</div>
+    <h1>个股估值分析 · 自动报告</h1>
+    <div class="row">
+      <input id="inp" placeholder="输入个股名称或 6 位代码，如 600176 / 中国巨石" onkeydown="if(event.key==='Enter')run()">
+      <button onclick="run()">生成报告</button>
+    </div>
+    <div class="tip">估值逻辑遵循「个股估值」技能：判类型 → 选主尺(DCF/PE/PEG/PS/PB) → 两把尺子交叉验证｜浏览器直连东方财富 + 腾讯行情，无需后端｜可一键导出 PDF</div>
     <div class="msg" id="msg"></div>
   </div>
-  <div class="actions no-print">
-    <button id="btnSave" class="primary" onclick="saveReport()" disabled>保存到文档列表（生成 PDF）</button>
-    <button id="btnPdf" onclick="printReport()" disabled>打印 / 导出 PDF</button>
-  </div>
-  <div class="preview-wrap">
-    <div class="ph-intro" id="ph">在上方输入个股名称或代码，点击「生成报告」即可在下方预览估值分析报告。</div>
-    <iframe id="preview" name="preview" title="估值报告预览" style="display:none"></iframe>
-  </div>
+  <div class="report" id="report"></div>
 </div>
 
 <script>
 "use strict";
-const inp = document.getElementById("inp");
-const msg = document.getElementById("msg");
-const preview = document.getElementById("preview");
-const ph = document.getElementById("ph");
-const btnSave = document.getElementById("btnSave");
-const btnPdf = document.getElementById("btnPdf");
-let currentCode = "";
+const EM_HOST = "https://datacenter-web.eastmoney.com/api/data/v1/get";
 
-function setMsg(t, cls){ msg.textContent = t; msg.className = "msg" + (cls ? " "+cls : ""); }
+/* ---------------- 工具 ---------------- */
+function safeDiv(a,b){ if(b==null||b===0) return null; try{return a/b;}catch(e){return null;} }
+function yi(v){ return v==null ? "—" : (v/1e8).toFixed(2); }
+function pct(v){ return v==null ? "—" : (v.toFixed(2)+"%"); }
+function periodLabel(ds){
+  const d=(ds||"").slice(0,10); if(d.length<7) return d;
+  const parts=d.split("-"); const y=parts[0], m=parts[1];
+  return ({"03":y+"Q1","06":y+"半年","09":y+"Q3","12":y+"年报"}[m]||d);
+}
+function latestBy(rows){ if(!rows.length) return null; return rows.reduce((a,b)=>((b.REPORT_DATE||"")>(a.REPORT_DATE||""))?b:a); }
+function findPrior(rows,curDate){
+  const ear=rows.filter(r=>((r.REPORT_DATE||"").slice(0,10) < (curDate||"").slice(0,10)));
+  if(!ear.length) return null; return ear.reduce((a,b)=>((b.REPORT_DATE||"")>(a.REPORT_DATE||""))?b:a);
+}
+function median(vals){ vals=vals.filter(v=>v!=null); if(!vals.length) return null; vals.sort((a,b)=>a-b);
+  const n=vals.length; return n%2 ? vals[(n-1)/2] : (vals[n/2-1]+vals[n/2])/2; }
+function marketPrefix(code){
+  if(code[0]==="6"||code[0]==="9") return "sh";
+  if(code[0]==="0"||code[0]==="3") return "sz";
+  if(code[0]==="8"||code[0]==="4") return "bj";
+  return "sh";
+}
+function gbkDecode(buf){ return new TextDecoder("gbk").decode(buf); }
+function fmtR(r){ return (r.low!=null&&r.high!=null) ? (r.low.toFixed(2)+"~"+r.high.toFixed(2)+" 元") : "—"; }
 
-// 若以 file:// 双击打开，表单提交无法访问本地服务，拦截并提示用 start.bat
-if (location.protocol === "file:") {
-  ph.style.display = "block";
-  ph.innerHTML = "⚠ 检测到以本地文件方式打开，无法连接估值服务。<br>请先双击 <b>start.bat</b> 启动工作台，再用浏览器访问 <b>http://localhost:8848/index.html</b> 进入「估值模型」。";
-  document.getElementById("frm").addEventListener("submit", function(e){ e.preventDefault(); });
+/* ---------------- 数据拉取 ---------------- */
+async function emQuery(report, columns, flt, pagesize){
+  const url = EM_HOST + "?reportName="+report+"&columns="+encodeURIComponent(columns)
+    + "&filter="+encodeURIComponent(flt)+"&pageSize="+pagesize
+    + "&sortColumns=REPORT_DATE&sortTypes=-1&client=PC&source=F10";
+  const r = await fetch(url);
+  const d = await r.json();
+  if(!d.success) return [];
+  return (d.result && d.result.data) || [];
+}
+async function resolveCode(q){
+  if(/^\d{6}$/.test(q)) return q;
+  const rows = await emQuery("RPT_DMSK_FN_INCOME","SECURITY_CODE,SECURITY_NAME_ABBR",'(SECURITY_NAME_ABBR="'+q+'")',5);
+  if(rows.length) return rows[0].SECURITY_CODE;
+  throw new Error("未匹配到股票："+q+"（请确认证券简称，或直接输入 6 位代码，如 600176）");
+}
+async function fetchQuote(code){
+  const url = "https://qt.gtimg.cn/q="+marketPrefix(code)+code;
+  const r = await fetch(url);
+  const buf = await r.arrayBuffer();
+  const txt = gbkDecode(buf);
+  const i = txt.indexOf('="');
+  let part = i>=0 ? txt.slice(i+2) : txt;
+  part = part.replace(/";?\s*$/, "");
+  const f = part.split("~");
+  const num = (idx)=> (f.length>idx && f[idx]) ? parseFloat(f[idx]) : null;
+  return {
+    price: num(3), prev_close: num(4), change_pct: num(32),
+    turnover: num(38), pe_ttm: num(39), mktcap_yi: num(44),
+    quote_time: f.length>30 ? f[30] : ""
+  };
 }
 
-// 表单提交：结果在下方 iframe 整页渲染（与「财务分析」完全同构，不依赖 fetch/srcdoc）
-function onSub(){
-  const q = (inp.value||"").trim();
-  if(!q){ setMsg("请输入个股名称或代码", "err"); return false; }
-  setMsg("正在生成估值报告…", "");
-  ph.style.display = "none";
-  preview.style.display = "block";
-  currentCode = q;
-  btnSave.disabled = false; btnPdf.disabled = false;
-  window.parent && window.parent !== window && window.parent.postMessage({ type:"vm-resize", height: document.documentElement.scrollHeight }, "*");
-  return true;
+/* ---------------- 类型判定关键词 ---------------- */
+const FINANCIAL_KW = ["银行","保险","证券","信托","期货","基金"];
+const CYCLICAL_KW = ["钢铁","有色","煤炭","航运","水泥","工程机械","化工","石油","天然气",
+  "电力","地产","券商","养殖","面板","光伏","机场","港口","造纸","玻纤","海运","铜","铝","锂","镍","锌","黄金","石化"];
+const INTANGIBLE_KW = ["白酒","啤酒","饮料","互联网","软件","传媒","品牌","化妆品","医美",
+  "院线","游戏","社交","电商"];
+
+/* ---------------- 第一步：判断公司类型 ---------------- */
+function classify(cur, annual_inc, ind_name){
+  const reasons=[];
+  const np_=cur.np; const nm=cur.net_margin||0; const gp=cur.gp_margin||0; const roe=cur.roe_ann||0;
+  let g=null;
+  if(annual_inc.length>=2){
+    const n0=annual_inc[0].np, n1=annual_inc[annual_inc.length-1].np; const yrs=annual_inc.length-1;
+    if(n0 && n1 && n0>0) g=((Math.pow(n1/n0, 1/yrs))-1)*100;
+  }
+  const roes=annual_inc.filter(a=>a.roe!=null).map(a=>a.roe);
+  const roe_vol = roes.length>=2 ? (Math.max.apply(null,roes)-Math.min.apply(null,roes)) : 0;
+
+  if(FINANCIAL_KW.some(k=>ind_name.indexOf(k)>=0))
+    return ["financial","重资产/金融型","重资产 / 金融，资产负债表是核心，关注资产质量与资本回报",
+      ["所属行业为银行/保险/证券等金融业态，适用 PB + 股息率"]];
+  if(np_!=null && np_<=0)
+    return ["loss","亏损高增长型","利润仍未转正，市场讲的是 PS 语言（看增速/份额/用户）；跨越盈亏平衡后才会切到 PE",
+      ["最新报告期归母净利润 <= 0，PE 失效，改用 PS（合理PS = 终局净利率 × 终局PE）"]];
+  if(CYCLICAL_KW.some(k=>ind_name.indexOf(k)>=0))
+    return ["cyclical","强周期型","强周期行业，盈利随周期大幅波动；亏损期 PE 失效，用 PS+PB，并判断朱格拉周期位置",
+      ["所属行业为强周期行业，盈利波动大，用 PS（亏损期）+ PB 双尺验证"]];
+  if(g!=null && g>=20 && roe_vol<0.25)
+    return ["growth","稳定成长型","净利润持续中高速增长，适用 PEG（彼得·林奇修正指标）",
+      ["近 "+(annual_inc.length-1)+" 年净利 CAGR≈"+g.toFixed(0)+"% （≥20%）且 ROE 波动较小，适用 PEG"]];
+  if(INTANGIBLE_KW.some(k=>ind_name.indexOf(k)>=0) && nm>=0.15 && gp>=0.40)
+    return ["intangible","无形资产型","品牌/网络效应驱动，最值钱的资产不在账面，PB 会失真；用 PE/DCF，PB 跌破 1 反而是机会",
+      ["高毛利+高净利且属品牌/平台类，PB 失真，主尺 PE/DCF，副尺警惕 PB 误判"]];
+  return ["mature","成熟稳定盈利型","利润稳定、现金流好、已过成长期，适用 PE + DCF 两阶段模型",
+    ["利润稳定、经营现金流为正，适用 PE + DCF 双尺交叉验证"]];
 }
 
-preview.addEventListener("load", function(){
-  try {
-    const h = preview.contentWindow.document.body.scrollHeight;
-    if (h && h > 300) preview.style.height = (h + 40) + "px";
-  } catch(e){}
-  postHeight();
-  try {
-    const txt = preview.contentWindow.document.body.innerText || "";
-    if (txt.indexOf("分析失败") >= 0) {
-      setMsg("生成失败：后端未返回报告。请确认主服务(8848)已启动，且通过 http://localhost:8848 访问本页（不要双击本地文件）。", "err");
-    } else {
-      setMsg("已完成估值，可在下方预览，或点击「保存到文档列表」生成 PDF。", "ok");
-    }
-  } catch(e){}
-});
+/* ---------------- 第二步：用主尺计算 ---------------- */
+function valueDcf(cur, shares, net_cash, pessimistic){
+  const fcf0 = cur.fcf;
+  if(fcf0==null || fcf0<=0 || !shares || shares<=0) return [null, {ok:false, reason:"FCF 缺失或非正，跳过 DCF（改用相对估值）"}];
+  const R = pessimistic ? 0.12 : 0.09;
+  const G = pessimistic ? 0.01 : 0.015;
+  const N = 3;
+  let g = 0.08;
+  const fcf_series = cur.fcf_series || [];
+  if(fcf_series.length>=2){
+    try{ const g0=(Math.pow(fcf_series[fcf_series.length-1]/fcf_series[0], 1/(fcf_series.length-1))-1); g=Math.min(Math.max(g0,0),0.15); }catch(e){}
+  }
+  if(pessimistic) g=Math.min(g,0.05);
+  let pv_sum=0, fcf_n=fcf0; const details=[];
+  for(let n=1;n<=N;n++){
+    fcf_n = fcf_n*(1+g);
+    const pv = fcf_n/Math.pow(1+R,n); pv_sum+=pv;
+    details.push({year:n, fcf_yi:fcf_n/1e8, pv_yi:pv/1e8});
+  }
+  const fcf_terminal = fcf_n*(1+G);
+  const tv = fcf_terminal/(R-G);
+  const tv_pv = tv/Math.pow(1+R,N);
+  const ev = pv_sum+tv_pv;
+  const equity = ev + (net_cash||0);
+  const per_share = equity/shares;
+  return [per_share, {ok:true, R, G, N, g, fcf0_yi:fcf0/1e8, pv_sum_yi:pv_sum/1e8,
+    tv_pv_yi:tv_pv/1e8, net_cash_yi:(net_cash||0)/1e8, ev_yi:ev/1e8, equity_yi:equity/1e8,
+    per_share, details}];
+}
+function valuePe(cur, mktcap, price, shares, growth){
+  const np_=cur.np;
+  if(np_==null || np_<=0 || !shares) return [null,{ok:false}];
+  const eps = np_/shares;
+  const R=0.09;
+  let pe_mid = 1/R;
+  if(growth!=null && growth>0){
+    const pe_growth = growth;
+    pe_mid = (growth>=12) ? median([pe_mid, pe_growth, 20]) : median([pe_mid, pe_growth]);
+  }
+  pe_mid = Math.round(pe_mid*10)/10;
+  const pe_low = Math.round(pe_mid*0.85*10)/10;
+  const pe_high = Math.round(pe_mid*1.15*10)/10;
+  return [pe_mid*eps, {ok:true, eps, pe_mid, pe_low, pe_high, price_low:eps*pe_low, price_high:eps*pe_high,
+    rf_note:"盈利收益率(1/PE) 与十年期国债(~2.5%)比较：PE<40 即收益率>2.5%，有吸引力"}];
+}
+function valuePeg(cur, pe_ttm, growth){
+  if(pe_ttm==null || growth==null || growth<=0) return [null,{ok:false}];
+  const peg = pe_ttm/growth;
+  const fair_pe = growth;
+  const eps = cur.eps;
+  if(eps==null || eps<=0) return [null,{ok:false, reason:"无 EPS 无法算 PEG 股价"}];
+  const fair_price = eps*fair_pe;
+  return [fair_price, {ok:true, peg, fair_pe, eps, fair_price}];
+}
+function valuePs(cur, mktcap, price, shares, terminal_margin){
+  const rev=cur.rev;
+  if(rev==null || rev<=0 || !shares) return [null,{ok:false}];
+  let nm = terminal_margin!=null ? terminal_margin : (cur.net_margin||0.05);
+  nm = Math.min(Math.max(nm,0.03),0.20);
+  const terminal_pe = 18;
+  const fair_ps = nm*terminal_pe;
+  const rev_per_share = rev/shares;
+  const fair_price = rev_per_share*fair_ps;
+  return [fair_price, {ok:true, rev_per_share, terminal_margin:nm, terminal_pe, fair_ps, fair_price}];
+}
+function valuePb(cur, mktcap, price, equity, roe){
+  if(equity==null || equity<=0) return [null,{ok:false}];
+  const R=0.09;
+  const fair_pb = (roe && roe>0) ? (roe/R) : 1.0;
+  const shares = (mktcap && price) ? (mktcap*1e8/price) : null;
+  if(shares){
+    const bvps = equity/shares;
+    const fair_price = bvps*fair_pb;
+    return [fair_price, {ok:true, bvps, fair_pb, roe, R, fair_price}];
+  }
+  return [null,{ok:false}];
+}
 
-function postHeight(){
+/* ---------------- 第三步：交叉验证 + 结论组装 ---------------- */
+async function analyzeValuation(q){
+  const code = await resolveCode(q);
+  const inc = await emQuery("RPT_DMSK_FN_INCOME",
+    "SECURITY_CODE,SECURITY_NAME_ABBR,INDUSTRY_CODE,INDUSTRY_NAME,REPORT_DATE,TOTAL_OPERATE_INCOME,OPERATE_COST,PARENT_NETPROFIT,DEDUCT_PARENT_NETPROFIT,TOI_RATIO,PARENT_NETPROFIT_RATIO,DPN_RATIO",
+    '(SECURITY_CODE="'+code+'")', 14);
+  const bal = await emQuery("RPT_DMSK_FN_BALANCE",
+    "SECURITY_CODE,SECURITY_NAME_ABBR,REPORT_DATE,TOTAL_ASSETS,TOTAL_LIABILITIES,TOTAL_EQUITY,DEBT_ASSET_RATIO,CURRENT_RATIO,ACCOUNTS_RECE,INVENTORY,MONETARYFUNDS,FIXED_ASSET",
+    '(SECURITY_CODE="'+code+'")', 14);
+  const cf = await emQuery("RPT_DMSK_FN_CASHFLOW",
+    "SECURITY_CODE,SECURITY_NAME_ABBR,REPORT_DATE,NETCASH_OPERATE,NETCASH_INVEST,CONSTRUCT_LONG_ASSET,SALES_SERVICES",
+    '(SECURITY_CODE="'+code+'")', 14);
+  if(!inc.length || !bal.length) throw new Error("未获取到 "+code+" 的财务数据，可能已退市或非 A 股");
+
+  const cur_inc=latestBy(inc), cur_bal=latestBy(bal), cur_cf=latestBy(cf);
+  const cur_date=(cur_inc.REPORT_DATE||"").slice(0,10);
+  const name=cur_inc.SECURITY_NAME_ABBR||cur_bal.SECURITY_NAME_ABBR||code;
+  const ind_code=cur_inc.INDUSTRY_CODE, ind_name=cur_inc.INDUSTRY_NAME||"—";
+
+  const rev=cur_inc.TOTAL_OPERATE_INCOME, cost=cur_inc.OPERATE_COST;
+  const np_=cur_inc.PARENT_NETPROFIT;
+  const gp=(rev!=null&&cost!=null)?(rev-cost):null;
+  const gp_margin=safeDiv(gp,rev), net_margin=safeDiv(np_,rev);
+
+  const op_cf=cur_cf?cur_cf.NETCASH_OPERATE:null;
+  const capex=cur_cf?cur_cf.CONSTRUCT_LONG_ASSET:null;
+  const fcf=(op_cf!=null&&capex!=null)?(op_cf-capex):null;
+
+  const equity=cur_bal.TOTAL_EQUITY;
+  const monetary=cur_bal.MONETARYFUNDS;
+  const net_cash = monetary!=null?monetary:null;
+
+  const q2=await fetchQuote(code);
+  const price=q2.price, pe_ttm=q2.pe_ttm, mktcap=q2.mktcap_yi;
+  const shares=(mktcap!=null&&price)?(mktcap*1e8/price):null;
+  const pb = (equity!=null&&mktcap!=null)?safeDiv(mktcap*1e8, equity):null;
+
+  // 年报序列
+  const annual_inc = inc.filter(r=>((r.REPORT_DATE||"").slice(5,7)==="12"))
+    .sort((a,b)=>(a.REPORT_DATE||"")<(b.REPORT_DATE||"")?-1:1);
+  const trend=[];
+  annual_inc.forEach(r=>{
+    const y=r.REPORT_DATE.slice(0,4);
+    const rv=r.TOTAL_OPERATE_INCOME, npp=r.PARENT_NETPROFIT, c=r.OPERATE_COST;
+    const g=(rv!=null&&c!=null)?(rv-c):null;
+    trend.push({period:y+"年报", rev:rv, np:npp, gp_margin:safeDiv(g,rv), net_margin:safeDiv(npp,rv), roe:safeDiv(npp, r.TOTAL_EQUITY)});
+  });
+  let g_np=null;
+  if(trend.length>=2){
+    const n0=trend[0].np, n1=trend[trend.length-1].np, yrs=trend.length-1;
+    if(n0&&n1&&n0>0) g_np=((Math.pow(n1/n0,1/yrs))-1)*100;
+  }
+  const fcf_series = cf.filter(r=>r.NETCASH_OPERATE).sort((a,b)=>(a.REPORT_DATE||"")<(b.REPORT_DATE||"")?-1:1).map(r=>r.NETCASH_OPERATE);
+  const roe_ann = safeDiv(np_, equity);
+  const cur = {rev, np:np_, gp_margin, net_margin, fcf, fcf_series, equity, roe_ann,
+    eps:(shares&&np_!=null)?safeDiv(np_,shares):null};
+
+  const cls = classify(cur, trend, ind_name);
+  const ctype=cls[0], cname=cls[1], stage=cls[2], reasons=cls[3];
+
+  // 估值计算
+  const pe_res = valuePe(cur, mktcap, price, shares, g_np);
+  const dcf_neu_res = valueDcf(cur, shares, net_cash, false);
+  const dcf_pes_res = valueDcf(cur, shares, net_cash, true);
+  const peg_res = (g_np!=null)? valuePeg(cur, pe_ttm, g_np) : [null,{ok:false}];
+  const ps_res = valuePs(cur, mktcap, price, shares);
+  const pb_res = valuePb(cur, mktcap, price, equity, roe_ann);
+
+  let main={}, cross=[];
+  if(ctype==="mature"||ctype==="intangible"){
+    main={scale:"PE + DCF", pe:pe_res[1], dcf_neu:dcf_neu_res[1], dcf_pes:dcf_pes_res[1]};
+    if(dcf_neu_res[0]!=null) cross.push(["DCF(中性)", dcf_neu_res[0]]);
+    if(dcf_pes_res[0]!=null) cross.push(["DCF(悲观)", dcf_pes_res[0]]);
+    if(pe_res[0]!=null) cross.push(["PE 中枢", pe_res[0]]);
+  } else if(ctype==="growth"){
+    main={scale:"PEG", peg:peg_res[1], pe:pe_res[1]};
+    if(peg_res[0]!=null) cross.push(["PEG 合理价", peg_res[0]]);
+    if(pe_res[0]!=null) cross.push(["PE 中枢", pe_res[0]]);
+  } else if(ctype==="loss"){
+    main={scale:"PS", ps:ps_res[1]};
+    if(ps_res[0]!=null) cross.push(["PS 合理价", ps_res[0]]);
+  } else if(ctype==="cyclical"){
+    main={scale:"PS + PB", ps:ps_res[1], pb:pb_res[1]};
+    if(ps_res[0]!=null) cross.push(["PS 合理价", ps_res[0]]);
+    if(pb_res[0]!=null) cross.push(["PB 合理价", pb_res[0]]);
+  } else if(ctype==="financial"){
+    main={scale:"PB + 股息率", pb:pb_res[1]};
+    if(pb_res[0]!=null) cross.push(["PB 合理价", pb_res[0]]);
+  }
+
+  const vals=cross.map(([,v])=>v).filter(v=>v!=null && v>0);
+  let low=null, high=null;
+  if(vals.length){ low=Math.min.apply(null,vals); high=Math.max.apply(null,vals); }
+  let low_label, high_label;
+  if(ctype==="mature"||ctype==="intangible"){ low_label="悲观情景 DCF（下限）"; high_label="中性情景 DCF（上限）"; }
+  else { low_label="相对估值下沿"; high_label="相对估值上沿"; }
+
+  let pos="—";
+  if(price && low!=null && high!=null){
+    if(price>high*1.05) pos="高于区间（可能高估）";
+    else if(price<low*0.95) pos="远低于下限（厚安全垫机会）";
+    else pos="处于内在价值区间内（相对合理）";
+  }
+
+  // 分红（容错）
+  let div_ps=null, div_yield=null;
   try{
-    const h = document.documentElement.scrollHeight;
-    if(window.parent && window.parent !== window) window.parent.postMessage({ type:"vm-resize", height: h }, "*");
+    const div_rows = await emQuery("RPT_F10_FN_DIVIDEND",
+      "SECURITY_CODE,REPORT_DATE,DIVIDEND_RATIO,DIVIDEND_RATIO_TTM", '(SECURITY_CODE="'+code+'")', 6);
+    if(div_rows.length){
+      div_rows.sort((a,b)=>(a.REPORT_DATE||"")<(b.REPORT_DATE||"")?1:-1);
+      for(const r of div_rows){
+        const v = (r.DIVIDEND_RATIO_TTM!=null) ? r.DIVIDEND_RATIO_TTM : r.DIVIDEND_RATIO;
+        if(v!=null && v!==0){ div_ps=v; break; }
+      }
+      if(div_ps!=null && price) div_yield = safeDiv(div_ps, price)*100;
+    }
   }catch(e){}
-}
-window.addEventListener("load", postHeight);
-window.addEventListener("resize", postHeight);
 
-async function saveReport(){
-  if(!currentCode){ setMsg("请先生成报告", "err"); return; }
-  setMsg("正在生成 PDF 并写入文档列表…","");
-  btnSave.disabled = true;
-  try{
-    const r = await fetch("/vm/save?code=" + encodeURIComponent(currentCode));
-    const j = await r.json();
-    if(!j.ok) throw new Error(j.msg || "保存失败");
-    const fmt = v => (v==null ? "—" : Number(v).toFixed(2));
-    setMsg("已保存：" + j.title + " ｜ 类型 " + (j.type||"") + " ｜ 区间 " + fmt(j.range_low) + "~" + fmt(j.range_high) + " 元", "ok");
-    if(window.parent && window.parent !== window){
-      window.parent.postMessage({ type:"vm-saved", title:j.title, html:j.html, pdf:j.pdf }, "*");
+  return {
+    meta:{code,name,ind_name,ind_code,period:periodLabel(cur_date),report_date:cur_date,
+      price,pe_ttm,pb,mktcap_yi:mktcap,change_pct:q2.change_pct,turnover:q2.turnover,quote_time:q2.quote_time},
+    type:{code:ctype,name:cname,stage,reasons},
+    current:cur, trend, g_np, div_yield, div_ps, main, cross,
+    range:{low,high,price,pos,low_label,high_label},
+    assumptions:{
+      R:"9%（折现率=无风险利率~2.5% + 风险溢价~6.5%）",
+      G:"1.5%（永续增长率，不高于长期 GDP 增速）",
+      pessimistic:"折现率 12% / 永续 1%",
+      net_cash:"以货币资金近似净现金（未扣有息债务，偏乐观）"
     }
-    btnSave.disabled = false;
+  };
+}
+
+/* ---------------- 渲染 ---------------- */
+function render(R){
+  const m=R.meta, t=R.type, rng=R.range, main=R.main;
+  const up=(m.change_pct||0)>=0; const chgCls=up?"up":"down";
+  const reasonsHtml = t.reasons.map(r=>"<li>"+r+"</li>").join("");
+
+  let mainDetail="";
+  if(main.pe && main.pe.ok){
+    const pe=main.pe;
+    mainDetail += "<tr><td class='k'>PE 主尺（合理 PE 中枢）</td><td>"+pe.pe_mid.toFixed(1)+"</td><td>EPS "+pe.eps.toFixed(2)+" 元 ｜ 合理价区间 "+pe.price_low.toFixed(2)+"~"+pe.price_high.toFixed(2)+" 元</td></tr>";
+  }
+  if(main.dcf_neu && main.dcf_neu.ok){
+    const d=main.dcf_neu;
+    mainDetail += "<tr><td class='k'>DCF 两阶段（中性）</td><td>"+d.per_share.toFixed(2)+" 元/股</td><td>折现率 "+(d.R*100).toFixed(0)+"% ｜ 永续 "+(d.G*100).toFixed(1)+"% ｜ 预测期 "+d.N+" 年 ｜ 基期FCF "+(d.fcf0_yi*1e8).toFixed(2)+" 亿</td></tr>";
+  }
+  if(main.peg && main.peg.ok){
+    const pg=main.peg;
+    mainDetail += "<tr><td class='k'>PEG 主尺</td><td>合理价 "+pg.fair_price.toFixed(2)+" 元</td><td>PEG="+pg.peg.toFixed(2)+"（PE_TTM/增速）｜ 合理PE="+pg.fair_pe+"%</td></tr>";
+  }
+  if(main.ps && main.ps.ok){
+    const ps=main.ps;
+    mainDetail += "<tr><td class='k'>PS 主尺</td><td>合理价 "+ps.fair_price.toFixed(2)+" 元</td><td>合理PS="+ps.fair_ps.toFixed(2)+"（终局净利率 "+(ps.terminal_margin*100).toFixed(1)+"% × 终局PE "+ps.terminal_pe+"）｜ 每股营收 "+ps.rev_per_share.toFixed(2)+" 元</td></tr>";
+  }
+  if(main.pb && main.pb.ok){
+    const pb=main.pb;
+    mainDetail += "<tr><td class='k'>PB 主尺</td><td>合理价 "+pb.fair_price.toFixed(2)+" 元</td><td>每股净资产 "+pb.bvps.toFixed(2)+" 元 ｜ 合理PB=ROE/R="+pb.fair_pb.toFixed(2)+"（ROE "+(pb.roe*100).toFixed(1)+"%）｜ 当前PB "+(m.pb!=null?m.pb.toFixed(2):"—")+"</td></tr>";
+  }
+
+  let crossRows="";
+  for(const item of R.cross){
+    const label=item[0], val=item[1];
+    const ref=(m.price && Math.abs(val-m.price)/m.price<0.4)?"支持同一结论":"参考";
+    crossRows += "<tr><td class='k'>"+label+"</td><td><b>"+val.toFixed(2)+"</b> 元</td><td>"+ref+"</td></tr>";
+  }
+  const crossHtml = crossRows || "<tr><td colspan='3' class='muted'>当前类型暂以单一主尺为主（亏损/数据不足），建议补充同业对比后二次验证</td></tr>";
+
+  const rngHtml = "<table class='grid'><tbody>"
+    +"<tr><td class='k'>"+rng.low_label+"</td><td><b>"+(rng.low!=null?rng.low.toFixed(2):"—")+"</b> 元</td></tr>"
+    +"<tr><td class='k'>"+rng.high_label+"</td><td><b>"+(rng.high!=null?rng.high.toFixed(2):"—")+"</b> 元</td></tr>"
+    +"<tr><td class='k'>当前股价</td><td>"+(m.price!=null?m.price.toFixed(2):"—")+" 元（"+(m.change_pct!=null?m.change_pct.toFixed(2):"—")+"%）</td></tr>"
+    +"<tr><td class='k'>股价位置判断</td><td><b>"+rng.pos+"</b></td></tr>"
+    +"</tbody></table>";
+
+  const snap = "<table class='grid'><thead><tr><th>指标</th><th>数值</th><th>说明</th></tr></thead><tbody>"
+    +"<tr><td class='k'>股价</td><td>"+(m.price!=null?m.price.toFixed(2):"—")+" 元</td><td>当日涨跌 "+(m.change_pct!=null?m.change_pct.toFixed(2):"—")+"%</td></tr>"
+    +"<tr><td class='k'>PE(TTM)</td><td>"+(m.pe_ttm!=null?m.pe_ttm.toFixed(2):"—")+"</td><td>"+(m.pe_ttm?"成长股需结合 PEG 看":"—")+"</td></tr>"
+    +"<tr><td class='k'>PB</td><td>"+(m.pb!=null?m.pb.toFixed(2):"—")+"</td><td>市净率</td></tr>"
+    +"<tr><td class='k'>总市值</td><td>"+(m.mktcap_yi!=null?m.mktcap_yi.toFixed(2):"—")+" 亿</td><td>换手率 "+(m.turnover!=null?m.turnover.toFixed(2):"—")+"%</td></tr>"
+    +"</tbody></table>";
+
+  let asmItems="";
+  for(const k in R.assumptions) asmItems += "<li><b>"+k+"</b>："+R.assumptions[k]+"</li>";
+  if(R.div_yield!=null) asmItems += "<li><b>股息率（附）</b>："+R.div_yield.toFixed(2)+"%（每股股利 "+((R.div_ps||0).toFixed(3))+" 元，仅供参考，以公司公告为准）</li>";
+  asmItems += "<li><b>敏感性提示</b>：折现率 ±1pct 会使 DCF 每股价值同向变动约 ±8%~12%；永续增长率每 ±0.5pct 影响约 ±5%；增速假设变化对成长/周期股影响最大。</li>";
+  const asmHtml = "<ul>"+asmItems+"</ul>";
+
+  const today=new Date().toISOString().slice(0,10);
+  const genTime=formatNow();
+  const watermark=("投研工作台 · 仅供研究参考　").repeat(40);
+
+  const chg = (m.change_pct!=null)? m.change_pct.toFixed(2):"—";
+  const price = (m.price!=null)? m.price.toFixed(2):"—";
+  const pe = (m.pe_ttm!=null)? m.pe_ttm.toFixed(2):"—";
+  const pbb = (m.pb!=null)? m.pb.toFixed(2):"—";
+  const mktcap = (m.mktcap_yi!=null)? m.mktcap_yi.toFixed(2):"—";
+  const isDcf = (rng.low_label==="悲观情景 DCF（下限）");
+
+  return ""
+  +'<div class="pdf-watermark">'+watermark+'</div>'
+  +'<div class="pdf-runninghead"><span>投研工作台 · 个股估值报告</span><span>'+m.name+'（'+m.code+'）· '+m.period+'</span><span>'+today+'</span></div>'
+  +'<div class="pdf-cover">'
+  +'  <div class="kicker">投研工作台 · 个股估值分析报告</div>'
+  +'  <div class="title">'+m.name+'</div>'
+  +'  <div class="sub">'+m.code+' · '+m.ind_name+' · '+m.period+' 报告期</div>'
+  +'  <div class="meta">估值类型：'+t.name+'　｜　主尺：'+(main.scale||"—")+'<br>数据截止 '+m.report_date+'　｜　生成时间 '+genTime+'</div>'
+  +'  <div class="note">本报告依据「个股估值」技能框架自动测算，仅供研究参考，不构成投资建议。</div>'
+  +'</div>'
+  +'<div class="wrap">'
+  +'<header>'
+  +'<h1>'+m.name+' <span class="code">'+m.code+' · '+m.ind_name+'</span></h1>'
+  +'<div>个股估值报告　报告期：<b>'+m.period+'</b>（数据截止 '+m.report_date+'）</div>'
+  +'<div class="meta">'
+  +'<div><b>'+price+'</b>股价(元) <span class="'+chgCls+'">'+chg+'%</span></div>'
+  +'<div><b>'+pe+'</b>PE(TTM)</div>'
+  +'<div><b>'+pbb+'</b>PB</div>'
+  +'<div><b>'+mktcap+'</b>总市值(亿)</div>'
+  +'<div><b>'+(rng.pos||"—")+'</b>位置判断</div>'
+  +'<button class="no-print export-btn" onclick="window.print()">&#11015; 导出 PDF</button>'
+  +'</div></header>'
+  +'<section><h2>一、公司类型判断 <span class="tag">第一步 · 选对尺子</span></h2>'
+  +'<div class="badge neu">'+t.name+'</div>'
+  +'<p class="muted" style="margin-top:10px">'+t.stage+'</p>'
+  +'<div class="note"><b>判定依据：</b></div><ul style="margin-top:6px">'+reasonsHtml+'</ul>'
+  +'</section>'
+  +'<section><h2>二、估值快照 <span class="tag">当前指标速览</span></h2>'+snap+'</section>'
+  +'<section><h2>三、主尺结论 <span class="tag">'+t.name+'</span></h2>'
+  +'<table class="grid"><tbody>'+mainDetail+'</tbody></table></section>'
+  +'<section><h2>四、交叉验证 <span class="tag">至少两把尺子</span></h2>'
+  +'<table class="grid"><thead><tr><th>验证方法</th><th>公允价</th><th>结论</th></tr></thead><tbody>'+crossHtml+'</tbody></table></section>'
+  +'<section><h2>五、内在价值区间 <span class="tag">安全边际</span></h2>'+rngHtml
+  +'<div class="note"><b>区间含义：</b>'+(isDcf ? "DCF 双情景锚定，悲观/中性折现率分别给出价格下界与上界。" : "由实际使用的相对估值方法取合理价下沿与上沿。")+'</div></section>'
+  +'<section><h2>六、关键假设与风险 <span class="tag">务必阅读</span></h2>'+asmHtml+'</section>'
+  +'<section><h2>七、免责声明</h2>'
+  +'<div class="note">本报告由「投研工作台·估值模型」依据公开数据自动生成，估值方法遵循「个股估值」技能（判类型→选主尺→交叉验证）。所有数值均为模型测算，存在数据滞后、假设偏差与模型局限，<b>仅供研究参考，不构成任何投资建议</b>。据此操作风险自负。</div></section>'
+  +'<footer>本报告由「投研工作台·估值模型」自动生成，数据来源：东方财富 / 腾讯财经，生成于 '+today+'。仅供研究参考，不构成投资建议。</footer>'
+  +'</div>';
+}
+function formatNow(){
+  const d=new Date(); const p=n=>String(n).padStart(2,"0");
+  return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes());
+}
+
+/* ---------------- 交互 ---------------- */
+const msgEl=document.getElementById("msg");
+const reportEl=document.getElementById("report");
+async function run(){
+  const q=(document.getElementById("inp").value||"").trim();
+  if(!q){ msgEl.textContent="请输入个股名称或代码"; msgEl.className="msg err"; return; }
+  msgEl.textContent="正在拉取数据并估值…"; msgEl.className="msg"; reportEl.innerHTML="";
+  try{
+    const R=await analyzeValuation(q);
+    reportEl.innerHTML=render(R);
+    msgEl.textContent="已完成："+R.meta.name+"("+R.meta.code+") · "+R.type.name+" · 合理价区间 "+fmtR(R.range);
+    msgEl.className="msg ok";
+    if(window.parent!==window) window.parent.postMessage({type:'vm-resize', height: document.body.scrollHeight}, '*');
   }catch(e){
-    const msg = (e && e.message && e.message.indexOf("Failed to fetch")>=0)
-      ? "无法连接本地服务(8848)——服务可能已停止。请双击 D:\\投研工作台\\start.bat 重新启动后再试。"
-      : e.message;
-    setMsg("保存失败：" + msg, "err");
-    btnSave.disabled = false;
+    reportEl.innerHTML='<div class="report"><section><h2>分析失败</h2><p>'+e.message+'</p>'
+      +'<p class="muted">可能原因：网络不可达、名称未匹配到 A 股代码、或该标的无公开财务数据。</p></section></div>';
+    msgEl.textContent="失败："+e.message; msgEl.className="msg err";
   }
 }
-
-function printReport(){ if(preview.contentWindow) preview.contentWindow.print(); }
-
 // 支持 ?code= 直达（iframe 外部可传参）
 (function(){
-  const ps = new URLSearchParams(location.search);
-  const c = ps.get("code");
-  if(c){ inp.value = c; document.getElementById("frm").submit(); }
+  const ps=new URLSearchParams(location.search);
+  const c=ps.get("code");
+  if(c){ document.getElementById("inp").value=c; run(); }
 })();
 </script>
 </body>

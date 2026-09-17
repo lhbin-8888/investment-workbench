@@ -1416,25 +1416,11 @@ function buildValuationSectionShell(){
   h +=     '<h3><span class="tag">估值模型</span> 个股估值分析 · 自动报告</h3>';
   h +=     '<span class="meta">估值逻辑遵循「个股估值」技能：判类型 → 选主尺(DCF/PE/PEG/PS/PB) → 两把尺子交叉验证｜数据：东方财富 + 腾讯行情</span>';
   h +=   '</div>';
-  var host = location.hostname;
-  var isLocal = (host === 'localhost' || host === '127.0.0.1' || host === '');
-  if (!isLocal) {
-    // 线上版（静态托管无后端）：估值引擎跑不了，给出明确指引，避免"Failed to fetch"困惑
-    h +=   '<div class="sector-body" style="padding:28px 20px;text-align:center;">';
-    h +=     '<div style="font-size:15px;line-height:1.9;color:#d48806;background:#fffbe6;border:1px solid #ffe58f;border-radius:8px;max-width:720px;margin:0 auto;padding:20px 24px;text-align:left;">';
-    h +=       '<b>⚠️ 你正在访问「线上版」，估值模型自动工具仅在本地版可用。</b><br>';
-    h +=       '线上版是纯静态页面，没有估值计算后端。请改用本地版：<br>';
-    h +=       '1. 双击 <b>D:\\投研工作台\\start.bat</b> 启动本地服务；<br>';
-    h +=       '2. 浏览器打开 <b>http://localhost:8848/index.html</b>；<br>';
-    h +=       '3. 再进入「估值模型」板块即可生成报告。';
-    h +=     '</div>';
-    h +=   '</div>';
-  } else {
-  h +=   '<div class="sector-body"><iframe id="vmFrame" src="09-估值模型/vm.html?v=7" title="个股估值模型" style="width:100%;height:620px;border:0;display:block;background:#fff;"></iframe></div>';
+  // 估值模型已改为纯前端（浏览器直连东方财富+腾讯行情），本地版与线上版 GitHub Pages 均可直接运行
+  h +=   '<div class="sector-body"><iframe id="vmFrame" src="09-估值模型/vm.html?v=8" title="个股估值模型" style="width:100%;height:620px;border:0;display:block;background:#fff;"></iframe></div>';
   h +=   '<div class="doc-links">使用说明：';
   h +=     '<a href="/09-估值模型/README.md" target="_blank" rel="noopener">估值模型模块说明</a>';
   h +=   '</div>';
-  }
   h += '</div>';
   h += '</div>';
   // 文档列表（保存的估值报告：HTML + PDF 自动注册到这里）
