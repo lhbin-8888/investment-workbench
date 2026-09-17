@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>投研工作台</title>
+<script>
+/* ===== 默认首页：首次访问先展示「欢迎页」 =====
+   · 本次会话内已进入过工作台 → 直接放行，不再拦
+   · 想每次都直达工作台 → 收藏 index.html?skip=1 */
+(function(){
+  try{
+    if (sessionStorage.getItem('iwb-entered') === '1') return;
+    if (location.search.indexOf('skip=1') !== -1) return;
+    location.replace('welcome.html');
+  }catch(e){}
+})();
+</script>
 <style>
 :root{
   --bg-primary:#0A0E17;

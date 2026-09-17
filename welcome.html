@@ -721,6 +721,25 @@ function loadMarket(){
 }
 loadMarket();
 setInterval(loadMarket, 60000);   // 每分钟刷新一次
+
+/* ---------- 进入工作台：置会话标记，避免工作台入口再跳回欢迎页 ---------- */
+(function(){
+  function findAnchor(node){
+    while (node && node.nodeType === 1){
+      if (node.tagName === 'A') return node;
+      node = node.parentNode;
+    }
+    return null;
+  }
+  document.addEventListener('click', function(e){
+    var a = findAnchor(e.target);
+    if (!a) return;
+    var href = (a.getAttribute && a.getAttribute('href')) || '';
+    if (/(^|\/)index\.html(\?|$)/.test(href)){
+      try { sessionStorage.setItem('iwb-entered', '1'); } catch (err) {}
+    }
+  }, true);
+})();
 </script>
 </body>
 </html>
