@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>个股估值模型 · 投研工作台</title>
+<style>
+:root{--bg:#0f172a;--card:#ffffff;--ink:#1e293b;--sub:#64748b;--line:#e2e8f0;
+--accent:#ed7d31;--good:#16a34a;--warn:#dc2626;--neu:#0ea5e9;--up:#dc2626;--down:#16a34a;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,sans-serif;
+background:#f1f5f9;color:var(--ink);line-height:1.6}
+/* ===== 应用外壳（仅在屏幕显示，打印时隐藏）===== */
+.app{display:flex;flex-direction:column;align-items:center;padding:18px 14px 40px}
+.app-head{width:100%;max-width:980px;background:linear-gradient(135deg,#1e293b,#334155);
+border-radius:14px;padding:18px 22px;margin-bottom:14px;box-shadow:0 6px 18px rgba(15,23,42,.18);color:#e2e8f0}
+.app-head h1{color:#fff;font-size:18px;margin-bottom:12px}
+.app-head .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.app-head input{flex:1;min-width:220px;padding:11px 14px;border:0;border-radius:10px;font-size:15px;
+background:#fff;color:#0f172a}
+.app-head button{padding:11px 22px;border:0;border-radius:10px;background:var(--accent);color:#fff;
+font-size:15px;font-weight:700;cursor:pointer}
+.app-head button:hover{background:#f59e0b}
+.app-head .tip{margin-top:10px;font-size:12.5px;color:#cbd5e1}
+.app-head .msg{margin-top:8px;font-size:13px;min-height:18px}
+.app-head .msg.err{color:#fca5a5}.app-head .msg.ok{color:#86efac}
+/* ===== 操作按钮 ===== */
+.actions{width:100%;max-width:980px;display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.actions button{padding:10px 18px;border:0;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;
+background:#e2e8f0;color:#334155}
+.actions button.primary{background:var(--accent);color:#fff}
+.actions button:disabled{opacity:.45;cursor:not-allowed}
+.actions button.primary:hover:not(:disabled){background:#f59e0b}
+/* ===== 预览 ===== */
+.preview-wrap{width:100%;max-width:980px}
+.preview-wrap .ph-intro{background:#fff;border:1px dashed var(--line);border-radius:12px;
+padding:40px 24px;text-align:center;color:var(--sub);font-size:14px}
+#preview{width:100%;min-height:1000px;border:1px solid var(--line);border-radius:12px;background:#fff;display:block}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="app-head no-print">
+    <h1>个股估值模型 · 自动报告</h1>
+    <div class="row">
+      <input id="inp" placeholder="输入个股名称或 6 位代码，如 600176 / 中国巨石" onkeydown="if(event.key==='Enter')run()">
+      <button onclick="run()">生成报告</button>
+    </div>
+    <div class="tip">估值逻辑严格遵循「个股估值」技能：先判类型 → 再选主尺（DCF / PE / PEG / PS / PB）→ 两把尺子交叉验证，输出内在价值区间与安全边际。数据：东方财富财务三大报表 + 腾讯行情估值。</div>
+    <div class="msg" id="msg"></div>
+  </div>
+  <div class="actions no-print">
+    <button id="btnSave" class="primary" onclick="saveReport()" disabled>💾 保存到文档列表（生成 PDF）</button>
+    <button id="btnPdf" onclick="printReport()" disabled>🖨 导出 / 打印 PDF</button>
+  </div>
+  <div class="preview-wrap">
+    <div class="ph-intro" id="ph">在上方输入个股名称或代码，点击「生成报告」即可在下方预览估值分析报告。</div>
+    <iframe id="preview" title="估值报告预览" style="display:none"></iframe>
+  </div>
+</div>
+
+<script>
+"use strict";
+const VM = "http://127.0.0.1:8849";
+const inp = document.getElementById("inp");
+const msg = document.getElementById("msg");
+const preview = document.getElementById("preview");
+const ph = document.getElementById("ph");
+const btnSave = document.getElementById("btnSave");
+const btnPdf = document.getElementById("btnPdf");
+let currentCode = "";
+
+/* 预览高度自适应（srcdoc 内容加载后） */
+preview.addEventListener("load", function(){
+  try {
+    const h = preview.contentWindow.document.body.scrollHeight;
+    if (h && h > 300) preview.style.height = (h + 40) + "px";
+  } catch(e){}
+});
+
+async function run(){
+  const q = (inp.value||"").trim();
+  if(!q){ setMsg("请输入个股名称或代码", "err"); return; }
+  setMsg("正在生成估值报告…", "");
+  ph.style.display = "none";
+  preview.style.display = "none";
+  try{
+    const r = await fetch(VM + "/vm/analyze?code=" + encodeURIComponent(q));
+    if(!r.ok) throw new Error("服务返回 " + r.status);
+    const html = await r.text();
+    if(html.indexOf("分析失败") >= 0){
+      preview.srcdoc = html;
+      preview.style.display = "block";
+      setMsg("生成失败：后端未返回报告，请确认估值服务（8849）已启动", "err");
+      btnSave.disabled = true; btnPdf.disabled = true;
+      return;
+    }
+    preview.srcdoc = html;
+    preview.style.display = "block";
+    currentCode = q;
+    btnSave.disabled = false; btnPdf.disabled = false;
+    setMsg("已完成估值，可在下方预览，或点击保存生成 PDF 进入文档列表", "ok");
+  }catch(e){
+    ph.style.display = "block";
+    ph.textContent = "生成失败：" + e.message + "（请确认「估值模型」服务已启动：python 09-估值模型/valuation_engine.py --serve 8849）";
+    setMsg("失败：" + e.message, "err");
+    btnSave.disabled = true; btnPdf.disabled = true;
+  }
+}
+
+async function saveReport(){
+  if(!currentCode){ setMsg("请先生成报告", "err"); return; }
+  setMsg("正在生成 PDF 并写入文档列表…","");
+  btnSave.disabled = true;
+  try{
+    const r = await fetch(VM + "/vm/save?code=" + encodeURIComponent(currentCode));
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.msg || "保存失败");
+    const fmt = v => (v==null ? "—" : Number(v).toFixed(2));
+    setMsg("已保存：" + j.title + " ｜ 类型 " + (j.type||"") + " ｜ 区间 " + fmt(j.range_low) + "~" + fmt(j.range_high) + " 元", "ok");
+    // 通知外层（index.html）刷新文档列表
+    if(window.parent && window.parent !== window){
+      window.parent.postMessage({ type:"vm-saved", title:j.title, html:j.html, pdf:j.pdf }, "*");
+    }
+    btnSave.disabled = false;
+  }catch(e){
+    setMsg("保存失败：" + e.message, "err");
+    btnSave.disabled = false;
+  }
+}
+
+function printReport(){ if(preview.contentWindow) preview.contentWindow.print(); }
+
+function setMsg(t, cls){ msg.textContent = t; msg.className = "msg" + (cls ? " "+cls : ""); }
+
+// 支持 ?code= 直达（iframe 外部可传参）
+(function(){
+  const ps = new URLSearchParams(location.search);
+  const c = ps.get("code");
+  if(c){ inp.value = c; run(); }
+})();
+</script>
+</body>
+</html>
