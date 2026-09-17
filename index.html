@@ -786,7 +786,7 @@ function selectItem(el) {
     // 财务分析：在文档区嵌入个股财务分析自动工具（/fa/），不再单独成项
     html += buildFinancialSectionShell();
   } else if (dirKey === '05-行业与个股分析' && name === '估值模型') {
-    // 估值模型：嵌入个股估值自动工具（主服务 8848 同源 /vm/），下方渲染文档列表（保存的 PDF/HTML 报告）
+    // 估值模型：嵌入纯前端个股估值工具（浏览器直连东财+腾讯，无后端依赖）
     html += buildValuationSectionShell();
   } else {
     // 普通板块：文档列表（manifest + localStorage 合并）
