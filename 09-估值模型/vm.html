@@ -500,7 +500,8 @@ function render(R){
   +'<div><b>'+pbb+'</b>PB</div>'
   +'<div><b>'+mktcap+'</b>总市值(亿)</div>'
   +'<div><b>'+(rng.pos||"—")+'</b>位置判断</div>'
-  +'<button class="no-print export-btn" onclick="window.print()">&#11015; 导出 PDF</button>'
+  +'<button class="no-print export-btn" onclick="exportPDF()">&#11015; 导出 PDF</button>'
+  +'<button class="no-print export-btn" onclick="saveToDocList()" title="把本报告加入本板块「文档列表」，并下载一份可离线打开的 HTML">&#128228; 上传到文档列表</button>'
   +'</div></header>'
   +'<section><h2>一、公司类型判断 <span class="tag">第一步 · 选对尺子</span></h2>'
   +'<div class="badge neu">'+t.name+'</div>'
@@ -534,8 +535,9 @@ async function run(){
   msgEl.textContent="正在拉取数据并估值…"; msgEl.className="msg"; reportEl.innerHTML="";
   try{
     const R=await analyzeValuation(q);
+    LAST_R=R;
     reportEl.innerHTML=render(R);
-    msgEl.textContent="已完成："+R.meta.name+"("+R.meta.code+") · "+R.type.name+" · 合理价区间 "+fmtR(R.range);
+    msgEl.textContent="已完成："+R.meta.name+"("+R.meta.code+") · "+R.type.name+" · 合理价区间 "+fmtR(R.range)+"　（可「导出 PDF」或「上传到文档列表」）";
     msgEl.className="msg ok";
     if(window.parent!==window) window.parent.postMessage({type:'vm-resize', height: document.body.scrollHeight}, '*');
   }catch(e){
@@ -544,6 +546,60 @@ async function run(){
     msgEl.textContent="失败："+e.message; msgEl.className="msg err";
   }
 }
+/* ---------------- 导出 / 上传到文档列表 ---------------- */
+// 纯静态托管下没有后端，"上传到文档列表" = ①下载一份自包含 HTML ②登记进工作台本板块文档列表
+var LAST_R=null;
+var DOC_SECTION="估值模型";
+var DOC_DIR="05-行业与个股分析/估值模型";
+function pageCSS(){
+  return Array.prototype.map.call(document.querySelectorAll("style"),function(s){return s.textContent;}).join("\n");
+}
+function stripNoPrint(h){
+  return String(h).replace(/<button[^>]*class="no-print[^"]*"[^>]*>[\s\S]*?<\/button>/g,"");
+}
+function buildStandaloneHTML(R,title){
+  return '<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n'
+  +'<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+  +'<title>'+title+'</title>\n<style>'+pageCSS()+'</style>\n</head>\n<body>\n'
+  +'<div class="app"><div class="report">'+stripNoPrint(render(R))+'</div></div>\n</body>\n</html>';
+}
+function downloadFile(text,filename){
+  var blob=new Blob([text],{type:"text/html;charset=utf-8"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download=filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },800);
+}
+function registerReport(download){
+  if(!LAST_R){ msgEl.textContent="请先生成报告，再导出或上传"; msgEl.className="msg err"; return; }
+  var m=LAST_R.meta, rng=LAST_R.range;
+  var dateStr=new Date().toISOString().slice(0,10).replace(/-/g,"");
+  var fileName=m.code+"_"+m.name+"_"+dateStr+"_估值模型.html";
+  var title=m.name+"（"+m.code+"）· 个股估值报告 · "+m.period;
+  var desc="估值类型 "+LAST_R.type.name+" · 合理价区间 "+(rng.low!=null?rng.low.toFixed(2):"—")+"~"+(rng.high!=null?rng.high.toFixed(2):"—")+" 元 · 数据截止 "+m.report_date;
+  var html=buildStandaloneHTML(LAST_R,title);
+  if(download) downloadFile(html,fileName);
+  if(window.parent!==window){
+    window.parent.postMessage({type:"vm-save",section:DOC_SECTION,title:title,file:DOC_DIR+"/"+fileName,desc:desc,html:html},"*");
+    msgEl.textContent=download
+      ? "已加入「"+DOC_SECTION+"」文档列表，并已下载 "+fileName+"（放进 "+DOC_DIR+"/ 可随同步任务上线）"
+      : "已加入「"+DOC_SECTION+"」文档列表——可在本板块下方「文档列表」中随时打开";
+    msgEl.className="msg ok";
+  }else{
+    msgEl.textContent=download
+      ? "已下载 "+fileName+"；请在工作台 index.html 中打开本页，即可加入「"+DOC_SECTION+"」文档列表"
+      : "请在工作台（index.html）中打开本页；导出 PDF 时会自动加入「"+DOC_SECTION+"」文档列表";
+    msgEl.className="msg";
+  }
+}
+// 导出 PDF：先把报告登记进本板块文档列表，再弹出打印（另存为 PDF）
+function exportPDF(){
+  registerReport(false);
+  window.print();
+}
+// 仅归档：登记进文档列表 + 另存一份可离线打开的 HTML
+function saveToDocList(){ registerReport(true); }
+
 // 支持 ?code= 直达（iframe 外部可传参）
 (function(){
   const ps=new URLSearchParams(location.search);

@@ -283,6 +283,7 @@ body{
 .doc-type.md{background:rgba(0,229,255,.12);color:var(--accent);border:1px solid rgba(0,229,255,.3)}
 .doc-type.pdf{background:rgba(139,92,246,.15);color:#C4B5FD;border:1px solid rgba(139,92,246,.4)}
 .doc-type.link{background:rgba(16,185,129,.12);color:var(--success);border:1px solid rgba(16,185,129,.3)}
+.doc-type.html{background:rgba(237,125,49,.15);color:#FDBA74;border:1px solid rgba(237,125,49,.4)}
 .doc-card .doc-open{color:var(--text-dim);font-size:12px;flex-shrink:0}
 .doc-card .doc-del{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:13px;padding:2px 6px;border-radius:4px;flex-shrink:0;font-family:inherit}
 .doc-card .doc-del:hover{background:var(--bg-hover);color:#e5484d}
@@ -822,7 +823,7 @@ function selectItem(el) {
   }
 
   // 普通板块：渲染文档卡片列表（manifest + localStorage 合并）
-  if (!isTplItem && name !== '工具与模板' && name !== '每日晨报' && name !== '每日盘面' && !(dirKey === '03-A股盘面信息' && name === '板块轮动') && !(dirKey === '05-行业与个股分析' && name === '财务分析')) {
+  if (!isTplItem && name !== '工具与模板' && name !== '每日晨报' && name !== '每日盘面' && !(dirKey === '03-A股盘面信息' && name === '板块轮动')) {
     currentSection = name;
     renderDocList(name, '');
   } else {
@@ -918,6 +919,45 @@ function isDeleted(section, file) {
 }
 loadDeletedDocs();
 
+// ============ 报告正文存储（纯静态托管无后端：报告 HTML 存浏览器本地，点开即还原完整报告） ============
+var docBlobsKey = 'console-docblobs-v1';
+var docBlobs = {};
+function loadDocBlobs() {
+  try {
+    var raw = localStorage.getItem(docBlobsKey);
+    docBlobs = raw ? JSON.parse(raw) : {};
+    if (typeof docBlobs !== 'object' || Array.isArray(docBlobs)) docBlobs = {};
+  } catch (e) { docBlobs = {}; }
+}
+function saveDocBlobs() {
+  try { localStorage.setItem(docBlobsKey, JSON.stringify(docBlobs)); return true; }
+  catch (e) { return false; }
+}
+loadDocBlobs();
+
+// 接收来自 fa.html / vm.html 的「上传到文档列表」上报
+function addReportDoc(d) {
+  var section = d.section, title = d.title, file = d.file, desc = d.desc || '';
+  if (!section || !title || !file) return;
+  var id = 'blob_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+  docBlobs[id] = { title: title, html: d.html || '' };
+  var ok = saveDocBlobs();
+  if (!ok) { delete docBlobs[id]; id = ''; }
+  // 同板块同文件视为同一篇报告：覆盖更新，不产生重复
+  localDocs = localDocs.filter(function(x){ return !(x.section === section && x.file === file); });
+  localDocs.push({ section: section, title: title, file: file, type: 'html', desc: desc, blob: !!ok, id: id });
+  saveLocalDocs();
+  // 若同路径文档曾被隐藏，一并恢复显示
+  if (deletedDocs[section]) {
+    deletedDocs[section] = deletedDocs[section].filter(function(f){ return f !== file; });
+    saveDeletedDocs();
+  }
+  if (currentSection === section) renderDocList(section, getSearchKw());
+  if (!ok) {
+    alert('报告内容超出浏览器本地存储上限，已按「仅登记记录」加入文档列表。\n请使用上传时下载的 HTML 文件，或清理部分旧报告后重试。');
+  }
+}
+
 function NavNames() {
   var names = [];
   NAV.forEach(function(g){ g.items.forEach(function(it){
@@ -931,7 +971,7 @@ function getSectionDocs(section) {
   var m = (MANIFEST && MANIFEST[section]) || [];
   m.forEach(function(d){ if (isDeleted(section, d.file)) return; list.push({title:d.title,file:d.file,type:d.type||guessType(d.file),desc:d.desc||'',local:false,section:section}); });
   localDocs.forEach(function(d){
-    if (d.section === section) list.push({title:d.title,file:d.file,type:d.type||guessType(d.file),desc:d.desc||'',local:true,section:d.section});
+    if (d.section === section) list.push({title:d.title,file:d.file,type:d.type||guessType(d.file),desc:d.desc||'',local:true,section:d.section,blob:!!d.blob,id:d.id||''});
   });
   return list;
 }
@@ -943,11 +983,14 @@ fetch('data/manifest.json', { cache: 'no-store' })
   .then(function(data){ MANIFEST = data || {}; if (currentSection) renderDocList(currentSection, getSearchKw()); })
   .catch(function(){ MANIFEST = {}; });
 
-// 跨框架消息：估值模型工具页保存报告 / 自适应高度
+// 跨框架消息：财务分析/估值工具页上传报告、自适应高度
 window.addEventListener('message', function(e){
   var d = e.data;
   if (!d) return;
-  if (d.type === 'vm-saved') {
+  if (d.type === 'fa-save' || d.type === 'vm-save') {
+    // 工具页「上传到文档列表」：登记到对应板块并可直接点开查看
+    addReportDoc(d);
+  } else if (d.type === 'vm-saved') {
     // 估值报告已保存：重新拉取 manifest 并刷新文档列表
     fetch('data/manifest.json', { cache: 'no-store' })
       .then(function(r){ if (!r.ok) throw new Error('nf'); return r.json(); })
@@ -957,6 +1000,9 @@ window.addEventListener('message', function(e){
     var f = document.getElementById('vmFrame');
     // 空态收缩到 560px 下限（消除大片空白），长报告最高 1400px 封顶（超出走 iframe 内部滚动）
     if (f && d.height) f.style.height = Math.max(560, Math.min(Number(d.height) + 20, 1400)) + 'px';
+  } else if (d.type === 'fa-resize') {
+    var ff = document.getElementById('faFrame');
+    if (ff && d.height) ff.style.height = Math.max(640, Math.min(Number(d.height) + 20, 1600)) + 'px';
   }
 });
 
@@ -977,7 +1023,7 @@ function renderDocList(section, kw) {
     html += '<div class="empty-state" style="padding:32px 20px"><div class="empty-text">' + (kw ? '未找到匹配文档' : '暂无文档，点击右上角「+ 新增文档」添加') + '</div></div>';
   } else {
     docs.forEach(function(d, idx){
-      var icon = d.type === 'pdf' ? '&#128196;' : (d.type === 'link' ? '&#128279;' : '&#128221;');
+      var icon = d.type === 'pdf' ? '&#128196;' : (d.type === 'link' ? '&#128279;' : (d.type === 'html' ? '&#127760;' : '&#128221;'));
       html += '<div class="doc-card" data-title="' + escAttr(d.title) + '" data-desc="' + escAttr(d.desc) + '" onclick="openDocByIdx(' + idx + ')">';
       html += '<div class="doc-icon">' + icon + '</div>';
       html += '<div class="doc-info"><h4>' + escHtml(d.title) + '</h4>' + (d.desc ? '<p>' + escHtml(d.desc) + '</p>' : '') + '</div>';
@@ -1008,6 +1054,19 @@ function filterDocs(kw) {
 function openDocByIdx(idx) {
   var d = docCache[idx];
   if (!d) return;
+  // 工具页上传的报告：正文存在浏览器本地，用 Blob URL 新窗口还原完整报告（可再次打印/存 PDF）
+  if (d.local && d.type === 'html') {
+    loadDocBlobs();
+    var rec = d.id ? docBlobs[d.id] : null;
+    if (rec && rec.html) {
+      var url = URL.createObjectURL(new Blob([rec.html], {type: 'text/html;charset=utf-8'}));
+      window.open(url, '_blank');
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+      return;
+    }
+    alert('该报告的内容未保存在本机（可能已清理浏览器数据或更换了设备）。\n可重新生成后再次上传；若上传时下载了 HTML 文件，直接打开该文件即可查看。');
+    return;
+  }
   if (d.type === 'pdf' || /\.pdf(\?|$)/i.test(d.file)) { window.open(d.file, '_blank'); return; }
   if (d.type === 'link' || /^https?:\/\//i.test(d.file)) { window.open(d.file, '_blank'); return; }
   if (d.type === 'html' || /\.html?(\?|$)/i.test(d.file)) { window.open(d.file, '_blank'); return; }
@@ -1038,9 +1097,13 @@ function delDocByIdx(idx) {
   if (!d) return;
   if (!window.confirm('确认删除文档「' + d.title + '」？\n（已添加的文档将被移除；内置清单文档将从列表中隐藏，可随时恢复）')) return;
   if (d.local) {
-    // 用户新增的文档：真正移除
+    // 用户新增的文档：真正移除（含本机保存的报告正文）
     localDocs = localDocs.filter(function(x){ return !(x.section === d.section && x.title === d.title && x.file === d.file); });
     saveLocalDocs();
+    if (d.id) {
+      loadDocBlobs();
+      if (docBlobs[d.id]) { delete docBlobs[d.id]; saveDocBlobs(); }
+    }
   } else {
     // manifest 内置文档：标记隐藏
     if (!deletedDocs[d.section]) deletedDocs[d.section] = [];
@@ -1391,13 +1454,15 @@ function buildFinancialSectionShell(){
   h +=     '<h3><span class="tag">财务分析</span> 个股财务数据分析 · 自动报告</h3>';
   h +=     '<span class="meta">数据源：东方财富三大报表 + 腾讯行情估值 ｜ 支持导出 PDF（含封面/水印/页眉）</span>';
   h +=   '</div>';
-  h +=   '<div class="sector-body"><iframe src="08-财务分析/fa.html?v=3" title="个股财务分析" style="width:100%;height:1040px;border:0;display:block;background:#fff;"></iframe></div>';
+  h +=   '<div class="sector-body"><iframe id="faFrame" src="08-财务分析/fa.html?v=4" title="个股财务分析" style="width:100%;height:1040px;border:0;display:block;background:#fff;"></iframe></div>';
   h +=   '<div class="doc-links">模块说明与模板：';
   h +=     '<a href="/05-行业与个股分析/财务分析/财务分析.md" target="_blank" rel="noopener">财务分析功能模板</a>';
   h +=     '<a href="/05-行业与个股分析/财务分析/README.md" target="_blank" rel="noopener">模块说明 / 命名规范</a>';
   h +=   '</div>';
   h += '</div>';
   h += '</div>';
+  // 文档列表（上传的财务分析报告：登记在本板块，可点开查看/再打印）
+  h += '<div class="docs-section" id="docsSection"></div>';
   return h;
 }
 
@@ -1417,7 +1482,7 @@ function buildValuationSectionShell(){
   h +=     '<span class="meta">估值逻辑遵循「个股估值」技能：判类型 → 选主尺(DCF/PE/PEG/PS/PB) → 两把尺子交叉验证｜数据：东方财富 + 腾讯行情</span>';
   h +=   '</div>';
   // 估值模型已改为纯前端（浏览器直连东方财富+腾讯行情），本地版与线上版 GitHub Pages 均可直接运行
-  h +=   '<div class="sector-body"><iframe id="vmFrame" src="09-估值模型/vm.html?v=8" title="个股估值模型" style="width:100%;height:620px;border:0;display:block;background:#fff;"></iframe></div>';
+  h +=   '<div class="sector-body"><iframe id="vmFrame" src="09-估值模型/vm.html?v=9" title="个股估值模型" style="width:100%;height:620px;border:0;display:block;background:#fff;"></iframe></div>';
   h +=   '<div class="doc-links">使用说明：';
   h +=     '<a href="/09-估值模型/README.md" target="_blank" rel="noopener">估值模型模块说明</a>';
   h +=   '</div>';
