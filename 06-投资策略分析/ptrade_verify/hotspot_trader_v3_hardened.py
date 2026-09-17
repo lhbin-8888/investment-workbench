@@ -67,13 +67,18 @@ POSITION_VALUE_RATIO = 0.18    # 单票目标市值 / 总资产
 CASH_BUFFER = 0.10             # 保留现金比例（1 - 此为可投上限）
 STOP_LOSS_PCT = 0.05           # 单票浮亏止损（v2.0 为 3%，热点票波动下太紧）
 
-# ---- 分批止盈（彬哥哥定制：+10% 减半，+15% 或破线清仓）----
-TP_HALF_PCT = 0.10             # 浮盈达到 +10%：减半仓（仅触发一次，用 context.halved 防重复减半）
-TP_FULL_PCT = 0.15             # 浮盈达到 +15%：清仓
-TP_MA = 5                      # 分批止盈减半的参考均线（兼容保留，清仓主用 EXIT_MA）
+# ---- 分批止盈（分板块：盈利减半 + 峰值回撤减半，单票最多减到 1/4）----
+# 盈利减半阈值（分板块）：主板 +8% / 科创板 +12% / 创业板 +12%（20cm 大票让多跑）
+TP_HALF_PCT = {"main": 0.08, "kcb": 0.12, "cyb": 0.12}
+# 峰值回撤减半阈值（分板块）：从持仓峰值价回落超此比例即减半。
+#   主板取 5%（3% 过紧，主板日内常波动 2~4%，易砍在噪声低点造成踏空+摩擦）；
+#   科创板/创业板取 5%（20cm 波动大，5% 抗噪声）。可独立调 4%~5%。
+HALF_DRAWDOWN = {"main": 0.05, "kcb": 0.05, "cyb": 0.05}
+TP_FULL_PCT = 0.15             # 浮盈达到 +15%：清仓（盈利减半后的终点兜底）
+TP_MA = 5                      # 兼容保留
 EXIT_MA = 3                    # 破 N 日线即清仓（更快出场，缩短亏损持有期；替代原 5 日线）
 RETREAT_MA = 20                # 跌破 20 日线 = 退潮清仓（更保守兜底）
-TRAIL_PCT = 0.08              # 峰值回撤跟踪止盈：持仓峰值价回落 > 8% 即清仓（让利润奔跑+保护）
+TRAIL_PCT = 0.08              # 峰值回撤 > 8%：清仓（减半之后的硬兜底，与 HALF_DRAWDOWN 形成阶梯）
 MAX_HOLD_DAYS = 5              # 时间止损（亏损票）：持有超过 N 个交易日无条件退出
 
 # ---- 保本止损（减半后启用：把止损线上移到成本价，锁定已落袋利润）----
@@ -136,6 +141,16 @@ def _board(code):
 
 def _is_kcb(code):
     return _pure(code).startswith("688")
+
+
+def _board_key(code):
+    """返回持仓减半阈值字典的索引键：科创板 kcb / 创业板 cyb / 其余 main。"""
+    c = _pure(code)
+    if c.startswith("688"):
+        return "kcb"
+    if c.startswith(("300", "301")):
+        return "cyb"
+    return "main"
 
 
 def _limit_pct(code, name):
@@ -1033,9 +1048,13 @@ def monitor_risk(context, data=None):
       3) 保本止损（仅已减半票）：cur <= 保本价 → 清仓（锁定已落袋利润）
       4) 浮亏 <= -STOP_LOSS_PCT       → 清仓
       5) 时间止损（亏损票）：持有 >= MAX_HOLD_DAYS 天 → 清仓
-      6) 浮盈 >= +15%（TP_FULL_PCT）   → 清仓
-      7) 浮盈 >= +10%（TP_HALF_PCT）且本次未减半 → 减半（仅一次，
-         减半时写入 context.breakeven[code] = 成本价*(1-BREAKEVEN_BUF) 作为保本基准）
+      6) 浮盈 >= +15%（TP_FULL_PCT）   → 清仓（盈利减半后的终点兜底）
+      7) 峰值回撤减半（分板块 HALF_DRAWDOWN）：从峰值回落超阈值 → 减半（最多到 1/4，
+         首减半写入 context.breakeven[code] 保本基准）
+      8) 盈利减半（分板块 TP_HALF_PCT）：主板 +8% / 科创板·创业板 +12% 且未减半过 → 减半
+         （首减半写入 context.breakeven[code] 保本基准）
+      注：减半最多两次（全仓→半仓→1/4），用 context.halved / context.quartered 双重标记防重复；
+          1/4 之后只走 6) +15% 全清 / 1b) 8% 回撤全清 / 3) 保本止损。
     """
     pm = positions_map(context)
     # 用上一交易日已交收的真实持仓初始化当日 live_held，再随本周期内卖出递减
@@ -1049,6 +1068,8 @@ def monitor_risk(context, data=None):
     entry = getattr(context, "entry_date", {})
     halved = getattr(context, "halved", {})
     context.halved = halved
+    quartered = getattr(context, "quartered", {})
+    context.quartered = quartered
     breakeven = getattr(context, "breakeven", {})
     context.breakeven = breakeven
     today = _context_date(context)
@@ -1059,6 +1080,7 @@ def monitor_risk(context, data=None):
         peak.pop(code, None)
         entry.pop(code, None)
         halved.pop(code, None)
+        quartered.pop(code, None)
         breakeven.pop(code, None)
 
     for code, px in pm.items():
@@ -1082,6 +1104,7 @@ def monitor_risk(context, data=None):
         ma20 = _ma(closes, RETREAT_MA) if len(closes) >= RETREAT_MA else None
         d0 = entry.get(code)
         held_days = _days_between(d0, today) if (d0 and today) else 0
+        board = _board_key(code)        # 分板块减半阈值索引：main / kcb / cyb
 
         # 更新持仓峰值（用于峰值回撤跟踪止盈）
         if cur:
@@ -1117,24 +1140,38 @@ def monitor_risk(context, data=None):
             if _sell_all(code, px, "时间止损 亏损持仓{}天".format(MAX_HOLD_DAYS)):
                 _clear(code)
             continue
-        # 6) +15% 清仓
+        # 6) +15% 清仓（盈利减半后的终点兜底）
         if rt >= TP_FULL_PCT:
             if _sell_all(code, px, "止盈 浮盈{:.1%} 触+{}%清仓".format(rt, int(TP_FULL_PCT * 100))):
                 _clear(code)
             continue
-        # 7) +10% 减半（仅一次）；减半时写入保本价基准
-        if rt >= TP_HALF_PCT and not halved.get(code):
-            ok = _sell_half(code, px, "止盈 浮盈{:.1%} 触+{}%减半".format(rt, int(TP_HALF_PCT * 100)))
-            halved[code] = True
-            if cost:
-                breakeven[code] = float(cost) * (1 - BREAKEVEN_BUF)
-                log.info("[保本] {} 已减半，保本价设为 {:.2f}（成本价{:.2f}*(1-{:.1%})）".format(
-                    code, breakeven[code], float(cost), BREAKEVEN_BUF))
-            continue
-    # 清理已无持仓的减半 / 保本 / 峰值标记
+        # 7) 峰值回撤减半（分板块）：从持仓峰值回落超 HALF_DRAWDOWN[board] → 减半（最多到 1/4）
+        dd = HALF_DRAWDOWN.get(board, 0) if isinstance(HALF_DRAWDOWN, dict) else HALF_DRAWDOWN
+        if dd > 0 and peak.get(code) and cur <= peak[code] * (1 - dd) and not quartered.get(code):
+            if _sell_half(code, px, "回撤减半 峰值回落{:.0%} 浮盈{:.1%}".format(dd, rt)):
+                if not halved.get(code):
+                    halved[code] = True
+                    if cost:
+                        breakeven[code] = float(cost) * (1 - BREAKEVEN_BUF)
+                        log.info("[保本] {} 已减半，保本价设为 {:.2f}（成本价{:.2f}*(1-{:.1%})）".format(
+                            code, breakeven[code], float(cost), BREAKEVEN_BUF))
+                else:
+                    quartered[code] = True
+                continue
+        # 8) 盈利减半（分板块）：rt >= TP_HALF_PCT[board] 且未减半过 → 减半（首减半写保本价）
+        tp = TP_HALF_PCT.get(board, 0) if isinstance(TP_HALF_PCT, dict) else TP_HALF_PCT
+        if tp > 0 and rt >= tp and not halved.get(code):
+            if _sell_half(code, px, "盈利减半 浮盈{:.1%} 触+{}%".format(rt, int(tp * 100))):
+                halved[code] = True
+                if cost:
+                    breakeven[code] = float(cost) * (1 - BREAKEVEN_BUF)
+                    log.info("[保本] {} 已减半，保本价设为 {:.2f}（成本价{:.2f}*(1-{:.1%})）".format(
+                        code, breakeven[code], float(cost), BREAKEVEN_BUF))
+                continue
+    # 清理已无持仓的减半 / 回撤减半 / 保本 / 峰值标记
     for c in list(halved.keys()):
         if c not in pm:
-            halved.pop(c, None); breakeven.pop(c, None); peak.pop(c, None)
+            halved.pop(c, None); quartered.pop(c, None); breakeven.pop(c, None); peak.pop(c, None)
 
 
 def _days_between(d1, d2):
@@ -1344,8 +1381,10 @@ def initialize(context):
     # not callable）。handle_data 已实测稳定：分钟级在 10:30 触发，配合日期幂等每天只跑一次。
     log.info("[初始化] 定时方式：handle_data（>= {} 触发，日期幂等）".format(SIGNAL_TIME))
 
-    # 分批止盈状态：记录哪些票已经「+10% 减半」过，避免每天重复减半
+    # 分批止盈状态：记录哪些票已经「减半」过（首次减半标记，halved 同时驱动保本止损）
     context.halved = {}
+    # 二次减半状态：记录哪些票已从半仓再减半到 1/4（quartered 后不再减半，只走全清）
+    context.quartered = {}
     # 保本止损状态：记录已减半票的保本价（成本价基准），减半时写入
     context.breakeven = {}
     # 峰值回撤跟踪止盈：记录每只持仓的峰值价（历史/日内最高），回落超 TRAIL_PCT 清仓

@@ -133,10 +133,10 @@ ATR_STOP_MULT = 1.8                 # 止损 = 成本 - 1.8×ATR(14)
 ATR_STOP_MIN_PCT = 0.04             # ATR 止损收紧下限（防止噪声级别止损）
 ATR_STOP_MAX_PCT = 0.08             # ATR 止损放宽上限（防止单边杀跌过久）
 MIN_HOLD_FOR_TIGHT_STOP = 5         # 未满 5 个交易日不做紧止损（只受板块级否决约束）
-TAKE_PROFIT1_PCT = 0.10             # +10% 减半
-TAKE_PROFIT2_PCT = 0.15             # +15% 清仓
-TRAIL_PCT = 0.08                    # 移动止盈：自持仓最高价回撤 8% 清仓
-RETREAT_MA = 5                      # 破 5 日线清仓
+# ★V4.4★ 出场改为纯移动止盈（自持仓最高价回撤 TRAIL_PCT 清仓），不再设 +10%/+15% 硬顶。
+TRAIL_PCT = 0.08                    # 移动止盈回撤比例（自持仓最高价）
+TRAIL_ARM_PCT = 0.03                # 移动止盈武装阈值：浮盈≥3% 后才挂上移动止盈（避免微利即砍）
+RETREAT_MA = 5                      # 破 5 日线清仓（需持仓≥MIN_HOLD_FOR_TIGHT_STOP）
 COOL_DOWN_DAYS = 3                  # 止损后冷静期（交易日）
 
 # ---- 信号层 ----
@@ -147,6 +147,13 @@ MAX_SECTOR_SIZE = 80                # 成分数超过此值的板块不参与主
 # 在回测中导致"主线 3 条全是 1 成分封板板块 → 每天 0 候选 → 整段 0 成交"。
 MIN_MAIN_SECTOR_SIZE = 3            # 主线最低成分数（全量口径，来自 sector_map）
 MIN_MAIN_FOLLOWERS = 2             # 封板龙头之外至少要有这么多可买跟涨标的（n_feat - zt_cnt）
+# ★V4.4★ 主线最低涨停家数：zt_cnt<2 的脆弱板块（1→0 即"退潮"假信号）干脆不参选、不买。
+MIN_MAIN_ZT_CNT = 2
+# ★V4.4★ 滞后题材板：只作确认过滤（确认候选动量），禁止成为主线驱动选股。
+#         回测中"昨日高换手"约 10/12 天是主线，本质是买"昨天已涨的"，入场即滞后。
+MAINLINE_BLOCKLIST = ("昨日高换手",)
+# ★V4.4★ 剔除信号日已涨 >8% 的候选：次日高开买在阶段高点，易均值回归（入场滞后问题）。
+SIGNAL_DAY_GAIN_MAX = 8.0           # 单位与 f["pct"] 一致（百分点），非小数比例
 MAX_CANDIDATES = 10                 # 每日候选上限（3 主线 × 2 只 = 6，此值留余量）
 HOT_GAIN_MIN = 4.0                  # 成分入选板块强度统计 / 启动期候选的最小区间涨幅(%)
 DIFFUSE_VR_MAX = 1.5                # 扩散期"回踩"要求：量比下限（缩量）
@@ -360,8 +367,16 @@ def _elapsed_min(now):
 
 
 def _date_str(x):
-    """K 线日期标签 -> 'YYYY-MM-DD'（兼容 str / Timestamp / datetime）。"""
-    s = str(x)
+    """K 线日期标签 -> 'YYYY-MM-DD'（兼容 8位整数 20260908 / 字符串 2026-09-08 / Timestamp）。
+
+    ★V4.2 修复★ 回测数据 get_history 返回的日期是 8 位整数（如 20260908），而 _today_str
+    产出 '2026-09-08'。旧实现直接 str(x)[:10]='20260908' 与 today 永远不等，导致 _is_today_row
+    恒为 False —— "未见当日 bar" 是**误报**，且护栏基准 c_prev 被错当成当日价、开盘越界护栏整体失效。
+    归一化 8 位整数后，回测若含当日 bar 则护栏恢复精确；若确实不含，误报消失、真实告警保留。
+    """
+    s = str(x).strip()
+    if len(s) == 8 and s.isdigit():
+        return "{}-{}-{}".format(s[0:4], s[4:6], s[6:8])
     return s[:10]
 
 
@@ -1001,10 +1016,14 @@ def _main_line_groups(signals):
         if len(picks) >= TOP_MAIN_LINES:
             break
         name = s["sector"]
-        if not s["zt_cnt"]:
+        if s["zt_cnt"] < MIN_MAIN_ZT_CNT:
+            skipped.append("{}(涨停{}<{})".format(name, s["zt_cnt"], MIN_MAIN_ZT_CNT))
             continue
         if name in BROAD_TAG_BLACKLIST:
             skipped.append(name + "(宽口径)")
+            continue
+        if name in MAINLINE_BLOCKLIST:
+            skipped.append(name + "(确认过滤板)")
             continue
         cs = set(g.sector_codes.get(name, []))
         if not cs:
@@ -1041,6 +1060,7 @@ def _pick_candidates(mains):
     这是"每板块最多买 2 只"的**候选层**约束，与下单层的持仓计数形成双保险。
     """
     held = set(positions_map().keys())
+    ht_set = set(g.sector_codes.get("昨日高换手", []))   # ★V4.4★ 确认过滤板（昨日高换手）成员
     cands, seen = [], set()
     for s in mains:
         stage = s.get("stage", "无")
@@ -1069,6 +1089,9 @@ def _pick_candidates(mains):
             else:
                 if f["pct"] < HOT_GAIN_MIN:
                     continue
+            # ★V4.4★ 剔除信号日已涨 >8% 的候选（入场滞后：次日买高点易均值回归）
+            if f["pct"] > SIGNAL_DAY_GAIN_MAX:
+                continue
             # 量价已过关，最后才查名（省去数千次查名）
             if REQUIRE_NO_ST and _is_st(code):
                 seen.add(code)
@@ -1076,9 +1099,11 @@ def _pick_candidates(mains):
             d = dict(f)
             d["sector"] = s["sector"]
             d["stage"] = stage
+            d["ht_confirm"] = code in ht_set      # ★V4.4★ 是否同时属"昨日高换手"确认过滤板
             cands.append(d)
             seen.add(code)
-    cands.sort(key=lambda x: (min(x["pct"], 9.0), min(x["vol_ratio"], 3.0)), reverse=True)
+    # ★V4.4★ 排序：涨幅 → 量比 → 确认过滤（同档优先"昨日高换手"确认标的）
+    cands.sort(key=lambda x: (min(x["pct"], 9.0), min(x["vol_ratio"], 3.0), x.get("ht_confirm", False)), reverse=True)
     # ★V4：按板块截断，每个热点板块最多 MAX_PER_SECTOR 只★
     out, cnt = [], {}
     for c in cands:
@@ -1281,29 +1306,70 @@ def _log_unit_calibration():
 # 十一、交易层：T 日 09:35 补卖 + T 日 10:00 建仓
 # ============================================================
 def _live_price_and_ref(context, codes):
-    """★V4 核心改动★ 取候选的【T 日 10:00 快照价】与【T-1 收盘价】。
+    """★V4.1 修正回测口径★ 取候选的【T 日 10:00 快照价 p_now】与【护栏基准 c_prev】。
 
-    口径拆开（不再混用）：
-      · p_now  = 当日进行中 bar 的 close —— 10:00 时刻唯一的实时成交基准；
-      · c_prev = rows[-2] 的 close     —— T-1 真实收盘价，已收盘、精确，
-                 用作"涨过头不追 / 走弱不接刀"的护栏基准。
-    若 10:00 时当日 bar 尚未生成（平台口径差异），则两者都取最近收盘并显式告警，
-    护栏退化为"按最近收盘价 ±3%/1.5%"，绝不静默使用错误口径。
+    数据源优先级（同时满足"实盘含当日 bar"与"回测也能取日内价"两种环境）：
+      1) get_current_data() 的 last_price / pre_close —— 日内进行中价；实盘与回测引擎在
+         10:00 都能给出当日真实快照价与昨收（昨收即涨停基准，与护栏一致）；
+      2) 日 K（get_history，fetch）兜底 —— 仅当 get_current_data 不可用或该票缺字段时回退。
+         回测在 10:00 不暴露当日 bar（日 K 只到 T-1）时，p_now/c_prev 退化为 T-1 收盘并显式告警。
+
+    为什么要改（回测死穴）：旧实现在 10:00 只用日 K，而回测数据在 10:00 不返回当日 bar，
+    导致 p_now 与 c_prev 都等于 T-1 收盘 —— "10:00 快照限价"与"开盘越界放弃"护栏在回测里
+    完全失效，测的只是"按 T-1 收盘 +0.5% 滑点建仓"的近似。改用日内源后回测才忠实。
     """
+    cur = None
+    try:
+        cur = get_current_data()
+    except Exception:
+        cur = None
     snap = fetch(codes, 2)
     today = _today_str(context)
     out = {}
-    for c, rows in snap.items():
-        if not rows:
-            continue
-        p_now = rows[-1][1]
-        if len(rows) >= 2 and _is_today_row(rows[-1], today):
-            c_prev = rows[-2][1]
+    for c in codes:
+        rows = snap.get(c, [])
+        g_lp = 0.0
+        g_pc = 0.0
+        if cur:
+            obj = cur.get(c)
+            if obj is None:
+                obj = cur.get(_suffix(c))
+            if obj is not None:
+                try:
+                    g_lp = float(getattr(obj, "last_price", None) or 0)
+                except Exception:
+                    g_lp = 0.0
+                try:
+                    g_pc = float(getattr(obj, "pre_close", None) or 0)
+                except Exception:
+                    g_pc = 0.0
+        # p_now：优先日内快照价，否则日 K 当日 close，否则日 K 最近 close
+        if g_lp and g_lp > 0:
+            p_now = g_lp
+        elif rows:
+            p_now = rows[-1][1]
         else:
+            p_now = 0.0
+        # c_prev：优先日内昨收（即涨停基准），否则日 K T-1 close，否则日 K 最近 close
+        if g_pc and g_pc > 0:
+            c_prev = g_pc
+        elif len(rows) >= 2 and _is_today_row(rows[-1], today):
+            c_prev = rows[-2][1]
+        elif rows:
             c_prev = rows[-1][1]
-            _degrade("anchor", "{} 10:00 未见当日 bar，护栏基准退化为最近收盘".format(c))
-        if p_now and c_prev:
-            out[c] = {"p_now": p_now, "c_prev": c_prev, "has_today": len(rows) >= 2 and _is_today_row(rows[-1], today)}
+        else:
+            c_prev = 0.0
+        if not p_now or not c_prev:
+            continue
+        intraday_ok = bool(g_lp > 0 and g_pc > 0)
+        # 仅当既无日内源、又无当日日 K 时才告警（回测 10:00 不暴露当日 bar 的典型情形）
+        if not intraday_ok and not (rows and len(rows) >= 2 and _is_today_row(rows[-1], today)):
+            _degrade("anchor", "{} 10:00 未见当日 bar（get_current_data 不可用），护栏基准退化为最近收盘".format(c))
+        out[c] = {
+            "p_now": p_now,
+            "c_prev": c_prev,
+            "has_today": intraday_ok or (bool(rows) and len(rows) >= 2 and _is_today_row(rows[-1], today)),
+        }
     return out
 
 
@@ -1445,6 +1511,14 @@ def buy_job(context):
             log.info("[买入] {} 目标 {:.0f} > 成交额×{:.1%}（{:.0f}）→ 放弃（流动性约束）".format(
                 code, target, MAX_AMT_SHARE, cap))
             continue
+        # ★V4.2 最小申报单位预检★ 避免科创板(<200股)/目标资金不足1手被拒（回测中 688123/688813
+        # "下单返回空"、300852 "委托数量为0" 均属此类）。预检不通过直接跳过，不浪费下单额度。
+        min_lot = 200 if code.startswith("688") else 100
+        est_qty = int(target / limit) if limit > 0 else 0
+        if est_qty < min_lot:
+            _degrade("buy", "{} 目标{:.0f}/限价{:.2f}≈{}股<最小{}股，放弃（流动性不足）".format(
+                code, target, limit, est_qty, min_lot))
+            continue
         if TRADE_ENABLED:
             oid = None
             try:
@@ -1479,16 +1553,25 @@ def buy_job(context):
 # 十二、风控层（每分钟 + 14:58 兜底）
 # ============================================================
 def _sector_killed():
-    """板块级一票否决集合：stage=衰退 或 zt 自峰值回落 ≥50%。"""
+    """板块级一票否决集合：仅当板块发生"真实退潮"才清仓，避免每日涨停家数自然波动造成 whipaw。
+
+    ★V4.2 修复★ 旧逻辑：历史≥2点 + 前峰值≥2 + 今日 zt_cnt<峰值×0.5 即砍。热点板块涨停家数
+    日间本就波动（2→1 是常态），导致"建仓次日 09:31 即砍"（回测 17/22 笔平仓属此类），且不论盈亏
+    一刀切，把刚建仓的赢仓也砍在起涨点。新逻辑只认"真实退潮"：
+      ① stage=="衰退"（三阶段模型已确认退潮）；或
+      ② 广度真实塌陷：历史≥3个观测点 + 前2日峰值≥4家涨停 + 今日涨停家数≤1
+         （从≥4掉到≤1 属结构性退潮；2→1 的正常波动不再触发）。
+    盈利持仓不在此层强平，交由止盈/移动止盈处理，避免"刚建仓次日即砍赢仓"。
+    """
     killed = set()
     for s in (g.sector_state or []):
         if s.get("stage") == "衰退":
             killed.add(s["sector"])
             continue
         h = g.prev_signal.get(s["sector"]) or []
-        if len(h) >= 2:
-            peak = max(h[:-1]) if len(h) > 1 else h[-1]
-            if peak >= 2 and s["zt_cnt"] < peak * 0.5:
+        if len(h) >= 3:
+            peak = max(h[-3:-1]) if len(h) >= 3 else max(h[:-1])
+            if peak >= 4 and s["zt_cnt"] <= 1:
                 killed.add(s["sector"])
     return killed
 
@@ -1513,43 +1596,54 @@ def monitor_risk(context):
         g.peak[code] = max(g.peak.get(code, 0.0), price_now)
         sell, reason = None, ""
         # ① 板块级联动清仓（早于单票止损）
+        # ★V4.3 修复★ 仅对【亏损】持仓强平；盈利持仓交由止盈/移动止盈处理，
+        #   避免"起涨点砍赢仓"。旧逻辑不论盈亏一刀切（与 _sector_killed docstring 承诺矛盾），
+        #   回测中大量次日即砍的赢仓被误杀，是负收益首因之一。
         sec = g.code_sector.get(code)
         if sec and sec in killed:
-            sell, reason = amount, "板块联动清仓:{}转衰退/腰斩".format(sec)
-        # ② 止盈（分批 + 移动止盈）
+            pr_sec = (price_now / cost - 1.0) if cost else 0.0
+            if pr_sec <= 0:
+                sell, reason = amount, "板块联动清仓:{}转衰退/腰斩(亏损)".format(sec)
+            else:
+                log.info("[风控] {} 板块{}转衰退但盈利{:.1%}，不在此强平（交止盈处理）".format(
+                    code, sec, pr_sec))
+        # ② 纯移动止盈（★V4.4★ 去掉 +10%/+15% 硬顶，全程只跟持仓最高价回撤 TRAIL_PCT 清仓）
+        #    武装阈值 TRAIL_ARM_PCT：浮盈≥3% 后才挂上移动止盈，避免微利即砍；
+        #    赢仓可一路多跑，直到自最高点回撤 8% 才离场。
         if sell is None and cost:
             pr = price_now / cost - 1
-            if pr >= TAKE_PROFIT2_PCT:
-                sell, reason = amount, "止盈2:浮盈{:.1%}>=+15%".format(pr)
-            elif pr >= TAKE_PROFIT1_PCT:
-                sell, reason = int(amount * 0.5), "止盈1:浮盈{:.1%}>=+10%减半".format(pr)
-            elif g.peak.get(code, 0) > 0 and price_now <= g.peak[code] * (1 - TRAIL_PCT) \
-                    and g.peak[code] > cost * (1 + TAKE_PROFIT1_PCT * 0.6):
-                sell, reason = amount, "移动止盈:自高点{:.1f}回撤{:.1%}".format(
-                    g.peak[code], TRAIL_PCT)
-            else:
-                # ③ 止损
-                held_days = g.hold_days.get(code, 99)
-                stop_pct = 0.0
-                if STOP_MODE == "fixed":
-                    stop_pct = STOP_LOSS_PCT
-                elif rows:
-                    a = _atr(rows)
-                    if a and cost:
-                        stop_pct = a * ATR_STOP_MULT / cost
-                        stop_pct = max(ATR_STOP_MIN_PCT, min(ATR_STOP_MAX_PCT, stop_pct))
-                if stop_pct and pr <= -stop_pct:
-                    if held_days >= MIN_HOLD_FOR_TIGHT_STOP:
-                        sell, reason = amount, "止损:浮亏{:.1%} (模式{}, 阈值{:.1%})".format(
-                            pr, STOP_MODE, stop_pct)
-                    else:
-                        log.info("[风控] {} 浮亏{:.1%} 但持仓仅{}日(<{}日)，暂不紧止损".format(
-                            code, pr, held_days, MIN_HOLD_FOR_TIGHT_STOP))
-        # ④ 破均值线清仓
+            peak = g.peak.get(code, 0.0)
+            if peak > 0 and pr >= TRAIL_ARM_PCT and price_now <= peak * (1 - TRAIL_PCT):
+                sell, reason = amount, "移动止盈:自高点{:.1f}回撤{:.1%}".format(peak, TRAIL_PCT)
+        # ③ 止损（移动止盈未触发时）
+        if sell is None and cost:
+            pr = price_now / cost - 1
+            held_days = g.hold_days.get(code, 99)
+            stop_pct = 0.0
+            if STOP_MODE == "fixed":
+                stop_pct = STOP_LOSS_PCT
+            elif rows:
+                a = _atr(rows)
+                if a and cost:
+                    stop_pct = a * ATR_STOP_MULT / cost
+                    stop_pct = max(ATR_STOP_MIN_PCT, min(ATR_STOP_MAX_PCT, stop_pct))
+            if stop_pct and pr <= -stop_pct:
+                if held_days >= MIN_HOLD_FOR_TIGHT_STOP:
+                    sell, reason = amount, "止损:浮亏{:.1%} (模式{}, 阈值{:.1%})".format(
+                        pr, STOP_MODE, stop_pct)
+                else:
+                    log.info("[风控] {} 浮亏{:.1%} 但持仓仅{}日(<{}日)，暂不紧止损".format(
+                        code, pr, held_days, MIN_HOLD_FOR_TIGHT_STOP))
+        # ④ 破均值线清仓（短持仓不触发，避免噪声止损 —— ★V4.3 修复★）
         if sell is None and len(closes) >= RETREAT_MA:
             ma = _ma(closes, RETREAT_MA)
             if ma and price_now < ma:
-                sell, reason = amount, "破{}日线清仓".format(RETREAT_MA)
+                held_days_break = g.hold_days.get(code, 99)
+                if held_days_break >= MIN_HOLD_FOR_TIGHT_STOP:
+                    sell, reason = amount, "破{}日线清仓".format(RETREAT_MA)
+                else:
+                    log.info("[风控] {} 破{}日线但持仓仅{}日(<{}日)，暂不噪声止损".format(
+                        code, RETREAT_MA, held_days_break, MIN_HOLD_FOR_TIGHT_STOP))
         if sell and sell > 0:
             if reason.startswith(("止损", "破")):
                 g.cool_down[code] = COOL_DOWN_DAYS
