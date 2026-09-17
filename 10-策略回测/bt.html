@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>策略回测 · 投研工作台</title>
+<style>
+:root{--bg:#f1f5f9;--card:#ffffff;--ink:#1e293b;--sub:#64748b;--line:#e2e8f0;
+--accent:#ed7d31;--accent-d:#f59e0b;--good:#16a34a;--warn:#dc2626;--neu:#0ea5e9;
+--up:#dc2626;--down:#16a34a;--head:linear-gradient(135deg,#1e293b,#334155);}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,sans-serif;
+background:var(--bg);color:var(--ink);line-height:1.6}
+
+/* ===== 外壳 ===== */
+.app{max-width:1080px;margin:0 auto;padding:18px 14px 48px}
+.app-head{background:var(--head);border-radius:14px;padding:18px 22px;color:#e2e8f0;
+box-shadow:0 6px 18px rgba(15,23,42,.18);margin-bottom:16px}
+.app-head h1{color:#fff;font-size:18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.app-head h1 .badge{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;
+background:rgba(237,125,49,.9);color:#fff;letter-spacing:.5px}
+.app-head .tip{margin-top:8px;font-size:12.5px;color:#cbd5e1;line-height:1.65}
+.app-head .row{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.app-head input[type=text]{flex:1;min-width:180px;padding:10px 13px;border:0;border-radius:10px;
+font-size:14px;background:#fff;color:#0f172a;font-family:inherit}
+.app-head input[type=text]:focus{outline:none;box-shadow:0 0 0 3px rgba(237,125,49,.35)}
+.stats{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.stats .s{font-size:11.5px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.10);
+color:#e2e8f0;border:1px solid rgba(255,255,255,.14)}
+.msg{margin-top:9px;font-size:12.5px;min-height:18px;color:#cbd5e1}
+.msg.ok{color:#86efac}.msg.err{color:#fca5a5}.msg.warn{color:#fdba74}
+
+/* ===== 按钮 ===== */
+.btn{padding:9px 15px;border-radius:9px;border:1px solid var(--line);background:#fff;color:var(--ink);
+font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn:hover{background:#f8fafc;border-color:#cbd5e1}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-d);border-color:var(--accent-d)}
+.btn.on-head{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.2);color:#e2e8f0}
+.btn.on-head:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.35)}
+.btn.mini{padding:5px 10px;font-size:12px;border-radius:7px}
+.btn.danger{color:var(--warn);border-color:rgba(220,38,38,.28)}
+.btn.danger:hover{background:#fef2f2;border-color:rgba(220,38,38,.5)}
+
+/* ===== 分区卡片 ===== */
+.sections{display:flex;flex-direction:column;gap:12px}
+.sec{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+box-shadow:0 1px 3px rgba(15,23,42,.06)}
+.sec-hit{border-color:var(--accent);box-shadow:0 0 0 3px rgba(237,125,49,.16)}
+.sec-head{display:flex;align-items:center;gap:11px;padding:11px 13px;
+background:linear-gradient(180deg,#fff,#f8fafc)}
+.sec:not(.collapsed) .sec-head{border-bottom:1px solid var(--line)}
+.sec-no{width:38px;height:38px;flex:0 0 38px;border-radius:10px;background:var(--head);color:#fff;
+font-weight:800;font-size:13.5px;display:flex;align-items:center;justify-content:center;letter-spacing:.4px}
+.sec-name{flex:1;min-width:0;border:1px solid transparent;background:transparent;font-size:15.5px;
+font-weight:700;color:var(--ink);padding:8px 10px;border-radius:9px;font-family:inherit}
+.sec-name::placeholder{color:#94a3b8;font-weight:500}
+.sec-name:hover{background:#f1f5f9}
+.sec-name:focus{background:#fff;border-color:var(--accent);outline:none;
+box-shadow:0 0 0 3px rgba(237,125,49,.12)}
+.sec-state{font-size:11.5px;padding:3px 9px;border-radius:999px;background:#f1f5f9;color:var(--sub);
+white-space:nowrap;border:1px solid var(--line);font-weight:600}
+.sec-state.filled{background:rgba(22,163,74,.10);color:#15803d;border-color:rgba(22,163,74,.28)}
+.sec-ops{display:flex;gap:5px;flex:0 0 auto}
+.sec-glance{display:flex;gap:7px;flex-wrap:wrap;padding:0 14px 11px 62px}
+.sec.collapsed .sec-glance{padding-bottom:12px}
+.sec:not(.collapsed) .sec-glance{display:none}
+.chip{font-size:11.5px;padding:3px 9px;border-radius:999px;background:#f8fafc;
+border:1px solid var(--line);color:var(--sub)}
+.sec-body{display:none}
+.sec:not(.collapsed) .sec-body{display:block}
+
+/* ===== 内容块 ===== */
+.block{padding:15px 16px;border-top:1px dashed var(--line)}
+.block:first-child{border-top:0}
+.block-t{font-size:13.5px;font-weight:700;color:#0f172a;margin-bottom:11px;
+display:flex;align-items:center;gap:8px}
+.block-t .n{width:20px;height:20px;flex:0 0 20px;border-radius:6px;background:var(--accent);color:#fff;
+font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:10px}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field.wide{grid-column:span 2}
+.field label{font-size:11.5px;color:var(--sub);font-weight:600}
+.field input,.field textarea{border:1px solid var(--line);border-radius:9px;padding:9px 11px;
+font-size:13.5px;font-family:inherit;color:var(--ink);background:#fff;width:100%}
+.field input::placeholder,.field textarea::placeholder{color:#a8b3c1}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--accent);
+box-shadow:0 0 0 3px rgba(237,125,49,.12)}
+.field textarea{resize:vertical;min-height:88px;line-height:1.75}
+input.num.pos{color:var(--up);font-weight:700}
+input.num.neg{color:var(--down);font-weight:700}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row input{flex:1;min-width:150px}
+
+/* 程序文件 */
+.filechip{display:flex;align-items:center;gap:11px;padding:11px 13px;border:1px dashed #cbd5e1;
+border-radius:10px;background:#f8fafc;font-size:13px;flex-wrap:wrap}
+.filechip.filled{border-style:solid;border-color:rgba(237,125,49,.4);background:#fff7ed}
+.filechip .fi{font-size:17px;flex:0 0 auto}
+.filechip .fmeta{flex:1;min-width:150px;display:flex;flex-direction:column;line-height:1.45}
+.filechip .fmeta b{font-size:13.5px;color:#0f172a;word-break:break-all}
+.filechip .fmeta span{font-size:11.5px;color:var(--sub)}
+.fileops{margin-top:9px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* 风险预览 */
+.risk-preview{margin-top:10px;padding:11px 13px;border-radius:10px;background:#f8fafc;
+border:1px solid var(--line);font-size:13px}
+.risk-preview ol{margin:0;padding-left:22px}
+.risk-preview li{margin:3px 0;color:#334155}
+.risk-preview .ph{color:#94a3b8;font-size:12.5px}
+
+/* 尾部 */
+.sec-foot{display:flex;gap:9px;flex-wrap:wrap;align-items:center;padding:13px 16px;
+border-top:1px solid var(--line);background:#f8fafc}
+.sec-foot .upd{margin-left:auto;font-size:11.5px;color:var(--sub)}
+.foot{margin-top:16px;font-size:12px;color:var(--sub);text-align:center;line-height:1.8}
+.empty-hint{padding:28px;text-align:center;color:var(--sub);font-size:13px;background:#fff;
+border:1px dashed var(--line);border-radius:14px}
+@media (max-width:640px){
+  .sec-glance{padding-left:14px}
+  .sec-name{font-size:14.5px}
+  .field.wide{grid-column:span 1}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="app-head">
+    <h1>&#128202; 策略回测工作台 <span class="badge">分区管理</span></h1>
+    <div class="tip">每个分区展示一种策略：<b>策略名称</b>（手动填写）· <b>策略程序文件</b> · <b>策略说明与使用文档</b> · <b>策略回测情况</b> · <b>策略风险与注意事项</b>。内容自动保存在本机浏览器，可导出 / 导入 JSON 备份。</div>
+    <div class="row">
+      <input type="text" id="q" placeholder="&#128269; 搜索策略名称 / 说明 / 风险关键词">
+      <button class="btn primary" id="btnAdd">＋ 增加分区</button>
+      <button class="btn on-head" id="btnExpand">展开全部</button>
+      <button class="btn on-head" id="btnCollapse">收起全部</button>
+      <button class="btn on-head" id="btnExport">导出全部 JSON</button>
+      <button class="btn on-head" id="btnImport">导入 JSON</button>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="msg" id="msg"></div>
+  </div>
+  <div class="sections" id="sections"></div>
+  <div class="foot">
+    策略回测记录工具 · 数据存于本机浏览器（localStorage），清理浏览器数据会丢失，请定期「导出全部 JSON」备份<br>
+    回测结果仅为历史数据统计，不代表未来收益 · 本工具不构成任何投资建议
+  </div>
+</div>
+<input type="file" id="filePick" hidden accept=".py,.txt,.md,.js,.json,.csv,.html,.htm,.ipynb,.sql,.yaml,.yml,.ini,.cfg,.log,.m,.r,.cpp,.cs,.java">
+<input type="file" id="fileImport" hidden accept=".json,application/json">
+<script>
+/* ================= 常量与工具 ================= */
+var KEY = 'console-strategy-sections-v1';
+var DEFAULT_N = 9;
+var MSG_UTF8 = 'utf-8';
+
+var METRICS = [
+  {k:'period',   l:'回测区间',   ph:'2020-01-01 ~ 2025-12-31', type:'text', wide:true},
+  {k:'total',    l:'累计收益率', ph:'如 186.4（%）',            type:'num'},
+  {k:'annual',   l:'年化收益率', ph:'如 21.7（%）',             type:'num'},
+  {k:'bench',    l:'基准收益率', ph:'如 沪深300 32.5（%）',      type:'num'},
+  {k:'excess',   l:'超额收益',   ph:'如 153.9（%）',            type:'num'},
+  {k:'mdd',      l:'最大回撤',   ph:'如 -28.6（%）',            type:'num'},
+  {k:'sharpe',   l:'夏普比率',   ph:'如 1.35',                  type:'num'},
+  {k:'calmar',   l:'卡玛比率',   ph:'如 0.92',                  type:'num'},
+  {k:'win',      l:'胜率',       ph:'如 52.4（%）',             type:'num'},
+  {k:'pl',       l:'盈亏比',     ph:'如 1.80',                  type:'num'},
+  {k:'turnover', l:'换手率',     ph:'如 320（%）',              type:'num'},
+  {k:'trades',   l:'交易次数',   ph:'如 128',                   type:'num'}
+];
+var METRIC_N = METRICS.length - 1; // 除「回测区间」外的指标数
+
+function uid(){ return 's' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function pad2(n){ return (n < 10 ? '0' : '') + n; }
+function nowStr(){ var d = new Date(); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())+' '+pad2(d.getHours())+':'+pad2(d.getMinutes()); }
+function todayStr(){ var d = new Date(); return ''+d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate()); }
+function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtSize(n){ n = Number(n)||0; if(!n) return '大小未知'; if(n<1024) return n+' B'; if(n<1048576) return (n/1024).toFixed(1)+' KB'; return (n/1048576).toFixed(2)+' MB'; }
+function safeName(s){ return String(s||'未命名策略').replace(/[^0-9A-Za-z\u4e00-\u9fa5_.\-]+/g,'_'); }
+function setPath(o,p,v){ var a = p.split('.'), i; for(i=0;i<a.length-1;i++) o = o[a[i]]; o[a[a.length-1]] = v; }
+function riskList(t){
+  return String(t||'').split(/\r?\n/).map(function(x){
+    return x.trim().replace(/^[-*\u00b7\u2022\s]+/,'');
+  }).filter(function(x){ return x; });
+}
+function numOf(v){
+  var s = String(v==null?'':v).replace(/[%\s,，]/g,'');
+  if(s === '' || !/^-?\d+(\.\d+)?$/.test(s)) return null;
+  var n = parseFloat(s); return isNaN(n) ? null : n;
+}
+function msg(t, cls){
+  var el = document.getElementById('msg');
+  el.className = 'msg' + (cls ? ' ' + cls : '');
+  el.textContent = t || '';
+}
+
+/* ================= 数据模型 ================= */
+function blankSec(){
+  return {
+    id: uid(), name: '', collapsed: true,
+    code: {name:'', size:0, lines:0, content:'', url:''},
+    doc: '', docUrl: '',
+    bt: {period:'', total:'', annual:'', bench:'', excess:'', mdd:'',
+         sharpe:'', calmar:'', win:'', pl:'', turnover:'', trades:'', note:''},
+    risks: '', updatedAt: ''
+  };
+}
+function defaultSecs(){
+  var a = [], i;
+  for(i=0;i<DEFAULT_N;i++) a.push(blankSec());
+  /* 分区 01 预填项目内已有的策略资料（真实文件路径，回测指标留空待填） */
+  a[0].name = 'PTrade 热点追踪策略';
+  a[0].code = {name:'hotspot_trader_v3_hardened.py', size:0, lines:0, content:'',
+               url:'06-投资策略分析/ptrade_verify/hotspot_trader_v3_hardened.py'};
+  a[0].doc  = '策略逻辑、参数设置与风控规则详见《PTrade热点追踪策略_体检报告》（2026-09-12）。\n策略程序文件位于 06-投资策略分析/ptrade_verify/（含 harness 回测脚本与成本模型）。\n可在左侧工作台「策略回测」分区下随时补充说明与回测数据。';
+  a[0].docUrl = '06-投资策略分析/PTrade热点追踪策略_体检报告_20260912.html';
+  a[0].updatedAt = nowStr();
+  return a;
+}
+function normSec(o){
+  var s = blankSec();
+  if(!o || typeof o !== 'object') return s;
+  s.id = o.id || s.id;
+  s.name = o.name || '';
+  s.collapsed = o.collapsed !== false;
+  s.doc = o.doc || '';
+  s.docUrl = o.docUrl || '';
+  s.risks = o.risks || '';
+  s.updatedAt = o.updatedAt || '';
+  var c = o.code || {};
+  s.code = {name:c.name||'', size:Number(c.size)||0, lines:Number(c.lines)||0,
+            content:c.content||'', url:c.url||''};
+  var b = o.bt || {};
+  METRICS.forEach(function(m){ s.bt[m.k] = (b[m.k]==null ? '' : String(b[m.k])); });
+  s.bt.note = b.note || '';
+  return s;
+}
+var secs = [];
+function load(){
+  try{
+    var raw = localStorage.getItem(KEY);
+    if(!raw){ secs = defaultSecs(); return; }
+    var d = JSON.parse(raw);
+    var arr = Array.isArray(d) ? d : (d && d.sections);
+    if(!Array.isArray(arr) || !arr.length){ secs = defaultSecs(); return; }
+    secs = arr.map(normSec);
+  }catch(e){ secs = defaultSecs(); }
+}
+function save(silent){
+  try{
+    localStorage.setItem(KEY, JSON.stringify({v:1, updated:nowStr(), sections:secs}));
+    return true;
+  }catch(e){
+    /* 空间不足：剥离源码内容后重试，保证配置不丢 */
+    var stripped = false;
+    secs.forEach(function(s){ if(s.code && s.code.content){ s.code.content = ''; stripped = true; } });
+    if(stripped){
+      try{
+        localStorage.setItem(KEY, JSON.stringify({v:1, updated:nowStr(), sections:secs}));
+        if(!silent) msg('浏览器本地存储将满：已自动改为「仅记录程序文件信息、不再保存源码内容」。建议先「导出全部 JSON」备份。','warn');
+        renderAll();
+        return true;
+      }catch(e2){}
+    }
+    if(!silent) msg('保存失败：浏览器本地存储空间不足。请「导出全部 JSON」备份后清理部分分区。','err');
+    return false;
+  }
+}
+var saveTimer = null, savedTimer = null;
+function saveSoon(){
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(function(){
+    if(save(true)){
+      var el = document.getElementById('msg');
+      el.className = 'msg ok';
+      el.textContent = '已自动保存 · ' + nowStr();
+      if(savedTimer) clearTimeout(savedTimer);
+      savedTimer = setTimeout(function(){ if(el.textContent.indexOf('已自动保存') === 0) el.textContent = ''; }, 2500);
+    }
+  }, 500);
+}
+
+/* ================= 渲染 ================= */
+function isFilled(s){
+  if(s.name) return true;
+  if(s.code && (s.code.name || s.code.content)) return true;
+  if(s.doc || s.docUrl || s.risks) return true;
+  var hit = false;
+  METRICS.forEach(function(m){ if(String(s.bt[m.k]||'').trim() !== '') hit = true; });
+  if(String(s.bt.note||'').trim() !== '') hit = true;
+  return hit;
+}
+function chip(t){ return '<span class="chip">' + esc(t) + '</span>'; }
+function glanceHTML(s){
+  var out = [];
+  out.push(chip(s.code && s.code.name ? '程序：' + s.code.name : '程序：未关联'));
+  out.push(chip('说明：' + (s.doc ? s.doc.replace(/\s+/g,'').length + ' 字' : '未填') + (s.docUrl ? ' + 链接' : '')));
+  var cnt = 0;
+  METRICS.forEach(function(m){ if(m.k !== 'period' && String(s.bt[m.k]||'').trim() !== '') cnt++; });
+  out.push(chip('回测指标：' + cnt + '/' + METRIC_N + (s.bt.period ? ' · ' + s.bt.period : '')));
+  var rl = riskList(s.risks).length;
+  out.push(chip('风险提示：' + (rl ? rl + ' 条' : '未填')));
+  return out.join('');
+}
+function metricField(s, m){
+  var v = s.bt[m.k] == null ? '' : s.bt[m.k];
+  var cls = 'num', n = m.type === 'num' ? numOf(v) : null;
+  if(n !== null && n !== 0) cls += (n > 0 ? ' pos' : ' neg');
+  var h = '<div class="field' + (m.wide ? ' wide' : '') + '">';
+  h += '<label>' + esc(m.l) + '</label>';
+  h += '<input type="text" class="' + cls + '" data-path="bt.' + m.k + '" value="' + esc(v) + '" placeholder="' + esc(m.ph) + '">';
+  h += '</div>';
+  return h;
+}
+function riskPrevHTML(t){
+  var list = riskList(t);
+  if(!list.length) return '<div class="ph">尚未填写。每行一条，保存后自动生成编号列表。</div>';
+  return '<ol>' + list.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ol>';
+}
+function blockCode(s){
+  var c = s.code || {};
+  var h = '<div class="block"><div class="block-t"><span class="n">1</span>策略程序文件</div>';
+  if(c.name){
+    h += '<div class="filechip filled"><span class="fi">&#128196;</span><div class="fmeta"><b>' + esc(c.name) + '</b>';
+    h += '<span>' + esc(fmtSize(c.size)) + (c.lines ? ' · ' + c.lines + ' 行' : '') + (c.content ? ' · 已在本机保存源码' : ' · 仅记录文件信息') + '</span></div>';
+    h += '<button class="btn mini" data-act="dlcode">下载源码</button>';
+    h += '<button class="btn mini danger" data-act="rmcode">移除</button></div>';
+  } else {
+    h += '<div class="filechip"><span class="fi">＋</span><div class="fmeta"><b>尚未关联程序文件</b><span>从本机选择文件（自动读取文件名 / 大小 / 行数），或填写仓库路径后「从路径载入」</span></div></div>';
+  }
+  h += '<div class="fileops">';
+  h += '<button class="btn mini" data-act="pickfile">选择本地文件</button>';
+  h += '<input type="text" data-path="code.url" value="' + esc(c.url) + '" placeholder="程序文件路径 / 在线链接，如 06-投资策略分析/ptrade_verify/xxx.py">';
+  h += '<button class="btn mini" data-act="loadurl">从路径载入</button>';
+  h += '</div></div>';
+  return h;
+}
+function blockDoc(s){
+  var h = '<div class="block"><div class="block-t"><span class="n">2</span>策略说明与使用文档</div>';
+  h += '<div class="field"><label>策略说明 / 使用文档正文</label>';
+  h += '<textarea data-path="doc" style="min-height:130px" placeholder="策略逻辑、选股与择时规则、参数含义、开平仓条件、使用方法与操作步骤、适用市场环境…">' + esc(s.doc) + '</textarea></div>';
+  h += '<div class="field" style="margin-top:10px"><label>关联文档链接（可选）</label>';
+  h += '<input type="text" data-path="docUrl" value="' + esc(s.docUrl) + '" placeholder="如 06-投资策略分析/策略回测/xxx.md 或 https:// 链接"></div>';
+  h += '</div>';
+  return h;
+}
+function blockBt(s){
+  var h = '<div class="block"><div class="block-t"><span class="n">3</span>策略回测情况</div>';
+  h += '<div class="grid">' + METRICS.map(function(m){ return metricField(s, m); }).join('') + '</div>';
+  h += '<div class="field" style="margin-top:10px"><label>回测备注（数据源 / 回测平台 / 手续费与滑点假设 / 分年度与参数敏感性结论）</label>';
+  h += '<textarea data-path="bt.note" style="min-height:80px" placeholder="如：日线数据来自 akshare，含双边万三手续费与千一滑点；2018/2022 弱市年份表现明显下滑…">' + esc(s.bt.note) + '</textarea></div>';
+  h += '</div>';
+  return h;
+}
+function blockRisk(s){
+  var h = '<div class="block"><div class="block-t"><span class="n">4</span>策略风险与注意事项</div>';
+  h += '<div class="field"><label>每行一条，保存后自动生成编号列表</label>';
+  h += '<textarea data-path="risks" style="min-height:110px" placeholder="如：&#10;回测区间未覆盖极端行情，实盘回撤可能显著大于历史&#10;存在过拟合风险，参数敏感性高，需做样本外验证&#10;小市值标的流动性不足，冲击成本可能被低估">' + esc(s.risks) + '</textarea></div>';
+  h += '<div class="risk-preview">' + riskPrevHTML(s.risks) + '</div>';
+  h += '</div>';
+  return h;
+}
+function cardHTML(s, i){
+  var no = pad2(i + 1);
+  var filled = isFilled(s);
+  var h = '<article class="sec' + (s.collapsed ? ' collapsed' : '') + '" data-idx="' + i + '">';
+  h += '<div class="sec-head">';
+  h += '<span class="sec-no">' + no + '</span>';
+  h += '<input type="text" class="sec-name" data-path="name" value="' + esc(s.name) + '" placeholder="策略名称（手动填写）">';
+  h += '<span class="sec-state' + (filled ? ' filled' : '') + '">' + (filled ? '已填写' : '待填写') + '</span>';
+  h += '<div class="sec-ops">';
+  h += '<button class="btn mini" data-act="up" title="上移">&#8593;</button>';
+  h += '<button class="btn mini" data-act="down" title="下移">&#8595;</button>';
+  h += '<button class="btn mini" data-act="toggle">' + (s.collapsed ? '展开' : '收起') + '</button>';
+  h += '<button class="btn mini danger" data-act="del">删除</button>';
+  h += '</div></div>';
+  h += '<div class="sec-glance">' + glanceHTML(s) + '</div>';
+  h += '<div class="sec-body">';
+  h += blockCode(s) + blockDoc(s) + blockBt(s) + blockRisk(s);
+  h += '<div class="sec-foot">';
+  h += '<button class="btn primary" data-act="export">导出本策略报告</button>';
+  h += '<button class="btn" data-act="save2list">导出并归档到文档列表</button>';
+  h += '<button class="btn danger" data-act="clear">清空本分区</button>';
+  h += '<span class="upd">' + (s.updatedAt ? '更新于 ' + esc(s.updatedAt) : '') + '</span>';
+  h += '</div></div></article>';
+  return h;
+}
+function renderAll(){
+  var box = document.getElementById('sections');
+  if(!secs.length){ box.innerHTML = '<div class="empty-hint">暂无分区，点上方「＋ 增加分区」开始添加策略。</div>'; }
+  else box.innerHTML = secs.map(function(s, i){ return cardHTML(s, i); }).join('');
+  applyFilter();
+  stats();
+  resize();
+}
+function stats(){
+  var filled = 0, code = 0, riskAll = 0, bt = 0;
+  secs.forEach(function(s){
+    if(isFilled(s)) filled++;
+    if(s.code && (s.code.name || s.code.content)) code++;
+    riskAll += riskList(s.risks).length;
+    var c = 0; METRICS.forEach(function(m){ if(m.k !== 'period' && String(s.bt[m.k]||'').trim() !== '') c++; });
+    if(c) bt++;
+  });
+  var el = document.getElementById('stats');
+  el.innerHTML = [
+    chip2('分区 ' + secs.length + ' 个'),
+    chip2('已填写 ' + filled),
+    chip2('已关联程序文件 ' + code),
+    chip2('含回测数据 ' + bt),
+    chip2('风险条目 ' + riskAll),
+    chip2('数据存本机浏览器')
+  ].join('');
+}
+function chip2(t){ return '<span class="s">' + esc(t) + '</span>'; }
+function updateGlance(card, s){
+  var g = card.querySelector('.sec-glance');
+  if(g) g.innerHTML = glanceHTML(s);
+}
+function updateState(card, s){
+  var st = card.querySelector('.sec-state');
+  if(!st) return;
+  var f = isFilled(s);
+  st.className = 'sec-state' + (f ? ' filled' : '');
+  st.textContent = f ? '已填写' : '待填写';
+}
+function resize(){
+  try{
+    if(window.parent && window.parent !== window){
+      window.parent.postMessage({type:'bt-resize', height: document.documentElement.scrollHeight}, '*');
+    }
+  }catch(e){}
+}
+/* 搜索过滤 */
+var filterKw = '';
+function applyFilter(){
+  var k = filterKw.trim().toLowerCase();
+  var cards = document.querySelectorAll('#sections .sec');
+  var visible = 0;
+  cards.forEach(function(c){
+    var i = Number(c.dataset.idx);
+    var s = secs[i];
+    var hit = true;
+    if(k && s){
+      var hay = [s.name, s.doc, s.docUrl, s.risks, s.bt.note, (s.code||{}).name, (s.code||{}).url].join(' ').toLowerCase();
+      METRICS.forEach(function(m){ hay += ' ' + String(s.bt[m.k]||'').toLowerCase(); });
+      hit = hay.indexOf(k) !== -1;
+    }
+    c.style.display = hit ? '' : 'none';
+    if(hit) visible++;
+  });
+  if(k){
+    var el = document.getElementById('stats');
+    if(el) el.innerHTML = chip2('筛选命中 ' + visible + ' / ' + secs.length) + chip2('关键词：' + filterKw.trim());
+  } else { stats(); }
+}
+
+/* ================= 交互 ================= */
+var pickFor = -1;
+var secBox = document.getElementById('sections');
+
+secBox.addEventListener('input', function(e){
+  var el = e.target;
+  var card = el.closest ? el.closest('.sec') : null;
+  if(!card) return;
+  var i = Number(card.dataset.idx), p = el.dataset.path;
+  if(!p || !secs[i]) return;
+  setPath(secs[i], p, el.value);
+  secs[i].updatedAt = nowStr();
+  if(el.classList.contains('num')){
+    var n = numOf(el.value);
+    el.classList.remove('pos','neg');
+    if(n !== null && n !== 0) el.classList.add(n > 0 ? 'pos' : 'neg');
+  }
+  if(p === 'name') updateState(card, secs[i]);
+  if(p === 'risks'){
+    var pv = card.querySelector('.risk-preview');
+    if(pv) pv.innerHTML = riskPrevHTML(secs[i].risks);
+  }
+  updateGlance(card, secs[i]);
+  if(filterKw.trim()) applyFilter(); else stats();
+  saveSoon();
+});
+
+secBox.addEventListener('click', function(e){
+  var btn = e.target.closest ? e.target.closest('[data-act]') : null;
+  if(!btn) return;
+  var card = btn.closest('.sec');
+  if(!card) return;
+  var i = Number(card.dataset.idx), act = btn.dataset.act, s = secs[i];
+  if(!s) return;
+
+  if(act === 'toggle'){
+    s.collapsed = !s.collapsed;
+    card.classList.toggle('collapsed', s.collapsed);
+    btn.textContent = s.collapsed ? '展开' : '收起';
+    saveSoon(); resize();
+    return;
+  }
+  if(act === 'up'){
+    if(i === 0){ msg('已经是第一个分区','warn'); return; }
+    var t = secs[i-1]; secs[i-1] = secs[i]; secs[i] = t;
+    save(true); renderAll(); flash(i-1);
+    return;
+  }
+  if(act === 'down'){
+    if(i === secs.length-1){ msg('已经是最后一个分区','warn'); return; }
+    var t2 = secs[i+1]; secs[i+1] = secs[i]; secs[i] = t2;
+    save(true); renderAll(); flash(i+1);
+    return;
+  }
+  if(act === 'del'){
+    if(!confirm('确认删除第 ' + (i+1) + ' 个分区？\n该分区内容将一并移除，且不可撤销。')) return;
+    secs.splice(i, 1);
+    if(!secs.length) secs.push(blankSec());
+    save(true); renderAll(); msg('已删除 1 个分区，当前共 ' + secs.length + ' 个','ok');
+    return;
+  }
+  if(act === 'pickfile'){
+    pickFor = i;
+    var fp = document.getElementById('filePick');
+    fp.value = ''; fp.click();
+    return;
+  }
+  if(act === 'loadurl'){ loadFromUrl(i); return; }
+  if(act === 'dlcode'){ downloadCode(i); return; }
+  if(act === 'rmcode'){
+    if(!confirm('移除已关联的程序文件？（分区其他内容不受影响）')) return;
+    var keepUrl = (s.code && s.code.url) || '';
+    s.code = {name:'', size:0, lines:0, content:'', url:keepUrl};
+    s.updatedAt = nowStr(); save(true); renderAll();
+    return;
+  }
+  if(act === 'clear'){
+    if(!confirm('清空第 ' + (i+1) + ' 个分区的全部内容？\n（策略名称、程序文件、说明、回测数据、风险提示都会清空）')) return;
+    secs[i] = blankSec();
+    secs[i].collapsed = false;
+    save(true); renderAll(); msg('已清空第 ' + (i+1) + ' 个分区','ok');
+    return;
+  }
+  if(act === 'export'){ doExport(i, false); return; }
+  if(act === 'save2list'){ doExport(i, true); return; }
+});
+
+function flash(i){
+  var card = document.querySelector('#sections .sec[data-idx="' + i + '"]');
+  if(!card) return;
+  card.classList.add('sec-hit');
+  setTimeout(function(){ card.classList.remove('sec-hit'); }, 900);
+  var y = card.getBoundingClientRect().top + window.pageYOffset - 90;
+  window.scrollTo({top: y < 0 ? 0 : y, behavior:'smooth'});
+}
+
+document.getElementById('filePick').addEventListener('change', function(){
+  var f = this.files && this.files[0];
+  if(!f || pickFor < 0) return;
+  var i = pickFor;
+  var rd = new FileReader();
+  rd.onload = function(){
+    var txt = String(rd.result || '');
+    var MAX = 200 * 1024, cut = false;
+    if(txt.length > MAX){ txt = txt.slice(0, MAX); cut = true; }
+    secs[i].code = {name:f.name, size:f.size, lines:txt.split(/\r?\n/).length,
+                    content:txt, url:(secs[i].code && secs[i].code.url) || ''};
+    secs[i].updatedAt = nowStr();
+    if(save(true)) msg('已关联程序文件：' + f.name + '（' + fmtSize(f.size) + '，' + secs[i].code.lines + ' 行）' + (cut ? '　源码过长，仅保留前 200KB' : ''), 'ok');
+    renderAll();
+  };
+  rd.onerror = function(){ msg('读取文件失败，请重试或改用「从路径载入」','err'); };
+  rd.readAsText(f, MSG_UTF8);
+});
+
+function applyLoaded(i, url, text){
+  var MAX = 200 * 1024, cut = false;
+  if(text.length > MAX){ text = text.slice(0, MAX); cut = true; }
+  var base = url.split('/').pop().split('?')[0] || 'strategy.txt';
+  secs[i].code = {name: base, size: text.length, lines: text.split(/\r?\n/).length,
+                  content: text, url: url};
+  secs[i].updatedAt = nowStr();
+  save(true); renderAll();
+  msg('已从路径载入：' + base + '（' + secs[i].code.lines + ' 行）' + (cut ? '　源码过长，仅保留前 200KB' : ''), 'ok');
+}
+function loadFromUrl(i){
+  var u = ((secs[i].code && secs[i].code.url) || '').trim();
+  if(!u){ msg('请先填写程序文件路径或在线链接','warn'); return; }
+  msg('正在读取 ' + u + ' ...');
+  fetch(u, {cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+    .then(function(t){ applyLoaded(i, u, t); })
+    .catch(function(err){
+      if(/^https?:\/\//i.test(u)) msg('读取失败：' + err.message + '（跨域限制时请改用「选择本地文件」）','err');
+      else msg('未能读取「' + u + '」：' + err.message + '。本地 file:// 打开或路径不存在时无法读取，请改用「选择本地文件」；线上版（https）可正常读取仓库内文件。','warn');
+    });
+}
+function downloadCode(i){
+  var s = secs[i], c = s.code || {};
+  if(c.content){
+    download((s.name ? safeName(s.name) + '-' : '') + (c.name || 'strategy.txt'), c.content, 'text/plain;charset=utf-8');
+    msg('源码已下载','ok');
+    return;
+  }
+  if(c.url){
+    msg('正在读取源码...');
+    fetch(c.url, {cache:'no-store'})
+      .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .then(function(t){ download((s.name ? safeName(s.name) + '-' : '') + (c.name || 'strategy.txt'), t, 'text/plain;charset=utf-8'); msg('源码已下载','ok'); })
+      .catch(function(e){ msg('无法下载源码：' + e.message + '。可在「选择本地文件」后下载。','err'); });
+    return;
+  }
+  msg('该分区尚未关联程序文件','warn');
+}
+
+/* 工具栏 */
+document.getElementById('q').addEventListener('input', function(){ filterKw = this.value; applyFilter(); });
+document.getElementById('btnAdd').addEventListener('click', function(){
+  var s = blankSec(); s.collapsed = false;
+  secs.push(s);
+  save(true); renderAll();
+  var idx = secs.length - 1;
+  var card = document.querySelector('#sections .sec[data-idx="' + idx + '"]');
+  if(card){
+    flash(idx);
+    var nm = card.querySelector('.sec-name');
+    if(nm) setTimeout(function(){ nm.focus(); }, 320);
+  }
+  msg('已增加 1 个分区，当前共 ' + secs.length + ' 个','ok');
+});
+document.getElementById('btnExpand').addEventListener('click', function(){
+  secs.forEach(function(s){ s.collapsed = false; });
+  save(true); renderAll();
+});
+document.getElementById('btnCollapse').addEventListener('click', function(){
+  secs.forEach(function(s){ s.collapsed = true; });
+  save(true); renderAll();
+});
+document.getElementById('btnExport').addEventListener('click', function(){
+  var payload = {v:1, app:'投研工作台·策略回测', exported:nowStr(), count:secs.length, sections:secs};
+  download('策略回测_分区配置_' + todayStr() + '.json', JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
+  msg('已导出全部 ' + secs.length + ' 个分区配置（JSON）','ok');
+});
+document.getElementById('btnImport').addEventListener('click', function(){
+  var el = document.getElementById('fileImport');
+  el.value = ''; el.click();
+});
+document.getElementById('fileImport').addEventListener('change', function(){
+  var f = this.files && this.files[0];
+  if(!f) return;
+  var rd = new FileReader();
+  rd.onload = function(){
+    try{
+      var d = JSON.parse(String(rd.result || ''));
+      var arr = Array.isArray(d) ? d : (d && d.sections);
+      if(!Array.isArray(arr) || !arr.length) throw new Error('文件内没有可用的分区数组');
+      if(!confirm('导入将覆盖当前全部 ' + secs.length + ' 个分区（共 ' + arr.length + ' 个），确认继续？')) return;
+      secs = arr.map(normSec);
+      save(true); renderAll();
+      msg('已导入 ' + secs.length + ' 个分区','ok');
+    }catch(e){ msg('导入失败：' + e.message,'err'); }
+  };
+  rd.readAsText(f, MSG_UTF8);
+});
+window.addEventListener('resize', function(){ resize(); });
+
+/* ================= 导出报告 ================= */
+function hasMetrics(s){
+  var hit = false;
+  METRICS.forEach(function(m){ if(String(s.bt[m.k]||'').trim() !== '') hit = true; });
+  return hit || String(s.bt.note||'').trim() !== '';
+}
+function reportDesc(s){
+  var a = [];
+  if(s.bt.period) a.push('区间 ' + s.bt.period);
+  if(s.bt.annual) a.push('年化 ' + s.bt.annual + '%');
+  if(s.bt.mdd) a.push('最大回撤 ' + s.bt.mdd + '%');
+  if(s.bt.sharpe) a.push('夏普 ' + s.bt.sharpe);
+  return '策略回测｜' + (s.name || '未命名策略') + (a.length ? '｜' + a.join('｜') : '');
+}
+function doExport(i, archive){
+  var s = secs[i];
+  if(!isFilled(s)){
+    msg('该分区还没有内容：请先填写策略名称或相关信息再导出','warn');
+    return;
+  }
+  var date = todayStr();
+  var nm = safeName(s.name || '未命名策略');
+  var fname = '策略回测-' + nm + '-' + date + '.html';
+  var html = buildReport(s);
+  if(archive){
+    if(window.parent && window.parent !== window){
+      try{
+        window.parent.postMessage({
+          type: 'bt-save', section: '策略回测',
+          title: '策略回测-' + nm + '-' + date,
+          file: '06-投资策略分析/策略回测/' + fname,
+          desc: reportDesc(s), html: html
+        }, '*');
+        download(fname, html, 'text/html;charset=utf-8');
+        msg('已归档到「策略回测」文档列表，并同时下载一份 HTML（便于离线 / 多设备查看）。回工作台刷新文档列表即可看到。','ok');
+      }catch(e){ msg('归档失败：' + e.message + '，已改为直接下载报告','err'); download(fname, html, 'text/html;charset=utf-8'); }
+    } else {
+      download(fname, html, 'text/html;charset=utf-8');
+      msg('当前为独立打开，已直接下载报告文件；在工作台内打开可同时归档到文档列表。','warn');
+    }
+  } else {
+    download(fname, html, 'text/html;charset=utf-8');
+    msg('报告已下载：' + fname,'ok');
+  }
+}
+function download(filename, text, mime){
+  try{
+    var blob = new Blob([text], {type: mime || 'text/plain;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 1500);
+  }catch(e){ msg('下载失败（浏览器限制）：可将内容复制到本地文件保存','err'); }
+}
+function buildReport(s){
+  var nm = s.name || '未命名策略';
+  var gen = nowStr();
+  var c = s.code || {};
+  var rows = METRICS.map(function(m){
+    var v = String(s.bt[m.k] == null ? '' : s.bt[m.k]).trim();
+    var cls = 'v';
+    if(v && m.type === 'num'){ var n = numOf(v); if(n !== null && n !== 0) cls += (n > 0 ? ' pos' : ' neg'); }
+    return '<tr><th>' + esc(m.l) + '</th><td class="' + cls + '">' + (v ? esc(v) : '—') + '</td></tr>';
+  }).join('');
+  var riskItems = riskList(s.risks).map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('');
+  var codeBlock = '';
+  if(c.content){
+    var arr = c.content.split(/\r?\n/);
+    var body = arr.slice(0, 400).join('\n');
+    codeBlock = '<pre class="code">' + esc(body) + '</pre>'
+      + (arr.length > 400 ? '<p class="mut">（源码共 ' + arr.length + ' 行，报告仅保留前 400 行）</p>' : '');
+  }
+  var h = '';
+  h += '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">';
+  h += '<meta name="viewport" content="width=device-width,initial-scale=1.0">';
+  h += '<title>策略回测报告 · ' + esc(nm) + '</title><style>';
+  h += ':root{--ink:#1e293b;--sub:#64748b;--line:#e2e8f0;--accent:#ed7d31;--up:#dc2626;--down:#16a34a}';
+  h += '*{box-sizing:border-box;margin:0;padding:0}';
+  h += 'body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,sans-serif;background:#f1f5f9;color:var(--ink);line-height:1.75;padding:22px 14px 60px}';
+  h += '.page{max-width:920px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 6px 24px rgba(15,23,42,.10);overflow:hidden;position:relative}';
+  h += '.page>header{background:linear-gradient(135deg,#1e293b,#334155);color:#fff;padding:26px 30px 22px}';
+  h += '.page>header .k{font-size:11.5px;letter-spacing:2px;color:#94a3b8;font-weight:700}';
+  h += '.page>header h1{font-size:22px;margin:6px 0 10px;line-height:1.35}';
+  h += '.page>header .meta{font-size:12.5px;color:#cbd5e1;display:flex;gap:16px;flex-wrap:wrap}';
+  h += '.tools{padding:12px 30px;background:#f8fafc;border-bottom:1px solid var(--line);text-align:right}';
+  h += '.tools button{padding:9px 18px;border:0;border-radius:9px;background:var(--accent);color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit}';
+  h += '.tools button:hover{background:#f59e0b}';
+  h += '.body{padding:8px 30px 34px}';
+  h += 'section{padding:18px 0;border-bottom:1px solid var(--line)}';
+  h += 'section:last-child{border-bottom:0}';
+  h += 'h2{font-size:15.5px;margin-bottom:12px;display:flex;align-items:center;gap:9px}';
+  h += 'h2 .n{width:22px;height:22px;flex:0 0 22px;border-radius:7px;background:var(--accent);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}';
+  h += 'table{width:100%;border-collapse:collapse;font-size:13.5px}';
+  h += 'th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}';
+  h += 'table th{background:#f8fafc;font-weight:600;color:#475569;width:34%;white-space:nowrap}';
+  h += 'td.v{font-variant-numeric:tabular-nums}';
+  h += 'td.v.pos{color:var(--up);font-weight:700}';
+  h += 'td.v.neg{color:var(--down);font-weight:700}';
+  h += '.txt{font-size:13.8px;white-space:pre-wrap;word-break:break-word;color:#334155}';
+  h += 'ol{margin:0;padding-left:24px;font-size:13.8px;color:#334155}';
+  h += 'ol li{margin:5px 0}';
+  h += '.meth{font-size:12.5px;color:var(--sub);margin-top:10px}';
+  h += '.code{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px 16px;font-size:12.5px;line-height:1.6;overflow:auto;max-height:520px;white-space:pre;font-family:Consolas,Monaco,monospace}';
+  h += '.mut{font-size:12px;color:var(--sub);margin-top:8px}';
+  h += '.fileline{display:flex;gap:10px;align-items:center;padding:11px 13px;border:1px solid rgba(237,125,49,.4);background:#fff7ed;border-radius:10px;font-size:13.5px;flex-wrap:wrap}';
+  h += '.fileline b{word-break:break-all}';
+  h += '.fileline .m{font-size:12px;color:var(--sub)}';
+  h += '.desc-line{font-size:13.5px;color:#334155}';
+  h += '.link{color:#0369a1;word-break:break-all;font-size:13px}';
+  h += 'footer{padding:16px 30px 26px;font-size:12px;color:var(--sub);border-top:1px solid var(--line);background:#f8fafc}';
+  h += '.wm{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) rotate(-22deg);font-size:76px;font-weight:900;color:rgba(15,23,42,.05);letter-spacing:10px;pointer-events:none;z-index:0;white-space:nowrap}';
+  h += '.no-print{}';
+  h += '@media print{body{background:#fff;padding:0}.no-print{display:none!important}.page{box-shadow:none;border-radius:0;max-width:100%}.wm{position:fixed}}';
+  h += '</style></head><body>';
+  h += '<div class="wm">策略回测</div>';
+  h += '<div class="page">';
+  h += '<header><div class="k">STRATEGY BACKTEST REPORT</div><h1>' + esc(nm) + '</h1>';
+  h += '<div class="meta"><span>报告生成：' + esc(gen) + '</span><span>来源：投研工作台 · 策略回测</span></div></header>';
+  h += '<div class="tools no-print"><button onclick="window.print()">&#11015; 导出 PDF</button></div>';
+  h += '<div class="body">';
+
+  h += '<section><h2><span class="n">1</span>策略程序文件</h2>';
+  if(c.name){
+    h += '<div class="fileline"><span>&#128196;</span><div><b>' + esc(c.name) + '</b><div class="m">'
+       + esc(fmtSize(c.size)) + (c.lines ? ' · ' + c.lines + ' 行' : '') + '</div></div></div>';
+  } else { h += '<p class="meth">未关联程序文件。</p>'; }
+  if(c.url) h += '<p class="link" style="margin-top:9px">文件路径 / 链接：' + esc(c.url) + '</p>';
+  if(codeBlock) h += '<div style="margin-top:12px">' + codeBlock + '</div>';
+  h += '</section>';
+
+  h += '<section><h2><span class="n">2</span>策略说明与使用文档</h2>';
+  h += s.doc ? '<div class="txt">' + esc(s.doc) + '</div>' : '<p class="meth">未填写策略说明。</p>';
+  if(s.docUrl) h += '<p class="link" style="margin-top:10px">关联文档：' + esc(s.docUrl) + '</p>';
+  h += '</section>';
+
+  h += '<section><h2><span class="n">3</span>策略回测情况</h2>';
+  h += '<table><tbody>' + rows + '</tbody></table>';
+  if(String(s.bt.note||'').trim()) h += '<div class="txt" style="margin-top:12px">' + esc(s.bt.note) + '</div>';
+  h += '</section>';
+
+  h += '<section><h2><span class="n">4</span>策略风险与注意事项</h2>';
+  h += riskItems ? '<ol>' + riskItems + '</ol>' : '<p class="meth">未填写风险提示。</p>';
+  h += '</section>';
+
+  h += '</div>';
+  h += '<footer>报告生成时间：' + esc(gen) + '　|　策略回测记录 · 投研工作台<br>';
+  h += '回测结果基于历史数据统计，存在过拟合、样本外失效、交易成本与流动性偏差等风险，不代表未来收益。本报告不构成任何投资建议，据此操作风险自担。</footer>';
+  h += '</div></body></html>';
+  return h;
+}
+
+/* ================= 启动 ================= */
+load();
+renderAll();
+if(secs.length) msg('已载入 ' + secs.length + ' 个分区。内容修改会自动保存到本机浏览器。','ok');
+</script>
+</body>
+</html>
