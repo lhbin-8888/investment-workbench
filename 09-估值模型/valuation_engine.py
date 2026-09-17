@@ -11,12 +11,11 @@
   - 东方财富 datacenter-web.eastmoney.com  → 三大财务报表 / 同业 / 分红
   - 腾讯 qt.gtimg.cn                      → 实时行情、PE(TTM)、总市值、换手率
 
-启动方式：
+启动方式（命令行 / 离线参考实现；网页版请直接用 09-估值模型/vm.html，纯前端无需本文件）：
   python valuation_engine.py 600176                  # 生成静态 HTML 报告
   python valuation_engine.py 中国巨石                 # 支持名称输入
   python valuation_engine.py 600176 --pdf            # 同时导出 PDF
   python valuation_engine.py 600176 --out D:/报告     # 指定输出目录
-  python valuation_engine.py --serve 8849            # 启动本地估值服务（/vm/* 路由，含 CORS）
 """
 
 import sys
@@ -763,7 +762,6 @@ background:#fdba74;color:#1e293b;font-size:14px;font-weight:700;cursor:pointer}
 <div><b>%(mktcap)s</b>总市值(亿)</div>
 <div><b>%(pos)s</b>位置判断</div>
 <button class="no-print export-btn" onclick="window.print()">&#11015; 导出 PDF</button>
-<button class="no-print export-btn" onclick="vmSaveToDocList('%(code)s')">保存到文档列表</button>
 </div></header>
 
 <section><h2>一、公司类型判断 <span class="tag">第一步 · 选对尺子</span></h2>
@@ -794,25 +792,6 @@ background:#fdba74;color:#1e293b;font-size:14px;font-weight:700;cursor:pointer}
 
 <footer>本报告由「投研工作台·估值模型」自动生成，数据来源：东方财富 / 腾讯财经，生成于 %(today)s。</footer>
 </div>
-<script>
-function vmSaveToDocList(code){
-  if(!confirm('保存本报告（HTML+PDF）到「估值模型」文档列表？')) return;
-  fetch('/vm/save?code='+encodeURIComponent(code))
-    .then(function(r){return r.json();})
-    .then(function(d){
-      if(d.ok){
-        alert('已保存：'+d.title+'（已写入文档列表，可刷新主页面查看）');
-        if(window.parent && window.parent!==window){ window.parent.postMessage({type:'vm-saved',title:d.title,html:d.html,pdf:d.pdf},'*'); }
-      } else { alert('保存失败：'+(d.msg||'未知错误')); }
-    })
-    .catch(function(e){
-      var msg = (e && e.message && e.message.indexOf('Failed to fetch')>=0)
-        ? '无法连接本地服务(8848)——服务可能已停止。请双击 D:\\投研工作台\\start.bat 重新启动后再试。'
-        : e.message;
-      alert('保存失败：'+msg);
-    });
-}
-</script>
 </body></html>""" % {
         "name": m["name"], "code": m["code"], "ind_name": m["ind_name"],
         "period": m["period"], "report_date": m["report_date"],
@@ -890,185 +869,10 @@ def write_report(code, out_dir=None, do_pdf=False, register=True):
     return result
 
 
-# ---------------------------------------------------------------------------
-# 本地服务（/vm/* 路由，含 CORS）
-# ---------------------------------------------------------------------------
-INDEX_HTML = """<!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>个股估值模型 · 投研工作台</title>
-<style>
-body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#0f172a;color:#e2e8f0;
-display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
-.box{background:#1e293b;padding:40px;border-radius:18px;max-width:560px;box-shadow:0 12px 40px rgba(0,0,0,.4);text-align:center}
-h1{font-size:24px;color:#fdba74;margin-bottom:6px}
-p{color:#94a3b8;font-size:14px;margin:10px 0 24px}
-form{display:flex;gap:10px}
-input{flex:1;padding:12px 14px;border-radius:10px;border:1px solid #334155;background:#0f172a;color:#fff;font-size:15px}
-button{padding:12px 22px;border:0;border-radius:10px;background:#ed7d31;color:#fff;font-size:15px;font-weight:700;cursor:pointer}
-button:hover{background:#f0883e}
-.tip{margin-top:18px;font-size:12px;color:#64748b}
-</style></head><body><div class="box">
-<h1>个股估值模型</h1>
-<p>输入个股名称或代码，按「个股估值」技能框架自动测算内在价值区间与安全边际</p>
-<form action="/vm/analyze" method="get">
-<input name="code" placeholder="如 600176 或 中国巨石" required>
-<button>生成报告</button></form>
-<div class="tip">数据来源：东方财富财务三大报表 + 腾讯行情估值 ｜ 支持导出 PDF 并保存至文档列表</div>
-</div></body></html>"""
-
-
-def serve(port=8849):
-    import http.server
-    import socketserver
-    import urllib.parse as _up
-
-    ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    class H(http.server.SimpleHTTPRequestHandler):
-        def __init__(self, *a, **k):
-            super().__init__(*a, directory=ROOT, **k)
-
-        def _cors(self):
-            self.send_header("Access-Control-Allow-Origin", "*")
-            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-            self.send_header("Access-Control-Allow-Headers", "Content-Type")
-
-        def do_OPTIONS(self):
-            self.send_response(204)
-            self._cors()
-            self.end_headers()
-
-        def do_GET(self):
-            path = self.path.split("?", 1)[0]
-            if path.startswith("/vm/"):
-                return self.handle_vm()
-            return super().do_GET()
-
-        def do_POST(self):
-            path = self.path.split("?", 1)[0]
-            if path.startswith("/vm/"):
-                return self.handle_vm()
-            self.send(405, b"method not allowed", "text/plain")
-
-        def handle_vm(self):
-            u = _up.urlparse(self.path)
-            route = u.path
-            qs = _up.parse_qs(u.query)
-            if route in ("/vm/", "/vm/index.html"):
-                self.send_html(INDEX_HTML)
-                return
-            if route == "/vm/analyze":
-                code = (qs.get("code") or ["600176"])[0].strip()
-                try:
-                    R = analyze_valuation(code)
-                    self.send_html(render_html(R))
-                except Exception as e:
-                    self.send_html("<h2>分析失败</h2><p>%s</p><p><a href='/vm/'>返回</a></p>" % e)
-                return
-            if route == "/vm/save":
-                code = (qs.get("code") or [""])[0].strip()
-                if not code:
-                    self.send_json(400, {"ok": False, "msg": "missing code"})
-                    return
-                try:
-                    res = write_report(code, register=True, do_pdf=True)
-                    rel_html = "09-估值模型/" + os.path.basename(res["html"])
-                    rel_pdf = "09-估值模型/" + os.path.basename(res["pdf"]) if res.get("pdf") else None
-                    self.send_json(200, {
-                        "ok": True, "title": res.get("registered"),
-                        "html": rel_html, "pdf": rel_pdf,
-                        "type": res["R"]["type"]["name"],
-                        "range_low": res["R"]["range"]["low"],
-                        "range_high": res["R"]["range"]["high"],
-                    })
-                except Exception as e:
-                    self.send_json(500, {"ok": False, "msg": str(e)})
-                return
-            if route == "/vm/export_pdf":
-                code = (qs.get("code") or [""])[0].strip()
-                if not code:
-                    self.send(400, b"missing code", "text/plain")
-                    return
-                try:
-                    R = analyze_valuation(code)
-                    html = render_html(R)
-                    tmp_dir = os.path.join(ROOT, "archive", "temp_vm")
-                    os.makedirs(tmp_dir, exist_ok=True)
-                    pdf_name = "估值模型_%s_%s_%s.pdf" % (
-                        R["meta"]["code"], R["meta"]["name"], R["meta"]["report_date"][:7].replace("-", ""))
-                    pdf_path = os.path.join(tmp_dir, pdf_name)
-                    render_pdf(html, pdf_path, keep_html=False)
-                    with open(pdf_path, "rb") as f:
-                        data = f.read()
-                    self.send_response(200)
-                    self.send_header("Content-Type", "application/pdf")
-                    disp = 'attachment; filename="valuation_%s.pdf"; filename*=UTF-8\'\'%s' % (
-                        R["meta"]["code"], _up.quote(pdf_name))
-                    self.send_header("Content-Disposition", disp)
-                    self.send_header("Content-Length", str(len(data)))
-                    self.end_headers()
-                    self.wfile.write(data)
-                    try:
-                        os.remove(pdf_path)
-                    except OSError:
-                        pass
-                except Exception as e:
-                    self.send(500, ("导出失败: %s" % e).encode("utf-8"), "text/plain; charset=utf-8")
-                return
-            self.send(404, b"not found", "text/plain")
-
-        def send_html(self, body):
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(body.encode("utf-8"))))
-            self._cors()
-            self.end_headers()
-            self.wfile.write(body.encode("utf-8"))
-
-        def send_json(self, code, obj):
-            body = json.dumps(obj, ensure_ascii=False)
-            self.send_response(code)
-            self.send_header("Content-Type", "application/json; charset=utf-8")
-            self.send_header("Content-Length", str(len(body.encode("utf-8"))))
-            self._cors()
-            self.end_headers()
-            self.wfile.write(body.encode("utf-8"))
-
-        def send(self, code, body, ctype):
-            self.send_response(code)
-            self.send_header("Content-Type", ctype)
-            self.send_header("Content-Length", str(len(body)))
-            self._cors()
-            self.end_headers()
-            self.wfile.write(body)
-
-        def log_message(self, *a):
-            pass
-
-    socketserver.TCPServer.allow_reuse_address = True
-    httpd = http.server.ThreadingHTTPServer(("127.0.0.1", port), H)
-    print("估值模型服务已启动： http://localhost:%d/vm/  (Ctrl+C 停止)" % port)
-    print("估值工具入口： http://localhost:%d/09-估值模型/vm.html" % port)
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        httpd.shutdown()
-
 
 def main():
     args = sys.argv[1:]
-    if not args or args[0] in ("--serve", "-s"):
-        port = 8849
-        for i, a in enumerate(args):
-            if a in ("--serve", "-s") and i + 1 < len(args):
-                try:
-                    port = int(args[i + 1])
-                except Exception:
-                    pass
-        serve(port)
-        return
-    if args[0] in ("--help", "-h"):
+    if not args or args[0] in ("--help", "-h"):
         print(__doc__)
         return
     code = args[0]
