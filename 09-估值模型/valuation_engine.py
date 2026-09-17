@@ -101,6 +101,9 @@ def render_pdf(html_text, pdf_path, keep_html=False):
         f.write(html_text)
     cmd = [
         EDGE, "--headless=new", "--disable-gpu", "--no-pdf-header-footer",
+        "--no-first-run", "--disable-extensions",
+        # 独立配置目录：避免与用户正在使用的 Edge 实例抢 profile 导致打印失败
+        "--user-data-dir=%s" % os.path.join(tmp_dir, "_edge_profile"),
         "--run-all-compositor-stages-before-draw",
         "--print-to-pdf=%s" % os.path.abspath(edge_out),
         html_path,
@@ -760,6 +763,7 @@ background:#fdba74;color:#1e293b;font-size:14px;font-weight:700;cursor:pointer}
 <div><b>%(mktcap)s</b>总市值(亿)</div>
 <div><b>%(pos)s</b>位置判断</div>
 <button class="no-print export-btn" onclick="window.print()">&#11015; 导出 PDF</button>
+<button class="no-print export-btn" onclick="vmSaveToDocList('%(code)s')">保存到文档列表</button>
 </div></header>
 
 <section><h2>一、公司类型判断 <span class="tag">第一步 · 选对尺子</span></h2>
@@ -789,7 +793,27 @@ background:#fdba74;color:#1e293b;font-size:14px;font-weight:700;cursor:pointer}
 <p class="muted">本报告由「投研工作台·估值模型」依据公开财务与市场数据、按「个股估值」技能框架自动测算。估值是区间判断而非精确点位，所有结论建立在增速、折现率、永续增长率等主观假设之上；参数变化会显著改变结论。本报告仅供研究学习，<b>不构成任何投资建议</b>，据此操作风险自担。</p></section>
 
 <footer>本报告由「投研工作台·估值模型」自动生成，数据来源：东方财富 / 腾讯财经，生成于 %(today)s。</footer>
-</div></body></html>""" % {
+</div>
+<script>
+function vmSaveToDocList(code){
+  if(!confirm('保存本报告（HTML+PDF）到「估值模型」文档列表？')) return;
+  fetch('/vm/save?code='+encodeURIComponent(code))
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.ok){
+        alert('已保存：'+d.title+'（已写入文档列表，可刷新主页面查看）');
+        if(window.parent && window.parent!==window){ window.parent.postMessage({type:'vm-saved',title:d.title,html:d.html,pdf:d.pdf},'*'); }
+      } else { alert('保存失败：'+(d.msg||'未知错误')); }
+    })
+    .catch(function(e){
+      var msg = (e && e.message && e.message.indexOf('Failed to fetch')>=0)
+        ? '无法连接本地服务(8848)——服务可能已停止。请双击 D:\\投研工作台\\start.bat 重新启动后再试。'
+        : e.message;
+      alert('保存失败：'+msg);
+    });
+}
+</script>
+</body></html>""" % {
         "name": m["name"], "code": m["code"], "ind_name": m["ind_name"],
         "period": m["period"], "report_date": m["report_date"],
         "ctype": t["name"], "mainscale": main.get("尺", "—"),

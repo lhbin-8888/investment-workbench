@@ -99,6 +99,9 @@ def render_pdf(html_text, pdf_path, keep_html=False):
         f.write(html_text)
     cmd = [
         EDGE, "--headless=new", "--disable-gpu", "--no-pdf-header-footer",
+        "--no-first-run", "--disable-extensions",
+        # 独立配置目录：避免与用户正在使用的 Edge 实例抢 profile 导致打印失败
+        "--user-data-dir=%s" % os.path.join(tmp_dir, "_edge_profile"),
         "--run-all-compositor-stages-before-draw",
         "--print-to-pdf=%s" % os.path.abspath(edge_out),
         html_path,
@@ -898,11 +901,24 @@ def serve(port=8848):
         def __init__(self, *a, **k):
             super().__init__(*a, directory=ROOT, **k)
 
+        def end_headers(self):
+            # HTML 等页面禁用浏览器缓存，避免改版后用户端仍跑旧代码
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+            super().end_headers()
+
         def do_GET(self):
             path = self.path.split("?", 1)[0]
             if path.startswith("/fa/"):
                 return self.handle_fa()
+            if path.startswith("/vm/"):
+                return self.handle_vm()
             return super().do_GET()
+
+        def do_POST(self):
+            path = self.path.split("?", 1)[0]
+            if path.startswith("/vm/"):
+                return self.handle_vm()
+            self.send(405, b"method not allowed", "text/plain")
 
         def handle_fa(self):
             u = _up.urlparse(self.path)
@@ -968,6 +984,91 @@ def serve(port=8848):
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)
+
+        def send_json(self, code, obj):
+            body = json.dumps(obj, ensure_ascii=False)
+            self.send_response(code)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body.encode("utf-8"))))
+            self.end_headers()
+            self.wfile.write(body.encode("utf-8"))
+
+        def handle_vm(self):
+            """估值模型路由（同源并入主服务 8848，免去独立 8849 服务）。"""
+            import sys as _sys
+            vm_dir = os.path.join(ROOT, "09-估值模型")
+            if vm_dir not in _sys.path:
+                _sys.path.insert(0, vm_dir)
+            try:
+                import valuation_engine as ve
+            except Exception as e:
+                self.send_json(500, {"ok": False, "msg": "估值引擎加载失败: %s" % e})
+                return
+            u = _up.urlparse(self.path)
+            route = u.path
+            qs = _up.parse_qs(u.query)
+            if route in ("/vm/", "/vm/index.html"):
+                self.send_html("估值模型工具入口：<a href='/09-估值模型/vm.html'>打开估值模型页面</a>")
+                return
+            if route == "/vm/analyze":
+                code = (qs.get("code") or ["600176"])[0].strip()
+                try:
+                    R = ve.analyze_valuation(code)
+                    self.send_html(ve.render_html(R))
+                except Exception as e:
+                    self.send_html("<h2>分析失败</h2><p>%s</p>" % e)
+                return
+            if route == "/vm/save":
+                code = (qs.get("code") or [""])[0].strip()
+                if not code:
+                    self.send_json(400, {"ok": False, "msg": "missing code"})
+                    return
+                try:
+                    res = ve.write_report(code, register=True, do_pdf=True)
+                    rel_html = "09-估值模型/" + os.path.basename(res["html"])
+                    rel_pdf = "09-估值模型/" + os.path.basename(res["pdf"]) if res.get("pdf") else None
+                    self.send_json(200, {
+                        "ok": True, "title": res.get("registered"),
+                        "html": rel_html, "pdf": rel_pdf,
+                        "type": res["R"]["type"]["name"],
+                        "range_low": res["R"]["range"]["low"],
+                        "range_high": res["R"]["range"]["high"],
+                    })
+                except Exception as e:
+                    self.send_json(500, {"ok": False, "msg": str(e)})
+                return
+            if route == "/vm/export_pdf":
+                code = (qs.get("code") or [""])[0].strip()
+                if not code:
+                    self.send(400, b"missing code", "text/plain")
+                    return
+                try:
+                    R = ve.analyze_valuation(code)
+                    html = ve.render_html(R)
+                    tmp_dir = os.path.join(ROOT, "archive", "temp_vm")
+                    os.makedirs(tmp_dir, exist_ok=True)
+                    pdf_name = "估值模型_%s_%s_%s.pdf" % (
+                        R["meta"]["code"], R["meta"]["name"], R["meta"]["report_date"][:7].replace("-", ""))
+                    pdf_path = os.path.join(tmp_dir, pdf_name)
+                    ve.render_pdf(html, pdf_path, keep_html=False)
+                    with open(pdf_path, "rb") as f:
+                        data = f.read()
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/pdf")
+                    disp = 'attachment; filename="valuation_%s.pdf"; filename*=UTF-8\'\'%s' % (
+                        R["meta"]["code"], _up.quote(pdf_name))
+                    self.send_header("Content-Disposition", disp)
+                    self.send_header("Content-Length", str(len(data)))
+                    self.end_headers()
+                    self.wfile.write(data)
+                    try:
+                        os.remove(pdf_path)
+                    except OSError:
+                        pass
+                except Exception as e:
+                    self.send(500, ("导出失败: %s" % e).encode("utf-8"), "text/plain; charset=utf-8")
+                return
+            self.send(404, b"not found", "text/plain")
 
         def log_message(self, *a):
             pass
