@@ -25,6 +25,17 @@ V4 = V3 + 三项改动（其余风控/数据/信号逻辑与 V3 一致）：
     - `fetch` 首批次新增 `[诊断]` 日志，打印真实 get_history 返回形态（type/keys/首值 repr），
       若补丁后仍 0 行，凭此日志即可定位是返回形态不匹配（再修 `_rows_from_any`）。
 
+## V4.5 入口改造 + 内置盈亏台账（2026-09-17 回测诊断后）
+  回测现象：V4.4 出场已无大碍（砍赢仓护栏 + 纯移动止盈），但收益仍为负。
+  台账重建结论：13 笔平仓中仅 2 笔移动止盈盈利（题材股·扩散多日主线），其余 8 笔
+  「板块联动清仓(亏损)」+ 3 笔破5日线 —— 亏损首因是**入场追 T-1 收盘滞后的一日游热点**
+  （次日 10:00 才买在拉升之后）。两项入口改造（均可一键回退）：
+    ① REQUIRE_DIFFUSE_ENTRY=True：只买「扩散」阶段主线（classify_stage 用历史 zt_cnt
+       平滑 → 扩散=持续≥2日），彻底不买「启动」一日游热点；
+    ② OPEN_CHASE_PCT=0.02：T 开盘较 T-1 收盘高开 >2% 视为追高，放弃建仓。
+  另加 LEDGER_ENABLED=True：每次平仓打印逐笔盈亏 + 累计胜率/盈亏，after_trading_end
+  打印期末汇总（含未平仓浮动盈亏 + 最大回撤），补偿 PTrade 面板不落文本日志之痛。
+
 ## 已确认的平台口径（V4 按此实现，不再猜测）
   1) get_history **含当日 bar** —— 盘前无当日 bar，10:00 时最后一根为进行中 bar；
   2) volume 单位为 **股**（成交额 = volume × close，不乘 100）；
@@ -153,6 +164,22 @@ MIN_MAIN_ZT_CNT = 2
 #         回测中"昨日高换手"约 10/12 天是主线，本质是买"昨天已涨的"，入场即滞后。
 MAINLINE_BLOCKLIST = ("昨日高换手",)
 # ★V4.4★ 剔除信号日已涨 >8% 的候选：次日高开买在阶段高点，易均值回归（入场滞后问题）。
+
+# ============================================================
+# ★V4.5 入口改造（方向A：2026-09-17 回测诊断后）★
+#   诊断结论：V4.4 出场已无大碍（砍赢仓护栏+移动止盈），亏损首因在「入场」——
+#   信号是 T-1 收盘滞后一日动量，次日 10:00 才买（≈T-1收盘×1.005），买在拉升之后；
+#   多数「启动」热点是一日游，次日即转衰退/腰斩被砍在亏损。唯二盈利的是已处「扩散」
+#   多日持续的主线（题材股）。故 V4.5 把入场收敛为：
+#     ① 只买「扩散」阶段主线（classify_stage 已用历史 zt_cnt 平滑 → 扩散=持续≥2日），
+#        彻底不买「启动」一日游热点；
+#     ② 叠加 T 开盘不追高（open ≤ T-1收盘×(1+OPEN_CHASE_PCT) 才买），砍掉高开接盘。
+#   两项均可一键回退（置 False / 调大 OPEN_CHASE_PCT）。
+# ============================================================
+REQUIRE_DIFFUSE_ENTRY = True        # True=仅「扩散」阶段主线可买；「启动」一日游一律不买
+OPEN_CHASE_PCT = 0.02               # T 开盘较 T-1 收盘高开 >2% 视为追高，放弃建仓
+# ---- 内置逐笔盈亏台账（★V4.5★ 解决回测日志无 P&L 汇总面板之痛）----
+LEDGER_ENABLED = True               # True=每次平仓打印逐笔盈亏+累计胜率/盈亏，结束打印期末汇总
 SIGNAL_DAY_GAIN_MAX = 8.0           # 单位与 f["pct"] 一致（百分点），非小数比例
 MAX_CANDIDATES = 10                 # 每日候选上限（3 主线 × 2 只 = 6，此值留余量）
 HOT_GAIN_MIN = 4.0                  # 成分入选板块强度统计 / 启动期候选的最小区间涨幅(%)
@@ -1067,6 +1094,10 @@ def _pick_candidates(mains):
         if stage == "衰退":
             log.info("[候选] 板块 {} 处衰退期 → 一票否决".format(s["sector"]))
             continue
+        # ★V4.5 方向A①★ 仅「扩散」阶段主线可买（扩散=持续≥2日），「启动」一日游一律不买
+        if REQUIRE_DIFFUSE_ENTRY and stage != "扩散":
+            log.info("[候选] 板块 {} 处{}期（非扩散）→ 方向A不买".format(s["sector"], stage))
+            continue
         for code in g.sector_codes.get(s["sector"], []):
             if code in seen or code in held:
                 continue
@@ -1187,6 +1218,41 @@ def _record_trade(context, value, side):
         g.trades.append((_today_str(context), float(abs(value)), side))
         if len(g.trades) > 8000:
             g.trades = g.trades[-4000:]
+    except Exception:
+        pass
+
+
+def _record_close(code, cost, price, amount, reason):
+    """★V4.5★ 记录一笔平仓的已实现盈亏，并维护累计统计与回撤采样。
+    仅在 cost>0（确有真实持仓）时记录，避免信号模式空持仓误记。"""
+    if not LEDGER_ENABLED:
+        return
+    if not (cost and cost > 0) or amount <= 0:
+        return
+    notion = cost * amount
+    net = (price - cost) * amount - notion * COST_PER_SIDE
+    pnl_pct = (price / cost - 1.0) - COST_PER_SIDE
+    g.closed_trades.append((code, getattr(g, "today", ""), round(price, 2), round(cost, 2),
+                            int(amount), round(net, 2), round(pnl_pct, 4), reason))
+    if net >= 0:
+        g.stat_wins += 1
+    else:
+        g.stat_losses += 1
+    g.stat_pnl += net
+    log.info("[平仓台账] {} 成本{:.2f}→卖{:.2f} {}股 盈亏{:+.0f}元({:+.1%}) 理由:{}".format(
+        code, cost, price, amount, net, pnl_pct, reason))
+    closed = g.stat_wins + g.stat_losses
+    wr = (g.stat_wins / float(closed)) if closed else 0.0
+    log.info("[累计] 平仓{}笔 盈{} 亏{} 胜率{:.0%} 累计盈亏{:+.0f}元".format(
+        closed, g.stat_wins, g.stat_losses, wr, g.stat_pnl))
+    # 回撤采样（基于总资产曲线）
+    try:
+        eq = float(get_total_assets())
+        if eq > 0:
+            g.peak_equity = max(g.peak_equity, eq)
+            dd = (eq / g.peak_equity - 1.0) if g.peak_equity > 0 else 0.0
+            if dd < g.max_dd:
+                g.max_dd = dd
     except Exception:
         pass
 
@@ -1330,6 +1396,7 @@ def _live_price_and_ref(context, codes):
         rows = snap.get(c, [])
         g_lp = 0.0
         g_pc = 0.0
+        g_o = 0.0
         if cur:
             obj = cur.get(c)
             if obj is None:
@@ -1343,6 +1410,10 @@ def _live_price_and_ref(context, codes):
                     g_pc = float(getattr(obj, "pre_close", None) or 0)
                 except Exception:
                     g_pc = 0.0
+                try:
+                    g_o = float(getattr(obj, "open", None) or 0)
+                except Exception:
+                    g_o = 0.0
         # p_now：优先日内快照价，否则日 K 当日 close，否则日 K 最近 close
         if g_lp and g_lp > 0:
             p_now = g_lp
@@ -1368,6 +1439,7 @@ def _live_price_and_ref(context, codes):
         out[c] = {
             "p_now": p_now,
             "c_prev": c_prev,
+            "open": g_o if g_o > 0 else 0.0,
             "has_today": intraday_ok or (bool(rows) and len(rows) >= 2 and _is_today_row(rows[-1], today)),
         }
     return out
@@ -1379,6 +1451,12 @@ def _do_sell(code, amount, reason):
     amt = _round_lot(amount, held if held else amount)
     if amt <= 0:
         return
+    # ★V4.5★ 记录已实现盈亏（仅实盘/回测成交时，cost>0 才记；队列次日补卖亦只记一次）
+    if held_px and LEDGER_ENABLED:
+        c0 = _pos_f(held_px, "cost_price") or _pos_f(held_px, "avg_price") or 0
+        p0 = _pos_f(held_px, "last_price") or _pos_f(held_px, "price") or 0
+        if c0 and p0:
+            _record_close(code, c0, p0, amt, reason)
     if TRADE_ENABLED:
         try:
             o = order(_suffix(code), -amt)
@@ -1494,6 +1572,12 @@ def buy_job(context):
             _degrade("buy", "{} 无快照价/T-1收盘价，放弃".format(code))
             continue
         p_now, c_prev = sc["p_now"], sc["c_prev"]
+        # ★V4.5 方向A②★ T 开盘不追高：当日 open 较 T-1 收盘高开 > OPEN_CHASE_PCT 放弃（砍高开接盘）
+        op = sc.get("open", 0.0)
+        if op and op > c_prev * (1 + OPEN_CHASE_PCT):
+            log.info("[买入] {} 开盘 {:.2f} 较昨收 {:.2f} 高开 {:.1%} > {:.1%}（追高放弃）".format(
+                code, op, c_prev, op / c_prev - 1, OPEN_CHASE_PCT))
+            continue
         upper_ref = round(c_prev * (1 + BUY_PREMIUM_PCT), 2)
         lower_ref = round(c_prev * (1 - BUY_FLOOR_PCT), 2)
         if p_now < lower_ref:
@@ -1734,6 +1818,50 @@ def handle_data(context, data):
             _degrade("risk", "风控异常: {}".format(repr(e)))
 
 
+def _print_final_summary(context):
+    """★V4.5★ 回测期末汇总（策略级盈亏台账，补偿 PTrade 面板不落到文本日志）。"""
+    if not LEDGER_ENABLED:
+        return
+    closed = g.stat_wins + g.stat_losses
+    wr = (g.stat_wins / float(closed)) if closed else 0.0
+    log.info("=" * 72)
+    log.info("[期末汇总] V4.5 策略级盈亏台账")
+    log.info("[期末汇总] 平仓笔数={} 盈利={} 亏损={} 胜率={:.1%}".format(
+        closed, g.stat_wins, g.stat_losses, wr))
+    log.info("[期末汇总] 累计已实现盈亏={:+.0f}元".format(g.stat_pnl))
+    log.info("[期末汇总] 最大回撤={:.1%}（基于总资产曲线）".format(g.max_dd))
+    # 未平仓持仓按末价标记
+    pm = positions_map()
+    if pm:
+        op = 0.0
+        log.info("[期末汇总] 未平仓 {} 只（按末价标记，未计入已实现）:".format(len(pm)))
+        for code, px in pm.items():
+            c0 = _pos_f(px, "cost_price") or _pos_f(px, "avg_price") or 0
+            p0 = _pos_f(px, "last_price") or _pos_f(px, "price") or 0
+            a = _pos_f(px, "current_amount") or 0
+            if c0 and p0 and a:
+                m = (p0 - c0) * a
+                op += m
+                log.info("[期末汇总]   {} 成本{:.2f} 末价{:.2f} {}股 浮动{:+.0f}元({:+.1%})".format(
+                    code, c0, p0, int(a), m, (p0 / c0 - 1.0)))
+        log.info("[期末汇总] 未平仓浮动盈亏合计={:+.0f}元".format(op))
+    # 逐笔明细
+    if g.closed_trades:
+        log.info("[期末汇总] 逐笔平仓明细:")
+        for (code, d, price, cost, amt, net, pc, reason) in g.closed_trades:
+            log.info("[期末汇总]   {} {} 成本{:.2f}→卖{:.2f} {}股 {:+.0f}元({:+.1%}) {}".format(
+                d, code, cost, price, amt, net, pc, reason))
+    log.info("=" * 72)
+
+
+def after_trading_end(context, data):
+    """★V4.5★ 回测期末触发（平台支持则调用），打印策略级盈亏台账。"""
+    try:
+        _print_final_summary(context)
+    except Exception as e:
+        _degrade("final", "期末汇总异常: {}".format(repr(e)))
+
+
 def risk_fallback_job(context):
     g.now_str = _now_str(context) or RISK_FALLBACK_TIME
     try:
@@ -1786,6 +1914,13 @@ def initialize(context):
     g.stop_queue = []
     g.trades = []
     g.code_sector = {}
+    # ★V4.5★ 内置盈亏台账状态
+    g.closed_trades = []
+    g.stat_wins = 0
+    g.stat_losses = 0
+    g.stat_pnl = 0.0
+    g.peak_equity = 0.0
+    g.max_dd = 0.0
     g.index_rows = []
     g.hist_mode = None
     g.fq_ok = None

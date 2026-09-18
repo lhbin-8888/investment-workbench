@@ -65,7 +65,9 @@ REQUIRE_ABOVE_MA20 = True      # 必须站上 20 日线
 MAX_POSITIONS = 5              # 最大同时持仓数
 POSITION_VALUE_RATIO = 0.18    # 单票目标市值 / 总资产
 CASH_BUFFER = 0.10             # 保留现金比例（1 - 此为可投上限）
-STOP_LOSS_PCT = 0.05           # 单票浮亏止损（v2.0 为 3%，热点票波动下太紧）
+# ---- 亏损侧硬止损（入场价锚定，封顶单票最大亏损，治「买高被埋」）----
+HARD_STOP_PCT = 0.04          # 浮亏 <= -4% 即清仓（替代原破3日线/宽松-5%止损；板上可单独调 3%~5%）
+STOP_LOSS_PCT = HARD_STOP_PCT # 兼容别名（旧引用保留，实际生效为 HARD_STOP_PCT）
 
 # ---- 分批止盈（分板块：盈利减半 + 峰值回撤减半，单票最多减到 1/4）----
 # 盈利减半阈值（分板块）：主板 +8% / 科创板 +12% / 创业板 +12%（20cm 大票让多跑）
@@ -76,7 +78,7 @@ TP_HALF_PCT = {"main": 0.08, "kcb": 0.12, "cyb": 0.12}
 HALF_DRAWDOWN = {"main": 0.05, "kcb": 0.05, "cyb": 0.05}
 TP_FULL_PCT = 0.15             # 浮盈达到 +15%：清仓（盈利减半后的终点兜底）
 TP_MA = 5                      # 兼容保留
-EXIT_MA = 3                    # 破 N 日线即清仓（更快出场，缩短亏损持有期；替代原 5 日线）
+EXIT_MA = 3                    # 已弃用：亏损侧不再用破线出场，改 HARD_STOP_PCT 入场价锚定硬止损（封顶-4%）。保留供日后按需恢复 MA 出场。
 RETREAT_MA = 20                # 跌破 20 日线 = 退潮清仓（更保守兜底）
 TRAIL_PCT = 0.08              # 峰值回撤 > 8%：清仓（减半之后的硬兜底，与 HALF_DRAWDOWN 形成阶梯）
 MAX_HOLD_DAYS = 5              # 时间止损（亏损票）：持有超过 N 个交易日无条件退出
@@ -1039,14 +1041,14 @@ def _sell_half(code, px, reason):
 
 
 def monitor_risk(context, data=None):
-    """逐票风控：分批止盈 + 止损 + 更快出场（3日线/峰值回撤）+ 时间止损。
+    """逐票风控：分批止盈 + 硬止损(-4%封顶) + 峰值回撤/破20日线兜底 + 时间止损。
 
     同一根 bar 内按以下优先级判定（命中即处理下一票）：
-      1) 破 EXIT_MA(默认3) 日线        → 清仓（更快出场，缩短亏损持有期）
-      1b) 持仓峰值回落 > TRAIL_PCT(8%)  → 清仓（峰值回撤跟踪止盈，让利润奔跑+保护）
-      2) 破 20 日线（RETREAT_MA）      → 清仓（更保守兜底）
-      3) 保本止损（仅已减半票）：cur <= 保本价 → 清仓（锁定已落袋利润）
-      4) 浮亏 <= -STOP_LOSS_PCT       → 清仓
+      1) 硬止损（入场价锚定）：浮亏 <= -HARD_STOP_PCT(4%) → 清仓（封顶单票最大亏损，
+         替代原「破3日线」/宽松-5%止损，治「买高被埋」大亏）
+      2) 持仓峰值回落 > TRAIL_PCT(8%)  → 清仓（峰值回撤跟踪止盈，让利润奔跑+保护）
+      3) 破 20 日线（RETREAT_MA）      → 清仓（更保守兜底，趋势彻底走坏）
+      4) 保本止损（仅已减半票）：cur <= 保本价 → 清仓（锁定已落袋利润）
       5) 时间止损（亏损票）：持有 >= MAX_HOLD_DAYS 天 → 清仓
       6) 浮盈 >= +15%（TP_FULL_PCT）   → 清仓（盈利减半后的终点兜底）
       7) 峰值回撤减半（分板块 HALF_DRAWDOWN）：从峰值回落超阈值 → 减半（最多到 1/4，
@@ -1054,7 +1056,7 @@ def monitor_risk(context, data=None):
       8) 盈利减半（分板块 TP_HALF_PCT）：主板 +8% / 科创板·创业板 +12% 且未减半过 → 减半
          （首减半写入 context.breakeven[code] 保本基准）
       注：减半最多两次（全仓→半仓→1/4），用 context.halved / context.quartered 双重标记防重复；
-          1/4 之后只走 6) +15% 全清 / 1b) 8% 回撤全清 / 3) 保本止损。
+          1/4 之后只走 6) +15% 全清 / 2) 8% 回撤全清 / 4) 保本止损。
     """
     pm = positions_map(context)
     # 用上一交易日已交收的真实持仓初始化当日 live_held，再随本周期内卖出递减
@@ -1091,8 +1093,8 @@ def monitor_risk(context, data=None):
         rows_p = _fetch_panel([code], need_bars, ["close"], "风控取数")
         closes = (rows_p.get(code) or {}).get("close") or []
         closes = [x for x in closes if x]
-        if len(closes) < EXIT_MA:
-            log.info("[风控] {} K线不足{}根，跳过".format(code, EXIT_MA))
+        if not closes:
+            log.info("[风控] {} 无有效K线，跳过".format(code))
             continue
 
         # 当日价：优先 data 实时价，回退昨收（get_history 不含当日 bar）
@@ -1100,7 +1102,6 @@ def monitor_risk(context, data=None):
         if cur is None:
             cur = closes[-1]
         rt = (cur / float(cost) - 1) if cost else 0.0
-        ma_exit = _ma(closes, EXIT_MA)
         ma20 = _ma(closes, RETREAT_MA) if len(closes) >= RETREAT_MA else None
         d0 = entry.get(code)
         held_days = _days_between(d0, today) if (d0 and today) else 0
@@ -1110,9 +1111,9 @@ def monitor_risk(context, data=None):
         if cur:
             peak[code] = max(peak.get(code, cur), cur)
 
-        # 1) 破 EXIT_MA 日线 → 清仓（更快出场）
-        if ma_exit and cur < ma_exit:
-            if _sell_all(code, px, "退潮 破{}日线 浮盈{:.1%}".format(EXIT_MA, rt)):
+        # 1) 硬止损（入场价锚定）：浮亏封顶 -HARD_STOP_PCT，治「买高被埋」大亏
+        if HARD_STOP_PCT > 0 and rt <= -HARD_STOP_PCT:
+            if _sell_all(code, px, "硬止损 浮亏{:.1%} 封顶-{}%".format(rt, int(HARD_STOP_PCT * 100))):
                 _clear(code)
             continue
         # 1b) 峰值回撤跟踪止盈：从高点回落超 TRAIL_PCT → 清仓
@@ -1130,11 +1131,7 @@ def monitor_risk(context, data=None):
             if _sell_all(code, px, "保本止损 破保本价{:.2f} 浮盈{:.1%}".format(breakeven[code], rt)):
                 _clear(code)
             continue
-        # 4) 止损
-        if rt <= -STOP_LOSS_PCT:
-            if _sell_all(code, px, "止损 浮亏{:.1%}".format(rt)):
-                _clear(code)
-            continue
+        # 4) 止损已由 1) 硬止损(-HARD_STOP_PCT)统一处理，此处不再单独判定
         # 5) 时间止损（亏损票）：持有 >= MAX_HOLD_DAYS 天 → 清仓
         if held_days >= 1 and rt <= 0 and MAX_HOLD_DAYS > 0 and held_days >= MAX_HOLD_DAYS:
             if _sell_all(code, px, "时间止损 亏损持仓{}天".format(MAX_HOLD_DAYS)):
@@ -1328,7 +1325,9 @@ def execute_buy(context, picks):
             log.info("[买入] {} {} 现价+{}% 强度{} 分{} 目标{}股".format(
                 code, a["name"], a["pct"], a["score"], round(per), max_shares))
             try:
-                if _has("order_target_value"):
+                if _has("order"):
+                    order(code, max_shares)       # 下精确股数（已是最小申报单位整数倍），避免科创板被取整拒单
+                elif _has("order_target_value"):
                     order_target_value(code, target_value)
                 else:
                     order_value(code, target_value)

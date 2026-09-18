@@ -53,6 +53,9 @@ def main():
     g = types.SimpleNamespace()
     ns["g"] = g
     ns["REQUIRE_NO_ST"] = False  # 跳过 ST 查名，聚焦评选逻辑
+    # A/B/C 验证 V4.1 主线评选修复，与 V4.5「仅扩散可买」入口改造无关，
+    # 故临时关闭 REQUIRE_DIFFUSE_ENTRY，由 test_v45_entry_ledger 专门验证扩散门。
+    ns["REQUIRE_DIFFUSE_ENTRY"] = False
 
     build = ns["build_sector_signal"]
     classify = ns["classify_stage"]
@@ -351,9 +354,10 @@ def test_v44_mainline_filters():
     g.sector_codes["真实热点"] = ["000009", "000007"]
     g.sector_codes["昨日高换手"] = ["000007"]
     g.feat["000009"] = feat("000009", 9.0, 9.8, above20=True)   # +9% > 8 -> 剔除
-    g.feat["000007"] = feat("000007", 5.0, 9.8, above20=True)   # +5% -> 保留，且属确认板
+    g.feat["000007"] = feat("000007", 3.0, 9.8, above20=True)   # +3% 落在扩散回踩区间[0,4%)-> 保留，且属确认板
     g.cool_down = {}
-    out = cand([{"sector": "真实热点", "stage": "启动"}])
+    # V4.5 仅「扩散」阶段主线可买，故此例用 扩散 阶段（启动阶段已在 R 用例专项验证不买）
+    out = cand([{"sector": "真实热点", "stage": "扩散"}])
     kept = [d["code"] for d in out]
     ok("000009" not in kept, "信号日+9% 候选被剔除（入场滞后）", str(kept))
     ok("000007" in kept, "信号日+5% 候选保留", str(kept))
@@ -413,6 +417,120 @@ def test_v44_trailing():
     ok(len(sold) == 0, "微利(+3%)未回撤不触发移动止盈", str(sold))
 
 
+def test_v45_entry_ledger():
+    """V4.5：① 仅扩散阶段主线可买（启动一日游不买）；② 回退开关；③ 内置盈亏台账；④ 开盘不追高护栏。"""
+    global fails
+    ns = load()
+    g = types.SimpleNamespace()
+    ns["g"] = g
+    ns["REQUIRE_NO_ST"] = False
+    ns["REQUIRE_DIFFUSE_ENTRY"] = True   # 方向A 开
+    cand = ns["_pick_candidates"]
+    ns["positions_map"] = lambda: {}
+    g.cool_down = set()
+    g.sector_codes = {}
+    g.feat = {}
+
+    def codes(n, prefix):
+        return ["{:06d}".format(int(prefix) * 100000 + i) for i in range(n)]
+
+    def add_sector(name, n, prefix, n_lead, pct_lead=10.0, pct_follow=6.0):
+        cs = codes(n, prefix)
+        g.sector_codes[name] = cs
+        for i, c in enumerate(cs):
+            g.feat[c] = feat(c, pct_lead if i < n_lead else pct_follow, 9.8, lianban=2)
+        return ns["build_sector_signal"](name, cs)
+
+    add_sector("一日游热点", 10, 700, n_lead=3)
+    # 扩散阶段只买回踩（0<=pct<4%）：跟涨标的落在回踩区间，龙头+10%封板不买
+    add_sector("持续热点", 10, 701, n_lead=3, pct_lead=10.0, pct_follow=3.0)
+
+    print("== R. 方向A①：仅扩散阶段主线可买，启动一日游不买 ==")
+    out_r1 = cand([{"sector": "一日游热点", "stage": "启动"}])
+    ok(len(out_r1) == 0, "启动阶段主线产出 0 候选（一日游不买）", str([d["code"] for d in out_r1]))
+    out_r2 = cand([{"sector": "持续热点", "stage": "扩散"}])
+    ok(len(out_r2) > 0, "扩散阶段主线正常产出候选", str([d["code"] for d in out_r2]))
+
+    print("== S. 回退开关：REQUIRE_DIFFUSE_ENTRY=False 时启动主线恢复可买 ==")
+    ns["REQUIRE_DIFFUSE_ENTRY"] = False
+    out_s = cand([{"sector": "一日游热点", "stage": "启动"}])
+    ok(len(out_s) > 0, "开关关闭后启动主线恢复产候选（可一键回退）", str([d["code"] for d in out_s]))
+    ns["REQUIRE_DIFFUSE_ENTRY"] = True
+
+    print("== T. 内置盈亏台账：平仓记录胜/负并更新累计 ==")
+    rc = ns["_record_close"]
+    g.closed_trades = []
+    g.stat_wins = 0
+    g.stat_losses = 0
+    g.stat_pnl = 0.0
+    g.peak_equity = 0.0
+    g.max_dd = 0.0
+    ns["get_total_assets"] = lambda: 100000.0
+    rc("600300", 10.0, 11.0, 100, "移动止盈")
+    ok(g.stat_wins == 1 and g.stat_losses == 0, "盈利平仓 -> wins+1", "w={} l={}".format(g.stat_wins, g.stat_losses))
+    ok(abs(g.stat_pnl - (1.0 * 100 - 10.0 * 100 * ns["COST_PER_SIDE"])) < 1e-6, "累计盈亏=毛利-成本", "pnl={}".format(g.stat_pnl))
+    rc("600301", 10.0, 9.0, 100, "板块联动清仓")
+    ok(g.stat_losses == 1, "亏损平仓 -> losses+1", "w={} l={}".format(g.stat_wins, g.stat_losses))
+    ok(len(g.closed_trades) == 2, "台账记录 2 笔平仓", "{}".format(len(g.closed_trades)))
+    before = len(g.closed_trades)
+    rc("600302", 0.0, 0.0, 0, "x")
+    ok(len(g.closed_trades) == before, "cost<=0 不记（避免信号模式误记）", "{}".format(len(g.closed_trades)))
+
+    print("== U. 开盘不追高护栏：buy_job 对高开>OPEN_CHASE_PCT 候选放弃 ==")
+    ns["TRADE_ENABLED"] = True
+    ns["_total_asset"] = lambda *a, **k: 100000.0
+    ns["_cash_of"] = lambda *a, **k: 100000.0
+    ns["turnover_ok"] = lambda *a, **k: True
+    ns["market_regime_ok"] = lambda *a, **k: True
+    ns["get_positions"] = lambda: {}
+    bought = []
+    ns["order_value"] = lambda code, val, limit_price=None: bought.append((code, val, limit_price)) or "OID"
+    ns["_do_sell"] = lambda *a, **k: None
+
+    class _Tick5(object):
+        def __init__(self, lp, pc, op):
+            self.last_price = lp
+            self.pre_close = pc
+            self.open = op
+
+    def _fetch5(codes, n, drop_today=False):
+        out = {}
+        for c in codes:
+            out[c] = [("2026-09-14", 9.80, 9.90, 9.70, 1e6, 9.82),
+                      ("2026-09-15", 10.00, 10.10, 9.90, 1e6, 9.95)]
+        return out
+
+    ns["fetch"] = _fetch5
+
+    def _gctx(dt):
+        return types.SimpleNamespace(current_dt=dt, now=dt,
+                                     blotter=types.SimpleNamespace(current_dt=dt),
+                                     portfolio=types.SimpleNamespace(cash=100000.0, portfolio_value=100000.0))
+
+    def run_buy(open_price):
+        bought[:] = []
+        g.now_str = "10:00"
+        g.today = "2026-09-16"
+        g.buy_today = set()
+        g.hold_days = {}
+        g.peak = {}
+        g.code_sector = {}
+        g.cool_down = set()
+        g.pending_buy = [{"code": "600400", "sector": "题材股", "stage": "扩散",
+                          "pct": 5.0, "zt_line": 9.8, "above20": True,
+                          "vol_ratio": 1.0, "lianban": 0, "amt": 5e8}]
+        ns["get_current_data"] = lambda: {"600400": _Tick5(10.10, 10.00, open_price)}
+        ctx = _gctx(datetime.datetime(2026, 9, 16, 10, 0, 0))
+        ns["buy_job"](ctx)
+        return list(bought)
+
+    hi = run_buy(10.25)   # 高开 2.5% > 2% -> 应放弃
+    ok(len(hi) == 0, "开盘高开>2% -> 不买（追高放弃）", str(hi))
+    lo = run_buy(10.08)   # 高开 0.8% < 2% -> 应买
+    ok(len(lo) == 1, "开盘高开<2% -> 买入", str(lo))
+    ns["TRADE_ENABLED"] = False
+
+
 if __name__ == "__main__":
     main()
     test_live_price()
@@ -420,7 +538,8 @@ if __name__ == "__main__":
     test_monitor_risk()
     test_v44_mainline_filters()
     test_v44_trailing()
+    test_v45_entry_ledger()
     if fails:
         print("\n结果: 存在失败项 -> {}".format(fails))
         sys.exit(1)
-    print("\n结果: 全部通过 (A/B/C/D/E/F/G/H/I/J/K/L/M/N/O/P/Q)")
+    print("\n结果: 全部通过 (A/B/C/D/E/F/G/H/I/J/K/L/M/N/O/P/Q/R/S/T/U)")
