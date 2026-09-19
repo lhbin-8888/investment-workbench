@@ -7,7 +7,7 @@
 | 文件 | 说明 |
 |---|---|
 | `strategy_original.py` | 待检策略 v2.0 原文，未做任何修改 |
-| `hotspot_trader_v3_hardened.py` | **加固版 v3.0**（体检修复落地，可直接替换） |
+| `../策略回测/hotspot_trader_v3_hardened.py` | **加固版 v3.0**（体检修复落地，可直接替换；已移至「策略回测」目录） |
 | `harness.py` | Mock PTrade API，验证 v2.0 的缺陷（跑 6 个场景） |
 | `harness_v3.py` | Mock PTrade API，验证 v3.0 的修复（跑 8 个场景） |
 | `cost_model.py` | 交易成本 / 保本胜率敏感度测算 |

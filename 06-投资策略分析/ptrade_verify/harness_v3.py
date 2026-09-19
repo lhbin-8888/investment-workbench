@@ -7,7 +7,7 @@ hotspot_trader_v3_hardened 验证 harness
 """
 import random, datetime, io, os
 
-STRATEGY_FILE = "hotspot_trader_v3_hardened.py"
+STRATEGY_FILE = "../策略回测/hotspot_trader_v3_hardened.py"
 
 
 # ---------------- 极简 DataFrame 替身 ----------------

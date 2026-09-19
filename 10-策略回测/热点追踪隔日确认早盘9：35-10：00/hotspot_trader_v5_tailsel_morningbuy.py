@@ -128,7 +128,7 @@ except Exception:
 # ============================================================
 # 一、参数配置区
 # ============================================================
-TRADE_ENABLED = False               # True=自动交易；False=信号模式
+TRADE_ENABLED = True                # True=自动交易；False=信号模式
 SECTOR_MAP_FILE = "sector_map.json"
 
 SECTOR_MAP_FALLBACK_PATHS = [
@@ -161,12 +161,12 @@ STOP_MODE = "atr"                   # "atr"=ATR动态止损（默认）；"fixed
 STOP_LOSS_PCT = 0.03                # STOP_MODE="fixed" 时生效
 ATR_N = 14
 ATR_STOP_MULT = 1.8                 # 止损 = 成本 - 1.8×ATR(14)
-ATR_STOP_MIN_PCT = 0.04             # ATR 止损收紧下限（防止噪声级别止损）
+ATR_STOP_MIN_PCT = 0.05             # 路径B：隔夜跳空可能瞬时刺穿，下限抬到5%给隔夜低开一点缓冲（仍受 ATR_STOP_MAX_PCT 上限约束）
 ATR_STOP_MAX_PCT = 0.08             # ATR 止损放宽上限（防止单边杀跌过久）
 MIN_HOLD_FOR_TIGHT_STOP = 5         # 未满 5 个交易日不做紧止损（只受板块级否决约束）
 # ★V4.4★ 出场改为纯移动止盈（自持仓最高价回撤 TRAIL_PCT 清仓），不再设 +10%/+15% 硬顶。
 TRAIL_PCT = 0.08                    # 移动止盈回撤比例（自持仓最高价）
-TRAIL_ARM_PCT = 0.03                # 移动止盈武装阈值：浮盈≥3% 后才挂上移动止盈（避免微利即砍）
+TRAIL_ARM_PCT = 0.04                # 路径B：因隔夜持有，武装阈值略抬到4%，避免隔夜小幅低开即触发移动止盈
 RETREAT_MA = 5                      # 破 5 日线清仓（需持仓≥MIN_HOLD_FOR_TIGHT_STOP）
 COOL_DOWN_DAYS = 3                  # 止损后冷静期（交易日）
 
@@ -202,7 +202,7 @@ OPEN_CHASE_PCT = 0.02               # T 开盘较 T-1 收盘高开 >2% 视为追
 LEDGER_ENABLED = True               # True=每次平仓打印逐笔盈亏+累计胜率/盈亏，结束打印期末汇总
 SIGNAL_DAY_GAIN_MAX = 8.0           # 单位与 f["pct"] 一致（百分点），非小数比例
 MAX_CANDIDATES = 10                 # 每日候选上限（3 主线 × 2 只 = 6，此值留余量）
-HOT_GAIN_MIN = 4.0                  # 成分入选板块强度统计 / 启动期候选的最小区间涨幅(%)
+HOT_GAIN_MIN = 3.0                  # 路径B：基础热度门槛适度放宽（原4.0）；严格筛选后移到14:30收盘确认(TAIL_CONFIRM_MIN_RISE=2.5%)，避免T-1预判过严把盘中日间走强板块提前滤掉
 DIFFUSE_VR_MAX = 1.5                # 扩散期"回踩"要求：量比下限（缩量）
 REQUIRE_NO_ST = True                # 剔除 ST/*ST
 MIN_HIST_BARS = 60                  # 剔除次新（并保 MA60 计算）
@@ -225,7 +225,7 @@ VOL_RATIO_ADJUST = False            # ★V4★ 选股用 T-1 完整日K，量比
 # ============================================================
 PREFER_EARLY_DIFFUSE = True          # 扩散期偏好"早期/加速段"候选（扩散≤3日 且 涨停家数未拐头），排序优先
 SKIP_LATE_DIFFUSE = True             # 扩散已持续 ≥ MAX_DIFFUSE_DAYS 日（末段）→ 该板块不买（避免买在末端）
-MAX_DIFFUSE_DAYS = 5                # 扩散持续上限，超过即判末段
+MAX_DIFFUSE_DAYS = 4                # 扩散持续上限（路径B比V4.8减1：尾盘选股在T日、实际买入在T+1，板块又老一天，提前防末段）
 RETREAT_CONFIRM_DAYS = 2             # 真实塌陷需连续 RETREAT_CONFIRM_DAYS 日成立（防单日波动 whipaw，原单日即砍）
 BUY_ONLY_IF_ABOVE_OPEN = True        # T日10:00快照价须 ≥ 开盘价（日内仍走强）才建仓；否则放弃（防冲高回落接盘）
 STALE_EXIT_DAYS = 8                  # 持仓 ≥ 此天数且收益落在成本±窄带（不死不活）→ 主动退出释放资金
@@ -247,7 +247,7 @@ DYNAMIC_TRAIL_MIN = 0.04             # 动态移动止盈回撤带宽下限
 # ============================================================
 WINDOWED_BUY = True                  # 窗口化建仓（9:35~10:00 滚动扫描，替代固定 10:00 单点）
 BUY_WINDOW_START = "09:35"           # 窗口起点（原 EARLY 之后）
-BUY_WINDOW_END = "10:00"             # 窗口终点（原 BUY_TIME）
+BUY_WINDOW_END = "10:30"             # 窗口终点（路径B：尾盘已确认强，次日早盘回踩是黄金买点，拉到10:30捕捉更多回踩；V4.7单窗口路径同步受益）
 
 # ============================================================
 # ★V4.8 动态板块发现（2026-09-18，补齐"静态板块池盲区"，可一键回退）★
@@ -266,9 +266,36 @@ DYNAMIC_MAX_CONCEPTS = 400          # 枚举概念数上限（防爆枚举耗时
 BUY_SCAN_INTERVAL_SEC = 60           # 窗口内两次扫描最小间隔（节流；handle_data 按分钟去重实现）
 OPEN_CONFIRM = True                  # T 日开盘实时确认（混合信号核心开关）
 OPEN_SCAN_TIME = "09:30"             # 开盘确认扫描时刻
-OPEN_CONFIRM_MIN_RISE = 0.015        # 板块开盘平均涨幅 ≥ 此值视为「开盘在动」（与 BUY_FLOOR 同向）
+OPEN_CONFIRM_MIN_RISE = 0.015        # 9:30 开盘确认（含 T+1 次日开盘确认 open_confirm_tail）阈值：板块平均涨幅≥1.5% 视为在动；刻意宽松防误杀真活板块（14:30 尾盘选股用更严格的 TAIL_CONFIRM_MIN_RISE）
 OPEN_CONFIRM_MIN_ZT = 1              # 板块开盘涨停/逼近家数 ≥ 此值亦视为在动
 OPEN_CONFIRM_USE_CAND = True         # 拿不到板块全成分实时价时，退而用候选股自身开盘动量确认
+
+# ★V5 路径B：尾盘选股 + 次日早盘买（2026-09-18 新增，可一键回退）★
+#   设计：T-1 选板块（沿用 V4.5 信号层，结果存 g.day_candidates）
+#        → T 日 14:30 tail_select_job 用实时快照确认「今日仍在动」→ 选强入 g.tail_pool（跨日留存）
+#        → T+1 早盘 09:30 open_confirm_tail 对尾盘池做次日开盘确认
+#        → T+1 早盘 09:35~10:00 buy_window_scan_tail 回踩买（复用 _try_buy_one 护栏）
+#   回退：TAIL_SELECT_MODE=False → 完全回到 V4.8（开盘确认+当日早盘买）。
+TAIL_SELECT_MODE = True            # 路径B总开关
+TAIL_SELECT_TIME = "15:05"         # 尾盘选股时刻（收盘后，用全天定型数据确认 T 日板块是否真强）
+TAIL_POOL_MAX = 8                  # 尾盘池容量上限（跨夜到 T+1 早盘回踩买，多留候选提高回踩命中率）
+# 路径B阈值：15:05 收盘选股用全天定型数据、应比 9:30 开盘确认更严格
+TAIL_CONFIRM_MIN_RISE = 0.025      # 尾盘选股：板块平均涨幅 ≥ 2.5% 才视为「全天真强」（过滤日内冲高回落假强）
+TAIL_CONFIRM_MIN_ZT = 1            # 尾盘选股：收盘仍有 ≥1 家涨停/逼近亦视为在动
+# ★V5 收盘延伸度过滤★：剔除「收盘几乎全涨停、T+1 早盘无回踩空间」的板块（提高次日回踩命中率）
+TAIL_EXT_FILTER = True             # 收盘延伸度过滤总开关（False → 不剔除，回到纯确认逻辑）
+TAIL_EXT_MAX_LIMIT_RATIO = 0.60    # 板块内涨停家数占比 ≥ 此值 → 视为全封死、无回踩空间 → 剔除
+TAIL_EXT_MIN_STOCKS = 2            # 有效样本下限：样本太少不判断，降级放行
+# ★V5.2 回测适配★ 冻结快照回退总开关（默认开，一键回退）
+#   问题：路径B 的 15:05 尾盘确认 / T+1 09:30 开盘确认依赖 get_current_data() 实时快照算「今日涨幅」，
+#        但部分回测引擎返回冻结收盘价（last_price==pre_close，日内涨幅恒 0%），导致确认阈值永远不过、
+#        尾盘池恒空、路径B 在回测里 0 成交（实盘不受影响）。
+#   修复：检测到快照冻结时，回退到盘前信号层已算好的板块强度（候选自带 pct）做阈值判断；
+#        若无强度可回退则降级全部通过。设 False 即回到原行为。
+BACKTEST_CONFIRM_FALLBACK = True
+# 次日早盘买窗口复用 BUY_WINDOW_START/END（默认 09:35~10:30）
+# 次日 9:30 开盘确认（open_confirm_tail）仍复用宽松的 OPEN_CONFIRM_MIN_RISE/ZT；
+# 仅 15:05 尾盘选股（tail_select_job）使用更严格的 TAIL_CONFIRM_MIN_RISE/ZT + 收盘延伸度过滤。
 
 BROAD_TAG_BLACKLIST = (             # 宽口径属性标签（非题材），禁止参与主线评选
     "融资融券", "参股金融", "金融参股", "专精特新", "股权激励",
@@ -1576,7 +1603,9 @@ def _run_signal_layer(context):
             "★主线" if s["is_main"] else ""))
     # 候选
     if mains:
-        g.pending_buy = _pick_candidates(mains)
+        cands = _pick_candidates(mains)
+        g.pending_buy = cands
+        g.day_candidates = cands      # ★V5★ 当日原始候选池（T 日 14:30 尾盘选股数据源，不被建仓消费）
         log.info("[候选] 主线 {} 条 × 每板块限 {} 只 → 今日 10:00 候选 {} 只".format(
             len(mains), MAX_PER_SECTOR, len(g.pending_buy)))
         for c in g.pending_buy:
@@ -1586,6 +1615,7 @@ def _run_signal_layer(context):
     else:
         log.info("[候选] 今日无主线（可能全市场退潮），无候选")
         g.pending_buy = []
+        g.day_candidates = []
     if TRADE_ENABLED and not g.pending_buy:
         log.info("!! [告警] TRADE_ENABLED=True 但今日无候选/无主线，本轮不建仓（非信号模式）")
     for s in signals:
@@ -1897,8 +1927,12 @@ def _in_range(now, start, end):
 
 
 def _buy_dispatcher(context):
-    """★V4.7★ 建仓统一入口：按开关分流到窗口化扫描或原固定 10:00 建仓。"""
-    if WINDOWED_BUY:
+    """★V4.7★ 建仓统一入口：按开关分流到窗口化扫描或原固定 10:00 建仓。
+    ★V5.1★ TAIL_SELECT_MODE=True 时建仓只走尾盘池路径（buy_window_scan_tail），
+    不再误触发 V4.8 当日候选建仓（此前分流缺失，导致路径B下早盘仍直买 day_candidates）。"""
+    if TAIL_SELECT_MODE:
+        buy_window_scan_tail(context)
+    elif WINDOWED_BUY:
         buy_window_scan(context)
     else:
         buy_job(context)
@@ -2099,6 +2133,257 @@ def buy_window_scan(context):
 
 
 # ============================================================
+# ★V5 路径B：尾盘选股 + 次日早盘买（函数层）★
+#   设计：T-1 选板块（沿用 V4.5 信号层，结果存 g.day_candidates）
+#        → T 日 14:30 tail_select_job：用实时快照确认「今日仍在动」的扩散主线，选强入 g.tail_pool
+#          （跨日留存，before_trading_start 不清除）
+#        → T+1 早盘 09:30 open_confirm_tail：对尾盘池板块做次日开盘确认
+#        → T+1 早盘 09:35~10:00 buy_window_scan_tail：回踩买（复用 _try_buy_one 护栏）
+#   全部受 TAIL_SELECT_MODE 开关回退；设 False 完全回到 V4.8（开盘确认+当日早盘买）。
+# ============================================================
+def _confirm_sectors_now(context, sector_codes, min_rise=None, min_zt=None, sector_strength=None):
+    """★V5★ 通用：对给定 {板块: [code]} 用实时快照判定「当前是否在动」。
+    返回 {板块: True/False}；拿不到快照降级为全部 True（不阻塞）。
+    min_rise/min_zt 可覆盖阈值：9:30 开盘确认用宽松默认 OPEN_CONFIRM_*，
+    14:30 尾盘选股传入更严格的 TAIL_CONFIRM_*。
+
+    ★V5.2 回测适配★ sector_strength 为 {板块: 强度值}，来自盘前信号层已算好的候选 pct。
+    当实时快照被回测引擎冻结（p_now==c_prev，日内涨幅恒≈0）时，live 涨幅失真，
+    此时若传入了 sector_strength 则改用它做阈值判断；若无强度可回退，则降级全部通过，
+    避免路径B在『冻结快照回测』下确认恒 0、尾盘池恒空、彻底 0 成交。
+    实盘拿到真实日内价时不触发冻结分支，逻辑不变。"""
+    out = {}
+    all_codes = sorted({c for cs in sector_codes.values() for c in cs})
+    if not all_codes:
+        return {s: True for s in sector_codes}
+    snap = _live_price_and_ref(context, all_codes)
+    if not snap:
+        _degrade("confirm", "实时价不可用，降级为『通过』")
+        return {s: True for s in sector_codes}
+    _mr = OPEN_CONFIRM_MIN_RISE if min_rise is None else min_rise
+    _mz = OPEN_CONFIRM_MIN_ZT if min_zt is None else min_zt
+    total_valid = 0
+    frozen_hits = 0          # 有效样本中「日内涨幅≈0」的计数（疑似冻结快照）
+    used_strength = False    # 是否有板块改用信号层强度替代 live 涨幅
+    for sec, codes in sector_codes.items():
+        n = 0
+        rise_sum = 0.0
+        zt = 0
+        sec_frozen = 0
+        for c in codes:
+            sc = snap.get(c)
+            if not sc:
+                continue
+            pc = sc["c_prev"]
+            lp = sc["p_now"]
+            if not (pc and lp):
+                continue
+            pct = lp / pc - 1.0
+            n += 1
+            rise_sum += pct
+            lim = _limit_pct(c) * 0.98
+            if lp >= pc * (1 + lim):
+                zt += 1
+            if abs(pct) < 1e-9:       # 日内几乎零波动 → 疑似冻结快照
+                frozen_hits += 1
+                sec_frozen += 1
+        avg = (rise_sum / n) if n else 0.0
+        # ★V5.2★ 冻结回退：该板块全部样本日内零波动、且提供了信号层强度 → 用 pct 替代 live 涨幅
+        if BACKTEST_CONFIRM_FALLBACK and n > 0 and sec_frozen == n:
+            if sector_strength and sec in sector_strength and sector_strength[sec] is not None:
+                avg = float(sector_strength[sec])
+                used_strength = True
+        out[sec] = (n > 0) and (avg >= _mr or zt >= _mz)
+        total_valid += n
+    if used_strength:
+        log.info("[确认回退] 检测到冻结快照，已用信号层强度(pct)替代 live 涨幅做确认阈值判断")
+    # ★V5.2★ 全部有效样本都冻结、且无强度可回退 → 降级全部通过（避免恒 0 确认）
+    if total_valid > 0 and frozen_hits == total_valid and not sector_strength:
+        _degrade("confirm", "实时快照全冻结（回测无量价跳动）且无信号强度可回退，降级为『通过』")
+        return {s: True for s in sector_codes}
+    return out
+
+
+def tail_select_job(context):
+    """★V5★ T 日 15:05：从当日 g.day_candidates 中确认「今日仍在动」的扩散主线，选强入尾盘池。
+    g.tail_pool 跨日留存至 T+1 早盘买；每日重建（清理隔夜 stale）。"""
+    if not TAIL_SELECT_MODE:
+        return
+    if not _is_trading_day_guard(context):
+        return
+    g.now_str = _now_str(context) or TAIL_SELECT_TIME
+    g.tail_pool = []                      # 每日重建（清理昨日遗留/隔夜 stale）
+    cands = list(getattr(g, "day_candidates", []) or [])
+    if not cands:
+        log.info("[尾盘选股] 今日 day_candidates 为空，跳过")
+        return
+    if not OPEN_CONFIRM:
+        seen = set()
+        ded = []
+        for c in cands:
+            if c["code"] in seen:
+                continue
+            seen.add(c["code"])
+            ded.append(c)
+        g.tail_pool = ded[:TAIL_POOL_MAX]
+        log.info("[尾盘选股] OPEN_CONFIRM=False，直接纳入 {} 只".format(len(g.tail_pool)))
+        return
+    sec_codes = {}
+    for c in cands:
+        sec_codes.setdefault(c.get("sector"), []).append(c["code"])
+    # ★V5.2★ 盘前信号层已算好的板块强度（候选 pct 均值），供冻结快照回退使用
+    _ss = {}
+    for c in cands:
+        s = c.get("sector")
+        if s is None:
+            continue
+        _ss.setdefault(s, []).append(float(c.get("pct") or 0.0))
+    sector_strength = {s: (sum(v) / len(v)) for s, v in _ss.items()}
+    conf = _confirm_sectors_now(context, sec_codes, TAIL_CONFIRM_MIN_RISE, TAIL_CONFIRM_MIN_ZT, sector_strength)
+    confirmed = {s for s, ok in conf.items() if ok}
+    # ★V5 收盘延伸度过滤★：剔除「收盘几乎全涨停、T+1 早盘无回踩空间」的板块
+    if TAIL_EXT_FILTER:
+        ext_codes = sorted({c for s in confirmed for c in sec_codes.get(s, [])})
+        ext_snap = _live_price_and_ref(context, ext_codes) if ext_codes else {}
+        kept = set()
+        for s in confirmed:
+            codes = sec_codes.get(s, [])
+            if not ext_snap:
+                kept.add(s)                      # 快照不可用 → 降级放行
+                continue
+            n = zt = 0
+            for c in codes:
+                sc = ext_snap.get(c)
+                if not sc or not (sc.get("c_prev") and sc.get("p_now")):
+                    continue
+                n += 1
+                lim = _limit_pct(c) * 0.98
+                if sc["p_now"] >= sc["c_prev"] * (1 + lim):
+                    zt += 1
+            if n < TAIL_EXT_MIN_STOCKS:
+                kept.add(s)                      # 样本太少 → 不判断，放行
+                continue
+            if (zt / n) >= TAIL_EXT_MAX_LIMIT_RATIO:
+                log.info("[尾盘延伸过滤] 板块 {} 涨停占比 {:.0%}≥{:.0%} → 剔除（T+1 无回踩空间）".format(
+                    s, zt / n, TAIL_EXT_MAX_LIMIT_RATIO))
+                continue
+            kept.add(s)
+        confirmed = kept
+    pool = [c for c in cands if c.get("sector") in confirmed]
+    seen = set()
+    ded = []
+    for c in pool:
+        if c["code"] in seen:
+            continue
+        seen.add(c["code"])
+        ded.append(c)
+    g.tail_pool = ded[:TAIL_POOL_MAX]
+    log.info("[尾盘选股] 候选{} → 确认板块{} 个 → 尾盘池{} 只（T+1 早盘回踩买）".format(
+        len(cands), len(confirmed), len(g.tail_pool)))
+
+
+def open_confirm_tail(context):
+    """★V5★ T+1 09:30：对 g.tail_pool 内板块做次日开盘实时确认（隔夜后是否仍 alive）。
+    结果写入 g.open_confirm[板块]；未确认板块在 _try_buy_one 中被 drop。"""
+    if not TAIL_SELECT_MODE:
+        return
+    g.open_confirm = {}
+    pool = getattr(g, "tail_pool", []) or []
+    if not pool:
+        return
+    sec_codes = {}
+    for c in pool:
+        sec_codes.setdefault(c.get("sector"), []).append(c["code"])
+    # ★V5.2★ 尾盘池板块强度（候选 pct 均值），供冻结快照回退使用
+    _ss = {}
+    for c in pool:
+        s = c.get("sector")
+        if s is None:
+            continue
+        _ss.setdefault(s, []).append(float(c.get("pct") or 0.0))
+    sector_strength = {s: (sum(v) / len(v)) for s, v in _ss.items()}
+    if not OPEN_CONFIRM:
+        g.open_confirm = {s: True for s in sec_codes}
+        return
+    g.open_confirm = _confirm_sectors_now(context, sec_codes, None, None, sector_strength)
+    alive = sum(1 for v in g.open_confirm.values() if v)
+    log.info("[次日开盘确认] 尾盘池板块 {} 个 → {} 个确认在动".format(len(sec_codes), alive))
+
+
+def buy_window_scan_tail(context):
+    """★V5★ T+1 早盘 09:35~10:00：从跨日 g.tail_pool 回踩买（复用 _try_buy_one 全部护栏 + 次日开盘确认）。
+    窗口终点后清空尾盘池（隔夜 stale 丢弃）。"""
+    if not _is_trading_day_guard(context):
+        return
+    g.now_str = _now_str(context) or BUY_WINDOW_START
+    now = g.now_str
+    if now < BUY_WINDOW_START:
+        return
+    if now > BUY_WINDOW_END:
+        if g.tail_pool:
+            log.info("[尾盘池建仓] {} 已过窗口终点 {}，剩余 {} 只丢弃（隔夜 stale）".format(
+                now, BUY_WINDOW_END, len(g.tail_pool)))
+        g.tail_pool = []
+        return
+    _HEALTH["degraded"] = []
+    pending = list(g.tail_pool)
+    if not pending:
+        return
+    pm = positions_map()
+    held = set(pm.keys())
+    sec_now = {}
+    for c in held:
+        s = g.code_sector.get(c)
+        if s:
+            sec_now[s] = sec_now.get(s, 0) + 1
+    total = _total_asset(context)
+    if total <= 0:
+        _degrade("buy", "无法获取总资产，本窗口不建仓")
+        return
+    target = total * POSITION_RATIO
+    cash = _cash_of(context, total, len(held))
+    remaining = MAX_POSITIONS - len(held)
+    if remaining <= 0:
+        g.tail_pool = []
+        return
+    if not turnover_ok(context, total):
+        g.tail_pool = []
+        return
+    if not market_regime_ok():
+        g.tail_pool = []
+        return
+    snap = _live_price_and_ref(context, [f["code"] for f in pending])
+    if not snap:
+        _degrade("buy", "尾盘池候选无法取快照价，本窗口跳过")
+        return
+    survivors = []
+    spent = 0.0
+    bought = 0
+    for f in pending:
+        code = f["code"]
+        if code in g.buy_today or code in held:
+            continue
+        if remaining - bought <= 0:
+            survivors.append(f)
+            continue
+        if target > cash - spent:
+            survivors.append(f)
+            continue
+        act = _try_buy_one(context, f, snap, held, sec_now, target, cash - spent)
+        if act == "bought":
+            bought += 1
+            spent += target
+            continue
+        if act == "drop":
+            continue
+        survivors.append(f)      # keep
+    g.tail_pool = survivors
+    log.info("[尾盘池建仓] {} 扫描 {} 笔 → 买入 {} 只，剩余 {} 只留待下次".format(
+        now, len(pending), bought, len(survivors)))
+    _dump_health("[尾盘池建仓]")
+
+
+# ============================================================
 # 十二、风控层（每分钟 + 14:58 兜底）
 # ============================================================
 def _sector_killed():
@@ -2285,30 +2570,57 @@ def handle_data(context, data):
             except Exception as e:
                 _degrade("early", "早盘处理异常: {}".format(repr(e)))
             return
-        # ★V4.7★ 兜底模式（run_daily 不可用）：开盘确认 + 建仓均在此按窗口/时刻补触发
-        if OPEN_CONFIRM and _in_window(now, OPEN_SCAN_TIME) and g.open_slot != _today_str(context):
-            g.open_slot = _today_str(context)
-            try:
-                open_scan_job(context)
-            except Exception as e:
-                _degrade("open_confirm", "开盘确认异常: {}".format(repr(e)))
-        if WINDOWED_BUY:
+        # ★V5★ 兜底模式（run_daily 不可用）：开盘确认 + 尾盘选股 + 建仓均在此按窗口/时刻补触发
+        if TAIL_SELECT_MODE:
+            if OPEN_CONFIRM and _in_window(now, OPEN_SCAN_TIME) and g.open_slot != _today_str(context):
+                g.open_slot = _today_str(context)
+                try:
+                    open_confirm_tail(context)
+                except Exception as e:
+                    _degrade("open_confirm", "尾盘池开盘确认异常: {}".format(repr(e)))
+            if _in_window(now, TAIL_SELECT_TIME) and g.tail_slot != _today_str(context):
+                g.tail_slot = _today_str(context)
+                try:
+                    tail_select_job(context)
+                except Exception as e:
+                    _degrade("tail", "尾盘选股异常: {}".format(repr(e)))
             if _in_range(now, BUY_WINDOW_START, BUY_WINDOW_END) and getattr(g, "last_buy_scan_min", "") != now[:5]:
                 g.last_buy_scan_min = now[:5]
                 try:
-                    buy_window_scan(context)
+                    buy_window_scan_tail(context)
                 except Exception as e:
-                    _degrade("buy", "窗口建仓异常: {}".format(repr(e)))
+                    _degrade("buy", "尾盘池建仓异常: {}".format(repr(e)))
         else:
-            if _in_window(now, BUY_TIME) and g.buy_slot != _today_str(context):
-                g.buy_slot = _today_str(context)
+            if OPEN_CONFIRM and _in_window(now, OPEN_SCAN_TIME) and g.open_slot != _today_str(context):
+                g.open_slot = _today_str(context)
                 try:
-                    buy_job(context)
+                    open_scan_job(context)
                 except Exception as e:
-                    _degrade("buy", "建仓处理异常: {}".format(repr(e)))
+                    _degrade("open_confirm", "开盘确认异常: {}".format(repr(e)))
+            if WINDOWED_BUY:
+                if _in_range(now, BUY_WINDOW_START, BUY_WINDOW_END) and getattr(g, "last_buy_scan_min", "") != now[:5]:
+                    g.last_buy_scan_min = now[:5]
+                    try:
+                        buy_window_scan(context)
+                    except Exception as e:
+                        _degrade("buy", "窗口建仓异常: {}".format(repr(e)))
+            else:
+                if _in_window(now, BUY_TIME) and g.buy_slot != _today_str(context):
+                    g.buy_slot = _today_str(context)
+                    try:
+                        buy_job(context)
+                    except Exception as e:
+                        _degrade("buy", "建仓处理异常: {}".format(repr(e)))
         return
     # sched_ok==True：盘内仅做风控；窗口化建仓由 run_daily 首触发 + 此处滚动扫描
-    if WINDOWED_BUY and _in_range(now, BUY_WINDOW_START, BUY_WINDOW_END):
+    if TAIL_SELECT_MODE:
+        if _in_range(now, BUY_WINDOW_START, BUY_WINDOW_END) and getattr(g, "last_buy_scan_min", "") != now[:5]:
+            g.last_buy_scan_min = now[:5]
+            try:
+                buy_window_scan_tail(context)
+            except Exception as e:
+                _degrade("buy", "尾盘池建仓异常: {}".format(repr(e)))
+    elif WINDOWED_BUY and _in_range(now, BUY_WINDOW_START, BUY_WINDOW_END):
         if getattr(g, "last_buy_scan_min", "") != now[:5]:
             g.last_buy_scan_min = now[:5]
             try:
@@ -2443,6 +2755,8 @@ def initialize(context):
     g.open_confirm = {}
     g.now_str = ""
     g.today = ""
+    g.tail_pool = []                   # ★V5★ 尾盘池（跨日留存至 T+1 早盘买）；每日由 tail_select_job 重建
+    g.day_candidates = []              # ★V5★ 盘前候选缓存（供尾盘选股消费；用 getattr 兜底，缺失不崩）
 
     try:
         set_benchmark(INDEX_FOR_REGIME)
@@ -2472,8 +2786,13 @@ def initialize(context):
     # 调度：run_daily 优先，失败则 handle_data 容错窗口兜底
     try:
         run_daily(context, early_job, time=EARLY_TIME)
-        run_daily(context, _buy_dispatcher, time=(BUY_WINDOW_START if WINDOWED_BUY else BUY_TIME))
-        run_daily(context, open_scan_job, time=OPEN_SCAN_TIME)
+        if TAIL_SELECT_MODE:
+            run_daily(context, _buy_dispatcher, time=BUY_WINDOW_START)
+            run_daily(context, open_confirm_tail, time=OPEN_SCAN_TIME)
+            run_daily(context, tail_select_job, time=TAIL_SELECT_TIME)
+        else:
+            run_daily(context, _buy_dispatcher, time=(BUY_WINDOW_START if WINDOWED_BUY else BUY_TIME))
+            run_daily(context, open_scan_job, time=OPEN_SCAN_TIME)
         run_daily(context, risk_fallback_job, time=RISK_FALLBACK_TIME)
         g.sched_ok = True
     except Exception as e:
