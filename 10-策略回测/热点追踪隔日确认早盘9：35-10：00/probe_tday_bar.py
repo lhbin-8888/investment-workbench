@@ -1,23 +1,30 @@
 # -*- coding: utf-8 -*-
 """
-探针策略：验证回测引擎在不同时点 get_history("1d") 能否返回「当日」K线。
-目的：决定路径B（尾盘确认+次日回踩买）能否用日K近似实时价做回测改造。
+探针策略 v4：彻底查清回测引擎 get_history(\"1d\") 在 09:31/14:55/15:30 三时点的返回结构，
+并判定「当日K线 / 盘中实时更新」是否可用——决定路径B能否做日K近似实时价改造。
 
-★判读方法★（跑 3~5 个交易日即可，把日志发回）：
-  [探针] 行会打印 当前引擎日期 vs 最后一根日K的日期：
-    · 15:05 时 最后一根日K日期 == 当天   → 引擎在收盘后给当日K线，
-      可以做「日K近似实时价」改造，路径B回测三缺陷可一次性解决。
-    · 15:05 时 只到 T-1                  → 引擎不给当日K，
-      路径B在本框架不可回测，转模拟盘验证。
-    · 14:55 时若已含当日（部分K）         → 连 14:50 尾盘确认也能近似回测。
-  09:31 那次是对照组：正常应只到 T-1（若已含当日说明引擎连盘中都给，更好）。
+★PTrade 托管坑（已踩过，固化）★
+  1) log.info 不吃额外参数的 % 替换 -> 全部用 % 运算符预格式化。
+  2) get_history 合法字段不含 date/datetime/time（日期不在 field 列表）-> 用 fields=None 取全量，再看 dtype.names。
+  3) is_dict=True 返回 OrderedDict，值是 numpy 结构化 ndarray（有 dtype.names，无 .index）。
 
-本探针完全自包含、只读不下单，不影响任何现有策略文件。
+★本版新加的「冻结 vs 实时」判定★
+  把每个时点的末行字段签名存进 g，下一时点点对点比较：
+    末行有变化 -> 盘中实时更新 -> 可用日K近似实时价；
+    末行无变化 -> 冻结 -> 不可用。
+
+跑 3~5 个交易日即可，把日志发回。
 """
 
+FIELDS = ["open", "high", "low", "close", "volume", "preclose", "high_limit", "low_limit"]
 PROBE_CODES = ["600000.SS", "000001.SZ"]
-FIELDS = ["open", "high", "low", "close", "volume"]
+import re
+
 PROBE_TIMES = ["09:31", "14:55", "15:05"]
+
+_DATE_CAND = ("date", "datetime", "time", "day", "trading_day", "trading_date")
+_CLOSE_CAND = ("close", "price")
+_SIG_FIELDS = ("open", "high", "low", "close", "volume", "preclose", "high_limit", "low_limit")
 
 
 def _now_dt(context):
@@ -31,30 +38,75 @@ def _now_dt(context):
     return None
 
 
+def _safe(v):
+    try:
+        return str(v)
+    except Exception:
+        return "?"
+
+
+def _norm(x):
+    try:
+        return re.sub(r"\D", "", str(x))
+    except Exception:
+        return ""
+
+
+def _sig(sub):
+    """从结构化 ndarray 取末行关键字段签名；无 dtype.names 则返回 None。"""
+    if sub is None:
+        return None
+    dt = getattr(sub, "dtype", None)
+    names = getattr(dt, "names", None) if dt is not None else None
+    if not names:
+        return None
+    out = {}
+    for f in _SIG_FIELDS:
+        if f in names:
+            try:
+                out[f] = sub[f][-1]
+            except Exception:
+                pass
+    for f in _DATE_CAND:
+        if f in names:
+            try:
+                out["__date__"] = sub[f][-1]
+            except Exception:
+                pass
+    return out
+
+
+def _sig_str(sig):
+    if not sig:
+        return "?"
+    parts = []
+    for k in ("__date__", "open", "high", "low", "close", "volume", "preclose"):
+        if k in sig:
+            v = sig[k]
+            parts.append("%s=%s" % (k, _safe(v)[:14]))
+    return " ".join(parts)
+
+
 def _probe_job(context):
     dt = _now_dt(context)
     today = dt.strftime("%Y-%m-%d") if dt else "?"
     hm = dt.strftime("%H:%M") if dt else "?"
-    log.info("[探针] ===== 时点 %s（引擎日期 %s）=====", hm, today)
+    today_norm = _norm(today)
+    log.info("[探针] ===== 时点 %s（引擎日期 %s）=====" % (hm, today))
 
     result = None
-    # 尝试三种调用风格，取第一个成功的
-    attempts = [
-        ("fq+is_dict", dict(fq="pre", is_dict=True)),
-        ("is_dict", dict(is_dict=True)),
-        ("裸调", dict()),
-    ]
-    for name, kw in attempts:
+    attempts = [("fields=None", None), ("fields=''", ""), ("fields=OHLCV", FIELDS)]
+    for name, farg in attempts:
         try:
-            r = get_history(5, "1d", FIELDS, PROBE_CODES, **kw)
+            r = get_history(5, "1d", farg, PROBE_CODES, fq="pre", is_dict=True)
         except Exception as e:
-            log.info("[探针] 调用风格[%s] 异常: %s", name, repr(e))
+            log.info("[探针] 调用风格[%s] 异常: %s" % (name, _safe(e)))
             continue
         if r is None:
-            log.info("[探针] 调用风格[%s] 返回 None", name)
+            log.info("[探针] 调用风格[%s] 返回 None" % name)
             continue
         result = (name, r)
-        log.info("[探针] 调用风格[%s] 成功，返回类型 %s", name, type(r).__name__)
+        log.info("[探针] 调用风格[%s] 成功，返回类型 %s" % (name, type(r).__name__))
         break
 
     if result is None:
@@ -62,68 +114,68 @@ def _probe_job(context):
         return
 
     name, r = result
-    # 逐代码解析最后一根K线的日期与收盘
-    items = []
-    if isinstance(r, dict):
-        items = list(r.items())
-    else:
-        # 单表 / MultiIndex：把两个代码各试一次
-        for code in PROBE_CODES:
-            try:
-                sub = r.loc[code]
-            except Exception:
-                try:
-                    sub = r[code]
-                except Exception:
-                    continue
-            items.append((code, sub))
+    try:
+        top_keys = list(r.keys()) if isinstance(r, dict) else ("<非dict:%s>" % type(r).__name__)
+        log.info("[探针] 顶层keys: %s" % _safe(top_keys)[:200])
+    except Exception as e:
+        log.info("[探针] 取顶层keys异常: %s" % _safe(e))
 
-    for code, sub in items:
-        last_date, last_close, n_rows = "?", "?", 0
-        try:
-            try:
-                n_rows = len(sub)
-            except Exception:
-                pass
-            # DataFrame：取 index 最后一行
-            idx = getattr(sub, "index", None)
-            if idx is not None and len(idx):
-                last_date = str(idx[-1])[:10]
-                row = sub.iloc[-1] if hasattr(sub, "iloc") else None
-                if row is not None:
-                    try:
-                        last_close = float(row["close"])
-                    except Exception:
-                        last_close = "?"
+    if not isinstance(r, dict):
+        return
+    first_code = PROBE_CODES[0]
+    obj = r.get(first_code)
+    if obj is not None:
+        dt = getattr(obj, "dtype", None)
+        names = getattr(dt, "names", None) if dt is not None else None
+        if names:
+            log.info("[探针] %s dtype.names: %s" % (first_code, _safe(names)))
+        else:
+            log.info("[探针] %s 类型=%s (无 dtype.names，非结构化)" % (first_code, type(obj).__name__))
+
+    for code in PROBE_CODES:
+        sub = r.get(code)
+        cur = _sig(sub)
+        # 日期字段（若有）与引擎日期比对
+        if cur and "__date__" in cur:
+            d = cur["__date__"]
+            if _norm(d) == today_norm:
+                df = " ★含当日K线★"
             else:
-                # list[dict] / dict 形态
-                if isinstance(sub, dict):
-                    last_date = str(sub.get("date", "?"))[:10]
-                    last_close = sub.get("close", "?")
-                elif isinstance(sub, (list, tuple)) and sub:
-                    last = sub[-1]
-                    if isinstance(last, dict):
-                        last_date = str(last.get("date", "?"))[:10]
-                        last_close = last.get("close", "?")
-        except Exception as e:
-            log.info("[探针] 解析 %s 异常: %s", code, repr(e))
-        flag = ""
-        if last_date == today:
-            flag = "  ★含当日K线★"
-        elif last_date not in ("?",):
-            flag = "  （仅到该日，无当日）"
-        log.info("[探针] %s 最后一根日K: 日期=%s close=%s 行数=%s%s",
-                 code, last_date, last_close, n_rows, flag)
+                df = " （末项=%s）" % _safe(d)
+        else:
+            df = " （ndarray无date字段）"
+        log.info("[探针] %s 末行: %s%s" % (code, _sig_str(cur), df))
 
-    log.info("[探针] 判读: 若上方出现 ★含当日K线★ → 引擎该时点给当日数据；"
-             "三时点分别对应 开盘对照/尾盘14:55/收盘15:05")
+        # 跨时点冻结/实时比对
+        prev = g._probe_store.get(code)
+        if prev is None:
+            log.info("[探针]   └ 首测该代码，已记录基线")
+        else:
+            changed = (prev != cur)
+            if changed:
+                log.info("[探针]   └ ★末行有变化=盘中实时更新★（可用日K近似实时价）")
+                diffs = []
+                for k in set(list(prev.keys()) + list(cur.keys())):
+                    if k == "__date__":
+                        continue
+                    pv, cv = prev.get(k), cur.get(k)
+                    if pv != cv:
+                        diffs.append("%s:%s→%s" % (k, _safe(pv)[:12], _safe(cv)[:12]))
+                if diffs:
+                    log.info("[探针]     变化: %s" % "; ".join(diffs)[:400])
+            else:
+                log.info("[探针]   └ ○末行无变化=冻结（不可用）")
+        g._probe_store[code] = cur
+
+    log.info("[探针] 判读: 15:30 末行含当日+跨时点有变化 -> 引擎给当日且实时更新，可做日K近似改造；否则转模拟盘")
 
 
 def initialize(context):
-    log.info("[探针] initialize: 探针启动，监测时点 %s，样本 %s",
-             ",".join(PROBE_TIMES), PROBE_CODES)
+    g._probe_store = {}
+    log.info("[探针] initialize: 探针启动，监测时点 %s，样本 %s"
+             % (",".join(PROBE_TIMES), _safe(PROBE_CODES)))
     for t in PROBE_TIMES:
         try:
             run_daily(context, _probe_job, time=t)
         except Exception as e:
-            log.info("[探针] run_daily(%s) 失败: %s", t, repr(e))
+            log.info("[探针] run_daily(%s) 失败: %s" % (t, _safe(e)))

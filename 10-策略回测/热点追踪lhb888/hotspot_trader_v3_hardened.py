@@ -60,11 +60,21 @@ ALLOW_LIMIT_UP_BUY = False     # True=允许买入已封涨停的票（高风险
 LIMIT_UP_BUFFER = 0.005        # 涨停判定缓冲：现价 >= 涨停价*(1-缓冲) 视为封板
 MIN_VOL_RATIO = 1.5            # 量比下限（放量确认；v3.1 由 1.2 收紧到 1.5，过滤弱放量假突破）
 REQUIRE_ABOVE_MA20 = True      # 必须站上 20 日线
+MA20_ENTRY_BUFFER = 0.02       # 入场 MA20 缓冲：须站上 MA20 至少 2% 才买（避免贴着均线买、与出场破MA20挤同一条线）
 
 # ---- 入场收紧（提胜率：宁可少做也不做错；v3.1 新增，针对回测 17.86% 低胜率）----
 REQUIRE_ABOVE_MA60 = True     # 必须站上 60 日线（中期趋势确认，过滤弱势反弹/一日游）
 MA_SHAPE_MIN = 2              # 均线多头形态门槛：shape>=2 即站上 MA10+MA20（设 3=全多头更严）
 INTRADAY_PULLBACK_MAX = 0.04  # 日内回撤上限：当前价距日内最高回撤 >4% 视为冲高回落，剔除（避免追尖顶）
+
+# ---- 板块共振（提胜率：个股须属当日强势行业才入选；v3.1 新增，针对回测 17.86% 低胜率）----
+SECTOR_CONFIRM = True          # True=开启板块共振（个股所属申万一级行业当日须为强势板块才入选；平台无 get_industry 自动降级关闭）
+SECTOR_TOP_N = 10              # 申万一级共 31 个行业，当日平均涨幅排名前 N 算强势板块
+SECTOR_MIN_RISE = 0.0         # 强板块最低涨幅门槛（设 0.005 可要求板块整体上涨才入选）
+SECTOR_MIN_STOCKS = 5          # 行业内当日样本 >= N 只才参与排名，过滤小行业噪声
+SECTOR_MAP_BUDGET = 0          # 单日行业映射调用上限（0=不限）；全市场 5000+ 次 get_industry 若平台慢，
+INDUSTRY_MAP_FILE = "industry_map.json"  # 本地静态行业映射表（v3.3：绕开无 get_industry 环境；由 akshare 申万一级行业指数成分生成，{code:行业名}）
+                               # 可设 2000 分批构建：未映射的票次交易日继续，INDUSTRY_OF 会累积收敛
 
 # ---- 仓位与风控 ----
 MAX_POSITIONS = 5              # 最大同时持仓数
@@ -76,12 +86,12 @@ STOP_LOSS_PCT = HARD_STOP_PCT # 兼容别名（旧引用保留，实际生效为
 
 # ---- 分批止盈（分板块：盈利减半 + 峰值回撤减半，单票最多减到 1/4）----
 # 盈利减半阈值（分板块）：主板 +8% / 科创板 +12% / 创业板 +12%（20cm 大票让多跑）
-TP_HALF_PCT = {"main": 0.08, "kcb": 0.12, "cyb": 0.12}
+TP_HALF_PCT = {"main": 0.06, "kcb": 0.08, "cyb": 0.08}  # 首减半阈值（v3.2：主板+8%→+6%、20cm+12%→+8%，更早减半让利润奔跑）
 # 峰值回撤减半阈值（分板块）：从持仓峰值价回落超此比例即减半。
 #   主板取 5%（主板日内常波动 2~4%，5% 抗噪声且不会过早下车）；
 #   科创板/创业板取 8%（20cm 波动大，5% 易被正常抖动误减半，放宽到 8% 抗噪声）。
 HALF_DRAWDOWN = {"main": 0.05, "kcb": 0.08, "cyb": 0.08}
-TP_FULL_PCT = 0.15             # 浮盈达到 +15%：清仓（盈利减半后的终点兜底）
+TP_FULL_PCT = 0.30             # 止盈终点封顶（v3.2 由 +15% 放宽到 +30%，让 TRAIL_PCT 跟踪止盈主导赢家出场，避免赢家被固定终点过早清掉）
 TP_MA = 5                      # 兼容保留
 EXIT_MA = 3                    # 已弃用：亏损侧不再用破线出场，改 HARD_STOP_PCT 入场价锚定硬止损（封顶-4%）。保留供日后按需恢复 MA 出场。
 RETREAT_MA = 20                # 跌破 20 日线 = 退潮清仓（更保守兜底）
@@ -100,7 +110,8 @@ MKT_EXIT_WHEN_BEAR = False     # True=大盘破 MA20 时清空全部持仓（系
 # 把整体锁定在「不亏」状态（已落袋的一半利润已安全）。未减半的票不触发保本止损，
 # 继续走固定 -5% 止损。
 BREAKEVEN_STOP = True         # True=减半后启用保本止损；False=不启用（仍走 -5% 止损）
-BREAKEVEN_BUF = 0.0           # 保本价相对成本价的缓冲（0=严格等于成本价；>0 允许略低于成本，抗毛刺）
+BREAKEVEN_BUF = 0.0           # 保本价相对成本价的缓冲（0=严格等于成本价；>0 允许略低于成本，抗毛刺；<0 则保本价高于成本、锁定该比例利润）
+BREAKEVEN_GUARD = 0.03        # 动态保本激活阈值（v3.2）：浮盈达 +3% 即锁定保本价，无需等减半（对称化：赢家回落到成本即清，不变输家）
 
 
 # ---- 收益优化（提升收益的两道开关，均默认可关）----
@@ -496,7 +507,11 @@ INDUSTRY_OF = {}               # {code: 申万一级行业名}（个股→行业
 SECTOR_STRENGTH = {}          # {行业名: 当日平均涨幅(%)}
 SECTOR_STRONG = set()         # 强势行业集合（排名前 SECTOR_TOP_N 且涨幅达门槛）
 SECTOR_READY = False          # 行业映射是否构建成功（失败则板块共振降级关闭）
-_INDUSTRY_BUILT = False       # 行业映射仅构建一次的标志
+_INDUSTRY_BUILT = False       # 行业映射「已成功构建」标志（v3.2：失败可在后续交易日重试）
+_IND_MISS = set()             # 已确认取不到行业的代码（重试时跳过，避免重复空转）
+_IND_TRY_DATE = [""]          # 最近一次尝试构建的日期（同一交易日只重试一次）
+_IND_LAST_ERR = [""]          # 最近一次构建的首个异常（用于定位失败原因）
+_IN_MAP_FILE_LOADED = [False] # 本地静态映射表是否已尝试加载（v3.3：仅尝试一次）
 
 
 def _get_market_pool():
@@ -531,6 +546,36 @@ def _get_market_pool():
 # ============================================================
 # 五·五、板块共振（行业强度过滤）
 # ============================================================
+def _load_industry_map_file():
+    """从同目录 industry_map.json 加载静态 {code: 申万一级行业} 映射（v3.3 新增，绕开无 get_industry 环境）。
+
+    由 akshare 的 index_component_sw（申万一级行业指数成分）离线生成，覆盖全市场约 5000+ 只 A 股。
+    平台无 get_industry 时本表是板块共振的唯一数据源；若表缺失则降级回退到 get_industry 动态构建。
+    """
+    global INDUSTRY_OF
+    import os, json
+    cands = []
+    try:
+        cands.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), INDUSTRY_MAP_FILE))
+    except Exception:
+        pass
+    cands.append(os.path.join(os.getcwd(), INDUSTRY_MAP_FILE))
+    for p in cands:
+        if os.path.isfile(p):
+            try:
+                with open(p, encoding='utf-8') as f:
+                    d = json.load(f)
+                if isinstance(d, dict):
+                    INDUSTRY_OF.update({str(k): str(v) for k, v in d.items() if k and v})
+                    log.info("[板块] 已从 {} 载入 {} 只静态行业映射".format(p, len(d)))
+                    return
+                else:
+                    log.error("[板块] 本地映射表格式异常（非 dict），忽略")
+            except Exception as e:
+                log.error("[板块] 读取 {} 失败: {}；将尝试 get_industry".format(p, repr(e)))
+    log.info("[板块] 未找到本地映射表 {}（候选路径 {}），将尝试 get_industry 动态构建".format(INDUSTRY_MAP_FILE, cands))
+
+
 def _parse_industry(r):
     """兼容多平台 get_industry 返回值，提取申万一级行业名。"""
     if not r:
@@ -553,30 +598,59 @@ def _parse_industry(r):
 
 
 def _build_industry_map(context):
-    """首个交易日构建个股→申万一级行业映射并缓存；平台无 get_industry 时降级关闭。"""
-    global INDUSTRY_OF, SECTOR_READY, _INDUSTRY_BUILT
+    """构建个股→申万一级行业映射并缓存；平台无 get_industry 时降级关闭。
+
+    v3.2 加固（治「板块共振静默失效」）：
+      1) 可重试：仅当「成功映射到 >=1 只」时才置 _INDUSTRY_BUILT=True；未就绪时每个交易日重试一次；
+      2) 可累积：已映射/已确认缺失的代码在下一次重试时跳过，INDUSTRY_OF 单调累积，逐步收敛；
+      3) 可观测：入口原因、映射结果、首个异常都打日志（此前失败为静默 return，无从察觉）。
+    """
+    global INDUSTRY_OF, SECTOR_READY, _INDUSTRY_BUILT, _IND_LAST_ERR
     if _INDUSTRY_BUILT:
         return
-    _INDUSTRY_BUILT = True
+    # v3.3: 优先加载本地静态行业映射表（绕开无 get_industry 的平台环境）
+    if not _IN_MAP_FILE_LOADED[0]:
+        _IN_MAP_FILE_LOADED[0] = True
+        _load_industry_map_file()
+        if INDUSTRY_OF:
+            SECTOR_READY = True
+            _INDUSTRY_BUILT = True  # v3.3: 静态表完整且只读，标记已构建，避免后续交易日重入误走 get_industry 而关掉共振
+            log.info("[板块] 本地行业映射表加载 {} 只（来源=industry_map.json），板块共振启用".format(len(INDUSTRY_OF)))
+            return
+        else:
+            log.info("[板块] 本地映射表为空/未找到，回退 get_industry 动态构建")
     if not SECTOR_CONFIRM:
+        log.info("[板块] SECTOR_CONFIRM=False，板块共振未启用；不构建行业映射")
+        _INDUSTRY_BUILT = True
         return
+    today = _context_date(context)
+    if today and _IND_TRY_DATE[0] == today:
+        return                      # 同一交易日只尝试一次，避免每根 bar 重复调用
+    _IND_TRY_DATE[0] = today
     if not _has("get_industry"):
-        log.error("[板块] 平台无 get_industry，板块共振已降级关闭（不影响其它逻辑）")
+        log.error("[板块] 平台无 get_industry，板块共振降级关闭（不影响其它逻辑）")
         SECTOR_READY = False
+        _INDUSTRY_BUILT = True      # 平台能力缺失，无需重试
         return
     pool = _get_market_pool()
     if not pool:
-        log.error("[板块] 股票池为空，行业映射跳过，板块共振降级关闭")
+        log.error("[板块] 股票池为空，行业映射本次跳过（下一交易日重试）")
         SECTOR_READY = False
         return
+    todo = [c for c in pool if c not in INDUSTRY_OF and c not in _IND_MISS]
+    if SECTOR_MAP_BUDGET and SECTOR_MAP_BUDGET > 0:
+        todo = todo[:SECTOR_MAP_BUDGET]
     ok = 0
     miss = 0
-    for c in pool:
+    err = ""
+    for c in todo:
         ind = None
         for arg in (c, _pure(c)):
             try:
                 r = get_industry(arg, type="sw_l1")
-            except Exception:
+            except Exception as e:
+                if not err:
+                    err = repr(e)
                 r = None
             ind = _parse_industry(r)
             if ind:
@@ -585,10 +659,18 @@ def _build_industry_map(context):
             INDUSTRY_OF[c] = ind
             ok += 1
         else:
+            _IND_MISS.add(c)
             miss += 1
-    SECTOR_READY = (ok > 0)
-    log.info("[板块] 行业映射完成：成功 {} 只 / 缺失 {} 只；板块共振{}".format(
-        ok, miss, "启用" if SECTOR_READY else "降级关闭"))
+    _IND_LAST_ERR[0] = err
+    SECTOR_READY = (len(INDUSTRY_OF) > 0)
+    if SECTOR_READY and not todo:
+        _INDUSTRY_BUILT = True      # 已映射完全部可达代码，之后不再重试
+    log.info("[板块] 行业映射：本次成功 {} 只 / 缺失 {} 只；累计覆盖 {} 只 / 待映射 {} 只；"
+             "板块共振{}{}".format(
+                 ok, miss, len(INDUSTRY_OF),
+                 max(0, len(pool) - len(INDUSTRY_OF) - len(_IND_MISS)),
+                 "启用" if SECTOR_READY else "未就绪（下一交易日重试）",
+                 "；首个异常=" + err if err else ""))
 
 
 def _compute_sector_strength(snap):
@@ -597,6 +679,9 @@ def _compute_sector_strength(snap):
     SECTOR_STRENGTH = {}
     SECTOR_STRONG = set()
     if not SECTOR_CONFIRM or not SECTOR_READY:
+        # v3.2：不再静默 return，明确打出「本次共振是否生效」，避免再次出现「共振死了却无人察觉」
+        log.info("[板块] 共振过滤本次未生效（SECTOR_CONFIRM={} / 行业映射就绪={}），"
+                 "本次不做板块过滤".format(SECTOR_CONFIRM, SECTOR_READY))
         return
     buckets = {}
     for c, s in snap.items():
@@ -913,6 +998,10 @@ def _assess(code, v, snap, intraday=None):
     above60 = bool(ma60 and cur > ma60)
     if REQUIRE_ABOVE_MA20 and not above20:
         return None
+    if MA20_ENTRY_BUFFER > 0 and ma20 and cur < ma20 * (1 + MA20_ENTRY_BUFFER):
+        log.info("[缓冲] {} 跳过（cur/MA20-1={:.1%} < 入场缓冲{:.1%}）".format(
+            code, (cur / ma20 - 1) if ma20 else 0, MA20_ENTRY_BUFFER))
+        return None
     shape = (1 if (ma10 and cur > ma10) else 0) + (2 if above20 else 0) + (3 if above60 else 0)
 
     # ---- 入场收紧①：中期趋势确认（站上 60 日线）----
@@ -937,9 +1026,10 @@ def _assess(code, v, snap, intraday=None):
     if SECTOR_CONFIRM and SECTOR_READY and SECTOR_STRONG:
         ind = INDUSTRY_OF.get(code)
         if not ind:
-            log.info("[板块] {} 跳过（未取到行业映射，无法共振）".format(code))
-            return None
-        if ind not in SECTOR_STRONG:
+            # v3.3: 静态表未覆盖（北交所/新股等）→ 放行，不强制剔除
+            # 与"无 get_industry 即降级"哲学一致：板块共振对这类票失效而非误杀
+            pass
+        elif ind not in SECTOR_STRONG:
             log.info("[板块] {} 跳过（行业『{}』非强势板块，不共振）".format(code, ind))
             return None
 
@@ -1274,8 +1364,15 @@ def monitor_risk(context, data=None):
             if _sell_all(code, px, "退潮 破{}日线 浮盈{:.1%}".format(RETREAT_MA, rt)):
                 _clear(code)
             continue
-        # 3) 保本止损（仅已减半的票）：回落到保本价以下 → 清仓，锁定已落袋利润
-        if BREAKEVEN_STOP and halved.get(code) and code in breakeven and cur <= breakeven[code]:
+        # 2b) 动态保本（v3.2 对称化）：浮盈达 BREAKEVEN_GUARD 即锁定保本价=成本，无需等减半
+        #     赢家回落到成本即清，已浮盈部分不回吐成亏损；之后由 3) 保本止损执行清仓
+        if (BREAKEVEN_STOP and BREAKEVEN_GUARD > 0 and rt >= BREAKEVEN_GUARD
+                and code not in breakeven and cost):
+            breakeven[code] = float(cost) * (1 - BREAKEVEN_BUF)
+            log.info("[保本] {} 浮盈{:.1%}达动态保本阈值，保本价设为 {:.2f}（成本价{:.2f}）".format(
+                code, rt, breakeven[code], float(cost)))
+        # 3) 保本止损：回落到保本价以下 → 清仓，锁定已落袋利润（v3.2 起不要求已减半，动态保本票同样适用）
+        if BREAKEVEN_STOP and code in breakeven and cur <= breakeven[code]:
             if _sell_all(code, px, "保本止损 破保本价{:.2f} 浮盈{:.1%}".format(breakeven[code], rt)):
                 _clear(code)
             continue
@@ -1602,9 +1699,14 @@ def _daily_routine(context, data=None):
             _diag_vol_scale()
             _diag_cutoff(context)
             _diag_data(data)
-            _build_industry_map(context)   # 首个交易日构建个股→行业映射（板块共振用，仅一次）
         except Exception as e:
             log.error("[自检] 延迟自检异常: {}".format(repr(e)))
+    # 行业映射（板块共振用）：独立于自检、独立 try，失败可在后续交易日重试
+    # （v3.2：此前与自检共用 try 且仅在首日执行，任一步异常都会让板块共振永久静默失效）
+    try:
+        _build_industry_map(context)
+    except Exception as e:
+        log.error("[板块] 行业映射异常: {}".format(repr(e)))
     today = _context_date(context)
     if today and _LAST_DATE[0] == today:
         return                      # 幂等：同一天只跑一次

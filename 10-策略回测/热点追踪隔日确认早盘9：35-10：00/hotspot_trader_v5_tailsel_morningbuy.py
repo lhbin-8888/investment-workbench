@@ -2141,27 +2141,174 @@ def buy_window_scan(context):
 #        → T+1 早盘 09:35~10:00 buy_window_scan_tail：回踩买（复用 _try_buy_one 护栏）
 #   全部受 TAIL_SELECT_MODE 开关回退；设 False 完全回到 V4.8（开盘确认+当日早盘买）。
 # ============================================================
-def _confirm_sectors_now(context, sector_codes, min_rise=None, min_zt=None, sector_strength=None):
-    """★V5★ 通用：对给定 {板块: [code]} 用实时快照判定「当前是否在动」。
-    返回 {板块: True/False}；拿不到快照降级为全部 True（不阻塞）。
-    min_rise/min_zt 可覆盖阈值：9:30 开盘确认用宽松默认 OPEN_CONFIRM_*，
-    14:30 尾盘选股传入更严格的 TAIL_CONFIRM_*。
+def _minute_strength_map(context, codes):
+    """★V5.3★ 用 T 日分钟K线('1m')算真实当日板块强度。
+    返回扁平 {code: (rise_t, is_zt)}：
+      rise_t = 当日末根bar收盘相对昨收的涨幅（与快照 pct 语义一致，可直接喂阈值）；
+      is_zt  = 是否涨停（相对昨收）。
+    取不到当日分钟bar(如 09:31 时刻只到 T-1、或 API 异常)返回 {} -> 调用方回退快照逻辑。
+    注：频率必须用 '1m'（'1min' 在本引擎 KeyError 非法）；日内 datetime 为 8+位整数如 202609071454。"""
+    ed = _today_str(context).replace("-", "")
+    if not ed:
+        return {}
+    codes = sorted(set(codes))
+    if not codes:
+        return {}
+    # 昨收：取日K中日期 < 当日(ed) 的最新一根收盘（15:30 时日K末行已是 T 日，故不能取最后一根）
+    prev_close = {}
+    try:
+        rd = get_history(5, "1d", None, codes, fq="pre", is_dict=True)
+        if isinstance(rd, dict):
+            for c in codes:
+                sub = rd.get(c)
+                if sub is None or len(sub) == 0:
+                    continue
+                names = getattr(getattr(sub, "dtype", None), "names", None)
+                if not names or "datetime" not in names or "close" not in names:
+                    continue
+                best = None
+                for i in range(len(sub)):
+                    try:
+                        ds = str(sub["datetime"][i]).replace("-", "")[:8]
+                    except Exception:
+                        continue
+                    if ds != ed and (best is None or ds > best):
+                        best = ds
+                        try:
+                            prev_close[c] = float(sub["close"][i])
+                        except Exception:
+                            pass
+    except Exception:
+        pass
+    # T 日分钟bar（fields=None 取默认全字段，含 datetime/open/close）
+    # ★V5.3b★ 探针(2只/240根)能取到当日bar、策略整批全失败且异常被吞 →
+    # 改为：count=240(与探针一致) + 每批20只分批 + 每批独立try打印真实异常 + 失败时输出诊断行。
+    out = {}
+    dbg = {"batch": 0, "ok": 0, "err": "", "last": "", "hit": 0}
+    CHUNK = 20
+    for k in range(0, len(codes), CHUNK):
+        part = codes[k:k + CHUNK]
+        _bn = k // CHUNK
+        dbg["batch"] += 1
+        try:
+            r = get_history(240, "1m", None, part, fq="pre", is_dict=True)
+        except Exception as e:
+            dbg["err"] = repr(e)[:150]
+            log.info("[分钟强度] 批次" + str(_bn) + " 异常 n=" + str(len(part)) + " err=" + repr(e)[:150])
+            continue
+        if not isinstance(r, dict):
+            dbg["err"] = "non-dict:" + str(type(r))[:50]
+            log.info("[分钟强度] 批次" + str(_bn) + " 返回非dict: " + str(type(r))[:50])
+            continue
+        dbg["ok"] += 1
+        # ★解剖诊断（只打首个批次首日）★：看 r 的 key 数/前3个key/首key的bars与字段
+        if dbg["ok"] == 1:
+            try:
+                _ks = list(r.keys())
+            except Exception:
+                _ks = []
+            log.info("[分钟强度] 解剖: 请求=" + ",".join(part[:3])
+                     + " 返回keys=" + str(len(_ks)) + " 前3keys=" + ",".join(str(x) for x in _ks[:3]))
+            if _ks:
+                try:
+                    _sub0 = r.get(_ks[0])
+                    _n0 = len(_sub0)
+                    _nm0 = getattr(getattr(_sub0, "dtype", None), "names", None)
+                    _d0 = "?"
+                    if _n0 and _nm0 and "datetime" in _nm0:
+                        _d0 = str(_sub0["datetime"][_n0 - 1])
+                    log.info("[分钟强度] 首key=" + str(_ks[0]) + " bars=" + str(_n0)
+                             + " 字段=" + str(_nm0) + " 末dt=" + _d0)
+                except Exception as e:
+                    log.info("[分钟强度] 首key解析异常 " + repr(e)[:120])
+        for c in part:
+            sub = r.get(c)
+            if sub is None:
+                continue
+            try:
+                n = len(sub)
+            except Exception:
+                continue
+            if n == 0:
+                continue
+            names = getattr(getattr(sub, "dtype", None), "names", None)
+            if not names or "datetime" not in names or "close" not in names:
+                continue
+            idxs = []
+            for i in range(n):
+                try:
+                    ds = str(sub["datetime"][i]).replace("-", "")[:8]
+                except Exception:
+                    continue
+                if not dbg["last"] and c == part[0]:
+                    dbg["last"] = str(c) + "末dt=" + str(sub["datetime"][i]) + " bars=" + str(n)
+                if ds == ed:
+                    idxs.append(i)
+            if not idxs:
+                continue
+            try:
+                cur = float(sub["close"][idxs[-1]])
+            except Exception:
+                continue
+            if not (cur > 0):
+                continue
+            pc = prev_close.get(c)
+            if pc and pc > 0:
+                rise = cur / pc - 1.0
+                lim = _limit_pct(c) * 0.98
+                zt = cur >= pc * (1 + lim)
+            else:
+                # 无昨收：用当日开盘近似前收（退而求其次）
+                try:
+                    do = float(sub["open"][idxs[0]])
+                except Exception:
+                    do = 0.0
+                rise = (cur / do - 1.0) if do > 0 else 0.0
+                zt = False
+            out[c] = (rise, zt)
+            dbg["hit"] += 1
+    if not out:
+        log.info("[分钟强度] 诊断: ed=" + ed + " 批次=" + str(dbg["batch"]) + "/" + str(dbg["ok"])
+                 + " 命中=" + str(dbg["hit"]) + " " + dbg["last"] + " err=" + dbg["err"])
+    return out
 
-    ★V5.2 回测适配★ sector_strength 为 {板块: 强度值}，来自盘前信号层已算好的候选 pct。
-    当实时快照被回测引擎冻结（p_now==c_prev，日内涨幅恒≈0）时，live 涨幅失真，
-    此时若传入了 sector_strength 则改用它做阈值判断；若无强度可回退，则降级全部通过，
-    避免路径B在『冻结快照回测』下确认恒 0、尾盘池恒空、彻底 0 成交。
-    实盘拿到真实日内价时不触发冻结分支，逻辑不变。"""
+
+def _confirm_sectors_now(context, sector_codes, min_rise=None, min_zt=None, sector_strength=None, minute_strength=None):
+    """★V5★ 通用：对给定 {板块: [code]} 判定「当前是否在动」。
+    返回 {板块: True/False}；拿不到数据降级为全部 True（不阻塞）。
+    min_rise/min_zt 可覆盖阈值；sector_strength 为 {板块: 强度}（V5.2 冻结回退用）。
+    minute_strength 为 {code: (rise_t, is_zt)}（V5.3 由 _minute_strength_map 提供，T 日真实分钟强度）。
+    优先级：minute_strength 可用时直接用 T 日真实涨幅/涨停判定（解冻结快照失真：缺陷①②）；
+    否则用实时快照；快照冻结时 V5.2 回退到 sector_strength；都失败则降级通过。"""
     out = {}
     all_codes = sorted({c for cs in sector_codes.values() for c in cs})
     if not all_codes:
         return {s: True for s in sector_codes}
-    snap = _live_price_and_ref(context, all_codes)
-    if not snap:
+    use_minute = bool(minute_strength)
+    snap = {} if use_minute else _live_price_and_ref(context, all_codes)
+    if not use_minute and not snap:
         _degrade("confirm", "实时价不可用，降级为『通过』")
         return {s: True for s in sector_codes}
     _mr = OPEN_CONFIRM_MIN_RISE if min_rise is None else min_rise
     _mz = OPEN_CONFIRM_MIN_ZT if min_zt is None else min_zt
+    if use_minute:
+        # ★V5.3★ T 日分钟真实强度路径
+        for sec, codes in sector_codes.items():
+            n = 0
+            rise_sum = 0.0
+            zt = 0
+            for c in codes:
+                ms = minute_strength.get(c)
+                if not ms:
+                    continue
+                n += 1
+                rise_sum += ms[0]
+                if ms[1]:
+                    zt += 1
+            avg = (rise_sum / n) if n else 0.0
+            out[sec] = (n > 0) and (avg >= _mr or zt >= _mz)
+        return out
+    # ---- 以下为原快照路径（实盘/分钟不可用回退） ----
     total_valid = 0
     frozen_hits = 0          # 有效样本中「日内涨幅≈0」的计数（疑似冻结快照）
     used_strength = False    # 是否有板块改用信号层强度替代 live 涨幅
@@ -2239,27 +2386,38 @@ def tail_select_job(context):
             continue
         _ss.setdefault(s, []).append(float(c.get("pct") or 0.0))
     sector_strength = {s: (sum(v) / len(v)) for s, v in _ss.items()}
-    conf = _confirm_sectors_now(context, sec_codes, TAIL_CONFIRM_MIN_RISE, TAIL_CONFIRM_MIN_ZT, sector_strength)
+    # ★V5.3★ T 日分钟bar真实强度（解冻结快照失真 + 延伸度过滤失效）
+    _all_codes = sorted({c for cs in sec_codes.values() for c in cs})
+    minute_strength = _minute_strength_map(context, _all_codes)
+    if minute_strength:
+        log.info("[尾盘选股] 已取 T 日分钟强度 {} 只（真实当日涨幅/涨停）".format(len(minute_strength)))
+    else:
+        log.info("[尾盘选股] T 日分钟强度不可用，回退快照/信号层")
+    conf = _confirm_sectors_now(context, sec_codes, TAIL_CONFIRM_MIN_RISE, TAIL_CONFIRM_MIN_ZT, sector_strength, minute_strength)
     confirmed = {s for s, ok in conf.items() if ok}
     # ★V5 收盘延伸度过滤★：剔除「收盘几乎全涨停、T+1 早盘无回踩空间」的板块
     if TAIL_EXT_FILTER:
-        ext_codes = sorted({c for s in confirmed for c in sec_codes.get(s, [])})
-        ext_snap = _live_price_and_ref(context, ext_codes) if ext_codes else {}
         kept = set()
         for s in confirmed:
             codes = sec_codes.get(s, [])
-            if not ext_snap:
-                kept.add(s)                      # 快照不可用 → 降级放行
-                continue
-            n = zt = 0
-            for c in codes:
-                sc = ext_snap.get(c)
-                if not sc or not (sc.get("c_prev") and sc.get("p_now")):
+            # ★V5.3★ 优先用 T 日分钟真实涨停数；分钟不可用时回退快照
+            zt = sum(1 for c in codes if minute_strength.get(c, (0, False))[1])
+            n = sum(1 for c in codes if c in minute_strength)
+            if n == 0:
+                # 分钟无数据 -> 回退实时快照（保留原逻辑）
+                ext_snap = _live_price_and_ref(context, codes) if codes else {}
+                if not ext_snap:
+                    kept.add(s)                      # 快照不可用 → 降级放行
                     continue
-                n += 1
-                lim = _limit_pct(c) * 0.98
-                if sc["p_now"] >= sc["c_prev"] * (1 + lim):
-                    zt += 1
+                zt = n = 0
+                for c in codes:
+                    sc = ext_snap.get(c)
+                    if not sc or not (sc.get("c_prev") and sc.get("p_now")):
+                        continue
+                    n += 1
+                    lim = _limit_pct(c) * 0.98
+                    if sc["p_now"] >= sc["c_prev"] * (1 + lim):
+                        zt += 1
             if n < TAIL_EXT_MIN_STOCKS:
                 kept.add(s)                      # 样本太少 → 不判断，放行
                 continue
