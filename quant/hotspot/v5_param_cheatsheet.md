@@ -1,6 +1,6 @@
 # V5 路径B 调参速查卡
 **尾盘选股（T日15:05 收盘后）+ 次日早盘回踩买（T+1 09:35–10:30）**
-文件：`10-策略回测/热点追踪早盘/hotspot_trader_v5_tailsel_morningbuy.py` ｜ 全部可回退：`TAIL_SELECT_MODE=False` 即回到 V4.8
+文件：`06-投资策略分析/策略回测/热点追踪早盘1030/hotspot_trader_v5_tailsel_morningbuy.py` ｜ 全部可回退：`TAIL_SELECT_MODE=False` 即回到 V4.8
 
 ---
 

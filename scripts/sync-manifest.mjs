@@ -55,6 +55,8 @@ function collectDocs() {
         .filter((entry) => entry.isFile())
         .filter((entry) => !skipFiles.has(entry.name))
         .filter((entry) => entry.name !== template)
+        // 「全球要闻」的 .md 仅本地留档、不推线上（见 .gitignore），清单只收 PDF
+        .filter((entry) => !(leaf === '宏观研究' && entry.name.endsWith('-全球要闻.md')))
         .map((entry) => path.join(dir, entry.name));
 
       for (const file of files) {

@@ -236,8 +236,8 @@ function defaultSecs(){
   /* 分区 01 预填项目内已有的策略资料（真实文件路径，回测指标留空待填） */
   a[0].name = 'PTrade 热点追踪策略';
   a[0].code = {name:'hotspot_trader_v3_hardened.py', size:0, lines:0, content:'',
-               url:'06-投资策略分析/ptrade_verify/hotspot_trader_v3_hardened.py'};
-  a[0].doc  = '策略逻辑、参数设置与风控规则详见《PTrade热点追踪策略_体检报告》（2026-09-12）。\n策略程序文件位于 06-投资策略分析/ptrade_verify/（含 harness 回测脚本与成本模型）。\n可在左侧工作台「策略回测」分区下随时补充说明与回测数据。';
+               url:'06-投资策略分析/策略回测/热点追踪lhb888/hotspot_trader_v3_hardened.py'};
+  a[0].doc  = '策略逻辑、参数设置与风控规则详见《PTrade热点追踪策略_体检报告》（2026-09-12）。\n策略程序文件位于 06-投资策略分析/策略回测/热点追踪lhb888/；回测校验脚本（harness / 成本模型）位于 06-投资策略分析/ptrade_verify/。\n可在左侧工作台「策略回测」分区下随时补充说明与回测数据。';
   a[0].docUrl = '06-投资策略分析/PTrade热点追踪策略_体检报告_20260912.html';
   a[0].updatedAt = nowStr();
   return a;
@@ -355,7 +355,7 @@ function blockCode(s){
   }
   h += '<div class="fileops">';
   h += '<button class="btn mini" data-act="pickfile">选择本地文件</button>';
-  h += '<input type="text" data-path="code.url" value="' + esc(c.url) + '" placeholder="程序文件路径 / 在线链接，如 06-投资策略分析/ptrade_verify/xxx.py">';
+  h += '<input type="text" data-path="code.url" value="' + esc(c.url) + '" placeholder="程序文件路径 / 在线链接，如 06-投资策略分析/策略回测/热点追踪lhb888/xxx.py">';
   h += '<button class="btn mini" data-act="loadurl">从路径载入</button>';
   h += '</div></div>';
   return h;

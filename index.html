@@ -951,7 +951,7 @@ function saveDocBlobs() {
 }
 loadDocBlobs();
 
-// 接收来自 fa.html / vm.html 的「上传到文档列表」上报
+// 接收来自财务分析 / 估值模型工具页的「上传到文档列表」上报
 function addReportDoc(d) {
   var section = d.section, title = d.title, file = d.file, desc = d.desc || '';
   if (!section || !title || !file) return;
@@ -1477,7 +1477,7 @@ function buildFinancialSectionShell(){
   h +=     '<h3><span class="tag">财务分析</span> 个股财务数据分析 · 自动报告</h3>';
   h +=     '<span class="meta">数据源：东方财富三大报表 + 腾讯行情估值 ｜ 支持导出 PDF（含封面/水印/页眉）</span>';
   h +=   '</div>';
-  h +=   '<div class="sector-body"><iframe id="faFrame" src="08-财务分析/fa.html?v=4" title="个股财务分析" style="width:100%;height:1040px;border:0;display:block;background:#fff;"></iframe></div>';
+  h +=   '<div class="sector-body"><iframe id="faFrame" src="05-行业与个股分析/财务分析/工具/fa.html?v=5" title="个股财务分析" style="width:100%;height:1040px;border:0;display:block;background:#fff;"></iframe></div>';
   h +=   '<div class="doc-links">模块说明与模板：';
   h +=     '<a href="05-行业与个股分析/财务分析/财务分析.md" target="_blank" rel="noopener">财务分析功能模板</a>';
   h +=     '<a href="05-行业与个股分析/财务分析/README.md" target="_blank" rel="noopener">模块说明 / 命名规范</a>';
@@ -1505,9 +1505,9 @@ function buildValuationSectionShell(){
   h +=     '<span class="meta">估值逻辑遵循「个股估值」技能：判类型 → 选主尺(DCF/PE/PEG/PS/PB) → 两把尺子交叉验证｜数据：东方财富 + 腾讯行情</span>';
   h +=   '</div>';
   // 估值模型已改为纯前端（浏览器直连东方财富+腾讯行情），本地版与线上版 GitHub Pages 均可直接运行
-  h +=   '<div class="sector-body"><iframe id="vmFrame" src="09-估值模型/vm.html?v=9" title="个股估值模型" style="width:100%;height:620px;border:0;display:block;background:#fff;"></iframe></div>';
+  h +=   '<div class="sector-body"><iframe id="vmFrame" src="05-行业与个股分析/估值模型/工具/vm.html?v=10" title="个股估值模型" style="width:100%;height:620px;border:0;display:block;background:#fff;"></iframe></div>';
   h +=   '<div class="doc-links">使用说明：';
-  h +=     '<a href="09-估值模型/README.md" target="_blank" rel="noopener">估值模型模块说明</a>';
+  h +=     '<a href="05-行业与个股分析/估值模型/工具/README.md" target="_blank" rel="noopener">估值模型模块说明</a>';
   h +=   '</div>';
   h += '</div>';
   h += '</div>';
@@ -1524,7 +1524,7 @@ function buildBacktestSectionShell(){
   h +=     '<h3><span class="tag">策略回测</span> 策略分区管理 · 每个分区一种策略</h3>';
   h +=     '<span class="meta">默认 9 个分区，可手动增加 ｜ 记录策略名称 / 程序文件 / 说明文档 / 回测情况 / 风险提示 ｜ 数据存本机浏览器</span>';
   h +=   '</div>';
-  h +=   '<div class="sector-body"><iframe id="btFrame" src="10-策略回测/bt.html?v=2" title="策略回测工作台" style="width:100%;height:900px;border:0;display:block;background:#fff;"></iframe></div>';
+  h +=   '<div class="sector-body"><iframe id="btFrame" src="06-投资策略分析/策略回测/工具/bt.html?v=3" title="策略回测工作台" style="width:100%;height:900px;border:0;display:block;background:#fff;"></iframe></div>';
   h +=   '<div class="doc-links">模块说明与模板：';
   h +=     '<a href="06-投资策略分析/策略回测/策略回测.md" target="_blank" rel="noopener">策略回测功能模板</a>';
   h +=     '<a href="06-投资策略分析/策略回测/README.md" target="_blank" rel="noopener">模块说明 / 命名规范</a>';
