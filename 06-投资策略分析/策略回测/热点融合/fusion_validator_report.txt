@@ -1,0 +1,27 @@
+热点融合 v1.0 离线行为校验报告
+通过 24 / 24
+
+[PASS] L1.硬止损(下行>11%@09:45)  logs=['[卖出] 600001.SS —— 硬止损 浮盈-12.0%']
+[PASS] L1.硬止损时间闸门(09:40不触发)  logs=[]
+[PASS] L1.保本止损(峰值+10%回落至成本)  logs=['[卖出] 600001.SS —— 保本止损 浮盈0.0%']
+[PASS] L1.分批止盈(+10%减半)  sells=[('600001.SS', -500)]
+[PASS] L1.移动止盈(峰值+20%回撤15%)  logs=['[卖出] 600001.SS —— 移动止盈 浮盈2.0%']
+[PASS] L1.赢家锁利(峰值+30%回撤10.4pp)  logs=['[卖出] 600001.SS —— 赢家锁利 浮盈15.0%']
+[PASS] L1.止盈全清(+31%)  logs=['[卖出] 600001.SS —— 止盈全清 浮盈31.0%']
+[PASS] L1.破20日线(尾盘确认)  logs=['[卖出] 600001.SS —— 破20日线 浮盈3.4%']
+[PASS] L1.时间止损(亏损持仓>=5日)  logs=['[卖出] 600001.SS —— 时间止损 浮盈-2.0%']
+[PASS] L1.板块冷却(连败>=2->冷却10日)  cooldown={'半导体': 10}
+[PASS] L1.换手熔断(密集交易触发)  annualized 超限
+[PASS] L1.换手熔断(低频不触发)  annualized 正常
+[PASS] L1.ATR止损下限clamp=5%  lo=0.0500
+[PASS] L1.ATR止损上限clamp=11%  hi=0.1100
+[PASS] L2.大市上升市->NORMAL  regime=NORMAL
+[PASS] L2.大市下跌市(中证1000<MA20)->HALT  regime=HALT
+[PASS] L2.大市(沪深300<MA20,中证1000强)->PAUSE  regime=PAUSE
+[PASS] L2.情绪(涨停>=25)->OK  sentiment=OK
+[PASS] L2.情绪(涨停<25)->ICE  sentiment=ICE
+[PASS] L3.买入闸门(NORMAL建仓)  buys=2 today=2
+[PASS] L3.买入闸门(HALT不建仓)  buys=0 logs=['[买入] 大市HALT，暂停新建仓']
+[PASS] L3.买入闸门(PAUSE不建仓)  buys=0
+[PASS] L3.买入闸门(HALF预算减半)  alloc=250000 expect<=250000
+[PASS] L4.端到端冒烟(建仓+巡检无异常)  day1_buys=1
