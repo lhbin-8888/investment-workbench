@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>板块轮动与主线确定 · 每日报告 (2026-09-20)</title>
+<title>板块轮动与主线确定 · 每日报告 (2026-09-21 收盘口径)</title>
 <style>
   :root{
     --primary:#ED7D31;
@@ -41,7 +41,7 @@
   .table-wrap::-webkit-scrollbar-thumb:hover{background:#7c8288;}
   .table-wrap::-webkit-scrollbar-corner{background:transparent;}
   table{border-collapse:collapse;font-size:11px;width:100%;min-width:1180px;}
-  #rankTbl,#hotTbl{width:auto;min-width:0;max-width:760px;}
+  #rankTbl,#hotTbl{width:auto;min-width:0;max-width:820px;}
   #rankTbl td.name,#hotTbl td.name{min-width:120px;text-align:left;}
   th,td{border:1px solid var(--line);padding:4px 4px;text-align:center;white-space:nowrap;}
   th{background:#fafafa;font-weight:600;color:#374151;position:sticky;top:0;}
@@ -73,8 +73,6 @@
   .pill.wait{background:#fef3c7;color:#b45309;}
   .pill.rot{background:#eef2f7;color:var(--sub);}
   .pill.hot{background:#dc2626;color:#fff;}
-  .score-bar{height:8px;background:#eef2f7;border-radius:5px;overflow:hidden;margin-top:3px;}
-  .score-bar i{display:block;height:100%;background:var(--primary);}
   .concl{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px;margin-top:16px;}
   .concl h2{border-left:4px solid var(--primary);padding-left:9px;margin-top:0;}
   .concl .blk{margin:10px 0;padding:10px 12px;border-radius:8px;}
@@ -86,11 +84,14 @@
   .kpi{display:inline-flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
   .kpi .box{flex:0 0 auto;width:128px;min-width:96px;background:#fafafa;border:1px solid var(--line);border-radius:8px;padding:8px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;}
   .kpi .num{font-size:20px;font-weight:700;color:var(--primary);line-height:1.15;}
-  .kpi .num .sep{font-size:13px;opacity:.65;margin:0 2px;}
   .kpi .lbl{font-size:11px;color:var(--sub);margin-bottom:4px;}
   canvas{max-width:100%;}
   .note{font-size:11px;color:var(--sub);margin-top:6px;}
   .idx{font-size:11px;color:var(--sub);margin-top:8px;background:#f8fafc;border:1px dashed var(--line);border-radius:6px;padding:7px 11px;}
+  .intraday{background:#fffdf5;border:1px solid #f5e3b8;border-radius:10px;padding:12px 14px;margin-top:16px;font-size:12px;}
+  .intraday h3{margin:0 0 8px;font-size:13px;color:#92400e;}
+  .intraday table{min-width:0;width:100%;}
+  .intraday td,.intraday th{padding:3px 6px;text-align:left;}
   @media print{body{background:#fff;}.toolbar,.note,.idx,.closed{display:none;}header{box-shadow:none;}.card,.concl{break-inside:avoid;}}
 </style>
 </head>
@@ -100,33 +101,40 @@
 <header>
   <h1>板块轮动与主线确定 · 每日报告</h1>
   <div class="meta">
-    <span>报告日期：<input type="date" id="repDate" value="2026-09-20"></span>
-    <span class="tag">数据来源：东方财富板块行情(push2)</span>
-    <span class="tag" id="modeTag">休市 · 周日无交易（参考 09-18 周五）</span>
-    <span class="tag">五维打分法 · 满分5分</span>
+    <span>报告日期：<input type="date" id="repDate" value="2026-09-21"></span>
+    <span class="tag">数据基准：2026-09-21（周一）收盘</span>
+    <span class="tag">数据来源：东方财富板块行情(push2 / push2his)</span>
+    <span class="tag">五维打分法 · 满分 5 分</span>
   </div>
 </header>
-<div class="disclaimer">
-  ⚠️ 本报告由「板块轮动与主线确定每日报告」自动任务生成。<b>数据来源说明：</b>通达信 MCP 连接器当前未连接，本环境改用
-  <b>东方财富板块行情公开接口（push2）</b>经 <b>ths-advanced-analysis</b> 技能取数（板块涨幅、主力净流入、量比、涨停池、连板高度均为真实收盘数据）。
-  涨停家数、最高连板、各板块主力净流入/量比均来自东财真实行情；<b>连续上榜天数(days)为基于主题的持续性估计值</b>——本自动化尚未接入历史序列，
-  故「时间持续性」维度分数需多日累计后方可严格校正。实时主线请以当日通达信/东财板块指数排序为准。<b>所有结论不构成投资建议。</b>
-</div>
+
 <div class="closed">
-  📅 <b>今日为周日（2026-09-20），A 股休市，无板块轮动数据。</b>
-  下方表格为<b>上一交易日 2026-09-18（周五）真实收盘快照</b>，仅供周末复盘参考，<b>非 09-20 当日数据，请勿据此交易</b>。
-  下一交易日（2026-09-21 周一）收盘后将生成含当日真实数据的报告。
+  🕙 <b>生成时点说明：</b>本报告由「板块轮动与主线确定每日报告」自动任务生成，实际触发时点为 <b>2026-09-22（周二）上午盘中</b>（原计划 16:00 收盘后执行，本次提前触发）。
+  因此 <b>2026-09-22 当日收盘数据尚未形成</b>，正文全部指标<b>以最近一个完整交易日 2026-09-21（周一）收盘口径为准</b>，并在文末附 09-22 盘中实时快照（明确标注「截至 10:54，未定盘」）。
+  09-21 当日报告此前未生成，本报告同时补齐该交易日记录。
+</div>
+
+<div class="disclaimer">
+  ⚠️ <b>数据来源说明：</b>通达信 MCP（tdx-connector）在本环境<b>仍未连接</b>，本报告改用可交叉验证的等价真实数据源：
+  <b>东方财富公开行情接口</b>（<code>push2</code> 板块行情 / <code>push2his</code> 板块日 K 线与资金流历史 / 涨停池 / 跌停池），取数口径与 <b>ths-advanced-analysis</b> 技能一致。
+  表内 10 个板块的涨幅、主力净流入、涨停家数、连板高度、量比、连续上榜天数<b>均为真实计算值，无估算、无编造</b>：<br>
+  ① <b>涨幅%</b>＝板块指数 09-21 当日收盘涨跌幅；<b>净流入</b>＝当日主力净流入（超大单+大单）；<b>涨停/连板</b>＝该板块成分股与全市场涨停池交叉比对所得；<br>
+  ② <b>量比*</b>＝当日板块成交额 ÷ 前 5 个交易日均额（日线口径，标准量比定义；盘中实时量比口径不同，两者不可直接比较）；<br>
+  ③ <b>上榜天(days)</b>＝截至 09-21，连续处于「当日涨幅 TOP20 或主力净流入 TOP20」的交易日数（对 169 个一级行业板块全量计算，非估计值）；<br>
+  ④ <b>催化环境</b>经公开新闻检索核验（工信部等十部门《医药工业发展"十五五"规划》、国家医保局医疗服务价格预立项制度、国新办 09-20 发布会、美国拟收窄对华生物医药投资审查等）。<br>
+  <b>所有结论不构成投资建议。</b>实时主线请以当日通达信/东财板块指数排序为准。
 </div>
 
 <div class="idx">
-  📊 <b>参考交易日 2026-09-18（周五）主要指数收盘（东财行情）：</b>上证指数 <b>+0.94%</b>｜ 深证成指 <b>+1.72%</b>｜ 创业板指 <b>+2.25%</b>｜ 科创50 <b>+2.88%</b>｜ 沪深300 <b>+1.06%</b>。
-  全市场涨停 <b>78</b> 家（较 09-17 的 47 家回升），最高连板 <b>4 板</b>（华瓷股份·家居、锡华科技·风电，均非科技主线，作情绪标杆）。
-  当日为<b>科技-电力共振普涨日</b>：09-17 退潮的半导体主线全面回流，半导体一级板块主力净流入 182 亿、100 涨 0 跌、5 家涨停，为全市场最确定主线；光模块（通信网络设备）净流入 67 亿，计算机（AI软件）低位启动，电网设备 6 家涨停为广度第一。
+  📊 <b>数据基准日 2026-09-21（周一）收盘：</b>上证指数 <b>3949.91（+0.97%）</b>｜ 深证成指 <b>13730.02（+0.65%）</b>｜ 创业板指 <b>3399.59（+0.80%）</b>｜ 科创50 <b>1657.48（+0.29%）</b>｜ 沪深300 <b>4539.57（+0.71%）</b>。
+  全市场涨停 <b>103</b> 家（较 09-18 的 78 家继续回升）、跌停 <b>2</b> 家、最高连板 <b>5 板</b>（华瓷股份·家居用品）；连板梯队：5 板 1 家 / 4 板 2 家 / 3 板 5 家 / 2 板 13 家 / 首板 82 家，<b>梯队完整、首板占比约 80%</b>。
+  沪深北成交 <b>20481 亿元</b>（较上一交易日缩量约 448 亿），全市场超 <b>4500 只个股上涨</b>。<br>
+  当日定性：<b>医药生物全面爆发领涨，地产链午后补位，资金从科技（半导体/有色）向医药、地产、低位消费做高低切换的普涨轮动日</b>——指数普涨但成交微缩，属存量资金集中发力的结构轮动，而非放量突破。
 </div>
 
 <div class="toolbar">
   <button class="ghost" onclick="addRow()">+ 新增板块行</button>
-  <button class="ghost" onclick="loadSeed()">恢复参考快照</button>
+  <button class="ghost" onclick="loadSeed()">恢复当日快照</button>
   <button class="ghost" onclick="clearAll()">清空录入</button>
   <button onclick="window.print()">打印 / 另存PDF</button>
   <button class="ghost" onclick="exportJSON()">导出数据JSON</button>
@@ -135,29 +143,33 @@
 <div class="grid">
   <!-- 录入区 -->
   <div class="card">
-    <h2>① 板块监测录入（休市 · 参考上一交易日 2026-09-18 周五真实收盘数据）</h2>
-    <h3>市场温度（参考 09-18）</h3>
+    <h2>① 板块监测录入（2026-09-21 收盘口径 · 真实数据）</h2>
+    <h3>市场温度</h3>
+    <div class="table-wrap" style="max-height:none;border-bottom:1px solid var(--line);">
     <table id="marketTbl">
       <tr><th>上涨家数</th><th>下跌家数</th><th>涨停家数</th><th>跌停家数</th><th>成交额(亿)</th><th>量能</th><th>连板高度</th></tr>
       <tr>
-        <td><input id="mUp" type="number" placeholder="未抓取" value=""></td>
-        <td><input id="mDn" type="number" placeholder="未抓取" value=""></td>
-        <td><input id="mZT" type="number" value="78"></td>
-        <td><input id="mDT" type="number" placeholder="未抓取" value=""></td>
-        <td><input id="mAmt" type="number" placeholder="未抓取" value=""></td>
-        <td>
-          <select id="mVol"><option>增量市</option><option>存量市</option><option>缩量</option></select>
-        </td>
-        <td><input id="mLB" type="number" value="4"></td>
+        <td><input id="mUp" type="number" value="4500" title="口径：全市场超4500只上涨（公开新闻，非精确值）"></td>
+        <td><input id="mDn" type="number" placeholder="未取精确值" value=""></td>
+        <td><input id="mZT" type="number" value="103"></td>
+        <td><input id="mDT" type="number" value="2"></td>
+        <td><input id="mAmt" type="number" value="20481"></td>
+        <td><select id="mVol"><option>存量市</option><option>增量市</option><option>缩量</option></select></td>
+        <td><input id="mLB" type="number" value="5"></td>
       </tr>
     </table>
-    <p class="note">全景涨跌家数 / 总成交额本环境未抓取（tdx MCP 未连接，东财 clist 接口对全市场个股有行数上限）。涨停 78、连板高度 4 为 09-18 真实值；连板高度标杆为华瓷股份（家居）、锡华科技（风电），均非科技主线，列入情绪温度计观察。本栏为上一交易日参考，非 09-20 数据。</p>
-    <h3>板块明细（位置分：低位5/中段4/高位2/过热1）</h3>
+    </div>
+    <p class="note">
+      涨停 103 / 跌停 2 / 最高连板 5 为东财涨停池、跌停池 <b>09-21 真实值</b>；成交额 20481 亿为沪深北合计（公开行情披露）；
+      上涨家数按「超 4500 只」填入（该口径为媒体披露的概数，非精确统计，故为近似值）；<b>下跌家数本环境未取到精确值，留空不编造</b>。
+      量能判定为「存量市」：指数普涨但成交较上一日缩量约 448 亿。
+    </p>
+    <h3>板块明细（位置分：低位启动 5 / 趋势中段 4 / 高位加速 2 / 过热爆量 1）</h3>
     <div class="table-wrap">
     <table id="boardTbl">
       <thead>
         <tr>
-          <th>板块</th><th>涨幅%</th><th>净流入(亿)</th><th>涨停</th><th>连板</th><th>量比</th>
+          <th>板块</th><th>涨幅%</th><th>净流入(亿)</th><th>涨停</th><th>连板</th><th>量比*</th>
           <th>领涨中军</th><th>位置</th><th>上榜天</th><th>催化</th>
           <th class="sc">时间</th><th class="sc">资金</th><th class="sc">广度</th><th class="sc">位置分</th><th class="sc">催化分</th><th class="total">合计</th>
         </tr>
@@ -165,7 +177,7 @@
       <tbody id="boardBody"></tbody>
     </table>
     </div>
-    <p class="note">五维各 0–5 分；位置分按「低位启动5 / 趋势中段4 / 高位加速2 / 过热爆量1」填入。催化：政策密集/业绩窗口/事件驱动/无。最右侧「合计」为五维均分，≥3.5 为真主线。表格较宽时，请使用表格下方的横向滚动条左右滑动查看右侧列。本表为 2026-09-18 收盘快照，供周末复盘参考。</p>
+    <p class="note">五维各 0–5 分；最右侧「合计」为五维均分，≥3.5 为真主线。量比* 为日线口径（当日成交额÷前 5 日均额）。表格较宽时请用表格下方横向滚动条查看右侧列。本表数据 = 2026-09-21 收盘。</p>
   </div>
 
   <!-- 分析区 -->
@@ -173,23 +185,42 @@
     <h2>② 自动分析</h2>
     <div class="kpi" id="kpiBox"></div>
 
-    <h3>涨幅 TOP & 资金 TOP（候选主线 = 双榜交集）</h3>
+    <h3>涨幅榜 & 资金榜（候选主线 = 双榜交集）</h3>
     <table id="rankTbl">
       <thead><tr><th>板块</th><th>涨幅%</th><th>净流入(亿)</th><th>涨停</th><th>标记</th></tr></thead>
       <tbody id="rankBody"></tbody>
     </table>
 
-    <h3>情绪热度（过热红线：单板块涨停 ≥ 20 家，次日腰斩概率≈66%）</h3>
+    <h3>情绪热度（过热红线：单板块涨停 ≥ 20 家）</h3>
     <table id="hotTbl">
       <thead><tr><th>板块</th><th>涨停家数</th><th>连板高度</th><th>状态</th></tr></thead>
       <tbody id="hotBody"></tbody>
     </table>
+    <p class="note">09-21 全市场涨停 103 家，但<b>单板块最高涨停仅 12 家（医药生物一级）</b>，<b>无任何板块触及「涨停≥20 家」过热红线</b>，主线处于发酵期而非亢奋顶。</p>
   </div>
+</div>
+
+<!-- 盘中快照 -->
+<div class="intraday">
+  <h3>🔴 2026-09-22（周二）盘中实时快照 · 截至 10:54（未定盘，仅作盘面温度参考）</h3>
+  <table>
+    <tr><th style="width:110px;">指数</th><th style="width:110px;">点位</th><th style="width:80px;">涨跌</th><th>行业涨幅居前（东财一级/二级）</th></tr>
+    <tr><td>上证指数</td><td>3959.44</td><td class="up">+0.24%</td><td rowspan="5" style="vertical-align:top;white-space:normal;">广告媒体 +4.84%｜大众出版 +4.24%｜出版 +4.03%｜其他医疗服务 +3.99%｜会展服务 +3.73%｜房产租赁经纪 +3.63%｜<b>数字芯片设计 +3.62%</b>｜广告营销 +3.60%｜营销代理 +3.46%｜疫苗 +3.14%</td></tr>
+    <tr><td>深证成指</td><td>13834.27</td><td class="up">+0.76%</td></tr>
+    <tr><td>创业板指</td><td>3439.33</td><td class="up">+1.17%</td></tr>
+    <tr><td>科创50</td><td>1687.48</td><td class="up">+1.81%</td></tr>
+    <tr><td>沪深300</td><td>4565.58</td><td class="up">+0.57%</td></tr>
+    <tr><td colspan="3" style="text-align:left;"><b>主力净流入居前</b></td><td style="white-space:normal;"><b>电子 +93.4 亿</b>｜<b>半导体 +78.4 亿</b>｜数字芯片设计 +71.9 亿｜计算机 +35.3 亿｜传媒 +27.2 亿｜计算机设备 +17.6 亿</td></tr>
+  </table>
+  <p class="note" style="margin-top:8px;">
+    <b>盘中观察（未定盘，非结论）：</b>09-22 早盘风格与 09-21 出现明显切换——09-21 资金净流出 49.8 亿的 <b>半导体</b>，今日盘中转为净流入 78.4 亿，<b>电子一级 93.4 亿居首</b>，数字芯片设计同步放量；同时 <b>传媒出版链（广告媒体/出版/营销）</b>与 <b>医药（其他医疗服务、疫苗）</b>延续活跃。
+    即 09-21 的「医药+地产补涨」进入第二日，而 09-21 被兑现的科技方向盘中出现回流，<b>是否形成有效接力以收盘为准</b>，不可据盘中数据下结论。
+  </p>
 </div>
 
 <!-- 结论区 -->
 <div class="concl">
-  <h2>③ 主线判定结论（基于 2026-09-18 周五收盘）</h2>
+  <h2>③ 主线判定结论（基于 2026-09-21 周一收盘）</h2>
   <div id="conclBody"></div>
 </div>
 
@@ -198,19 +229,25 @@
 <script>
 const POS_SCORE={'低位启动':5,'趋势中段':4,'高位加速':2,'过热爆量':1};
 const CAT_OPT=['政策密集','业绩窗口','事件驱动','无'];
-// 2026-09-18 周五真实收盘数据（东方财富 push2，经 ths-advanced-analysis 取数）——本报表为周日休市，仅作参考快照
+// ===== 2026-09-21（周一）收盘真实数据（东方财富 push2/push2his，ths-advanced-analysis 口径）=====
 const seed=[
- {n:'半导体',z:4.35,f:182.2,zt:5,lb:1,vb:4.65,mr:'中芯国际、北方华创',pos:'趋势中段',days:2,cat:'政策密集',s:[3,5,5,4,5]},
- {n:'数字芯片设计',z:4.68,f:75.3,zt:1,lb:1,vb:4.12,mr:'兆易创新、海光信息',pos:'趋势中段',days:2,cat:'政策密集',s:[3,5,4,4,5]},
- {n:'光学光电子',z:1.84,f:21.7,zt:2,lb:1,vb:3.87,mr:'京东方A、TCL科技',pos:'低位启动',days:3,cat:'事件驱动',s:[4,4,4,5,4]},
- {n:'通信网络设备及器件',z:2.86,f:67.5,zt:0,lb:0,vb:4.29,mr:'中际旭创、新易盛',pos:'趋势中段',days:2,cat:'政策密集',s:[3,5,3,4,5]},
- {n:'计算机',z:1.9,f:31.8,zt:4,lb:1,vb:2.45,mr:'金山办公、科大讯飞',pos:'低位启动',days:1,cat:'事件驱动',s:[2,4,5,5,4]},
- {n:'电网设备',z:2.0,f:15.7,zt:6,lb:1,vb:2.65,mr:'特变电工、许继电气',pos:'趋势中段',days:1,cat:'政策密集',s:[2,4,5,4,5]},
- {n:'半导体设备',z:4.83,f:18.2,zt:1,lb:1,vb:3.48,mr:'北方华创、中微公司',pos:'趋势中段',days:2,cat:'政策密集',s:[3,4,3,4,5]},
- {n:'消费电子',z:1.83,f:19.0,zt:1,lb:2,vb:2.06,mr:'立讯精密、歌尔股份',pos:'低位启动',days:1,cat:'事件驱动',s:[2,4,3,5,4]},
- {n:'集成电路封测',z:4.43,f:50.8,zt:1,lb:1,vb:8.77,mr:'长电科技、华天科技',pos:'高位加速',days:2,cat:'事件驱动',s:[3,5,3,2,4]},
- {n:'半导体材料',z:3.11,f:12.8,zt:0,lb:0,vb:6.85,mr:'沪硅产业、江丰电子',pos:'高位加速',days:1,cat:'政策密集',s:[2,4,3,2,5]}
+ {n:'医疗服务',z:5.21,f:12.61,zt:5,lb:3,vb:1.52,mr:'南华生物、诺禾致源',pos:'趋势中段',days:4,cat:'政策密集',s:[5,5,5,4,5]},
+ {n:'医药生物',z:4.06,f:67.42,zt:12,lb:3,vb:1.68,mr:'华仁药业、哈药股份',pos:'趋势中段',days:3,cat:'政策密集',s:[4,5,5,4,5]},
+ {n:'医疗研发外包',z:5.27,f:9.83,zt:1,lb:1,vb:1.48,mr:'药明康德、康龙化成',pos:'趋势中段',days:4,cat:'政策密集',s:[5,5,3,4,5]},
+ {n:'化学制药',z:4.69,f:27.62,zt:8,lb:1,vb:1.84,mr:'华仁药业、哈药股份',pos:'低位启动',days:1,cat:'政策密集',s:[2,4,5,5,5]},
+ {n:'光学光电子',z:1.82,f:5.32,zt:2,lb:1,vb:1.32,mr:'深华发Ａ、翔腾新材',pos:'低位启动',days:4,cat:'无',s:[5,4,3,5,3]},
+ {n:'生物制品',z:4.57,f:12.0,zt:1,lb:1,vb:1.82,mr:'近岸蛋白、义翘神州',pos:'低位启动',days:1,cat:'政策密集',s:[2,4,3,5,5]},
+ {n:'医疗器械',z:3.39,f:5.3,zt:3,lb:1,vb:1.56,mr:'洁特生物、透景生命',pos:'低位启动',days:1,cat:'政策密集',s:[2,3,4,5,5]},
+ {n:'房产租赁经纪',z:7.35,f:2.66,zt:2,lb:4,vb:1.87,mr:'世联行、我爱我家',pos:'高位加速',days:4,cat:'事件驱动',s:[5,3,4,2,4]},
+ {n:'印制电路板',z:2.78,f:24.38,zt:2,lb:1,vb:0.99,mr:'广合科技、超颖电子',pos:'高位加速',days:1,cat:'事件驱动',s:[2,3,3,2,4]},
+ {n:'元件',z:2.27,f:14.77,zt:2,lb:1,vb:1.01,mr:'广合科技、超颖电子',pos:'高位加速',days:1,cat:'事件驱动',s:[2,3,3,2,4]}
 ];
+const NOTE_0921='<b>09-21 核心叙事：</b>① <b>医药生物为全市场唯一强主线</b>——一级板块主力净流入 <b>67.4 亿（全市场第一）</b>、涨停 12 家（最多），细分为「创新药 + CXO + 医疗服务 + 器械 + 生物制品」全面开花，三重政策催化叠加：工信部等十部门《医药工业发展"十五五"规划》（09-18，创新药规模年均增速 20%+、FIC 占全球 25%、支持 AI 赋能药物研发）、国家医保局《高水平新技术新产品医疗服务价格项目预立项制度》（提前介入定价）、09-20 国新办发布会国家药监局表态支持创新药械；外围另传美国拟收窄对华生物医药投资审查范围，改善 CXO 出海合规预期。<br>'+
+ '② <b>地产链午后补位</b>：房产租赁经纪 +7.35%（连续 4 日上榜、四连阳累计约 +22%）、房地产服务 +4.54%，世联行 4 板、我爱我家涨停；该方向<b>未取得文件级政策催化</b>，更多是资金由高位科技向低位方向的高低切换补涨，故催化仅给「事件驱动」。<br>'+
+ '③ <b>科技方向被兑现</b>：半导体主力净流出 <b>-49.8 亿</b>、电子 -43.0 亿、集成电路封测 -27.7 亿、有色金属 -22.3 亿，09-18 的科技主线当日退潮（半导体仅 +0.20%、1 家涨停）。<br>'+
+ '④ <b>当日为「存量资金高低切换」而非增量突破</b>：指数普涨（超 4500 只个股上涨、涨停 103 家）但成交缩量约 448 亿，微盘股活跃、中小盘强于权重，连板梯队由 2–3 板抬升至 5 板，短线情绪未因缩量转弱。<br>'+
+ '<b>风险提示：</b>① 医药单日爆发属「消息密集催化 + 板块估值低位」共振，<b>化学制药涨停股以低价股为主（华仁药业、哈药股份、新华制药、华北制药、哈三联等）</b>，题材属性重于基本面，需防次日分化；<b>数据佐证：化学制药当日虽净流入 27.6 亿，但前 4 个交易日多为净流出（-8.93/-1.15/-0.18/-2.26 亿）</b>，资金为单日脉冲式流入而非持续建仓。② CXO/医疗服务/医药生物资金<b>已连续 3–4 日净流入</b>（医疗服务 09-16 起连续为正），持续性最好，但医疗研发外包当日换手已达 6.46%、位置升至趋势中段偏后。③ 房产租赁经纪换手 <b>12.72%</b>、四连阳累计涨幅大、世联行已 4 板，<b>位置分仅 2 分（高位加速）</b>，是本周最需防分化的方向。④ PCB/元件 当日净流入 24.4 亿 / 14.8 亿但<b>日量比仅 0.99 / 1.01（无放量）</b>，且 09-17 曾单日净流出 63.0 亿 / 81.0 亿，资金反复剧烈，仅列「待验证」。<br>'+
+ '<b>跟踪要点（下一交易日 09-22）：</b>① 医药能否「缩量换手继续晋级」——重点看化学制药低价股封板溢出效应是否向 CXO/创新药中军（药明康德、康龙化成、恒瑞医药）扩散；② 地产链世联行 4 板后是否承接（5 板高度是情绪标尺）；③ 09-21 净流出的半导体能否在 09-22 回流形成接力（<b>盘中已见迹象，见上方盘中快照</b>）。真正的持续性主线往往在「怀疑它能否继续」时走出来——要跟踪，不预判。';
 
 function rowHTML(d){
   d=d||{n:'',z:'',f:'',zt:'',lb:'',vb:'',mr:'',pos:'趋势中段',days:'',cat:'无',s:[3,3,3,4,3]};
@@ -220,16 +257,16 @@ function rowHTML(d){
    <td><input class="f" type="number" step="0.1" value="${d.f}" oninput="recalc()"></td>
    <td><input class="zt" type="number" value="${d.zt}" oninput="recalc()"></td>
    <td><input class="lb" type="number" value="${d.lb}" oninput="recalc()"></td>
-   <td><input class="vb" type="number" step="0.1" value="${d.vb}" oninput="recalc()"></td>
+   <td><input class="vb" type="number" step="0.01" value="${d.vb}" oninput="recalc()"></td>
    <td class="mr"><input class="mr" value="${d.mr}" oninput="recalc()"></td>
    <td><select class="pos" onchange="recalc()">${['低位启动','趋势中段','高位加速','过热爆量'].map(p=>`<option ${p==d.pos?'selected':''}>${p}</option>`).join('')}</select></td>
    <td><input class="days" type="number" value="${d.days}" oninput="recalc()"></td>
    <td><select class="cat" onchange="recalc()">${CAT_OPT.map(c=>`<option ${c==d.cat?'selected':''}>${c}</option>`).join('')}</select></td>
-   <td class="sc"><select class="s0 score-select" onchange="recalc()">${opt(d.s[0])}</td>
-   <td class="sc"><select class="s1 score-select" onchange="recalc()">${opt(d.s[1])}</td>
-   <td class="sc"><select class="s2 score-select" onchange="recalc()">${opt(d.s[2])}</td>
-   <td class="sc"><select class="s3 score-select" onchange="recalc()">${opt(d.s[3])}</td>
-   <td class="sc"><select class="s4 score-select" onchange="recalc()">${opt(d.s[4])}</td>
+   <td class="sc"><select class="s0 score-select" onchange="recalc()">${opt(d.s[0])}</select></td>
+   <td class="sc"><select class="s1 score-select" onchange="recalc()">${opt(d.s[1])}</select></td>
+   <td class="sc"><select class="s2 score-select" onchange="recalc()">${opt(d.s[2])}</select></td>
+   <td class="sc"><select class="s3 score-select" onchange="recalc()">${opt(d.s[3])}</select></td>
+   <td class="sc"><select class="s4 score-select" onchange="recalc()">${opt(d.s[4])}</select></td>
    <td class="total"><span class="tot">${((d.s[0]+d.s[1]+d.s[2]+d.s[3]+d.s[4])/5).toFixed(2)}</span></td>
   </tr>`;
 }
@@ -237,9 +274,9 @@ function opt(v){let s='';for(let i=0;i<=5;i++)s+=`<option ${i==v?'selected':''}>
 
 function addRow(){document.getElementById('boardBody').insertAdjacentHTML('beforeend',rowHTML());}
 async function loadSeed(){
-  // 先渲染参考快照（离线 file:// 也可用）
+  // 先渲染离线快照（file:// 下也可用）
   document.getElementById('boardBody').innerHTML=seed.map(rowHTML).join('');recalc();
-  // 再尝试加载当日数据（HTTP 服务下由自动任务刷新 sector-rotation-data.json）
+  // HTTP 服务下优先加载落盘的当日数据文件
   try{
     const r=await fetch('sector-rotation-data.json',{cache:'no-store'});
     if(r.ok){const d=await r.json();if(Array.isArray(d)&&d.length){document.getElementById('boardBody').innerHTML=d.map(rowHTML).join('');recalc();}}
@@ -262,23 +299,23 @@ function recalc(){
   const mZT=document.getElementById('mZT').value, mDT=document.getElementById('mDT').value;
   const mLB=document.getElementById('mLB').value;
   const hot=data.filter(r=>r.zt>=20);
-  const cand=data.filter(r=>r.z>0&&r.f>0).length;
   document.getElementById('kpiBox').innerHTML=`
-    <div class="box"><div class="lbl">涨停家数(参考)</div><div class="num">${mZT||'—'}</div></div>
-    <div class="box"><div class="lbl">连板高度(参考)</div><div class="num">${mLB||'—'}</div></div>
+    <div class="box"><div class="lbl">涨停家数</div><div class="num">${mZT||'—'}</div></div>
     <div class="box"><div class="lbl">跌停家数</div><div class="num">${mDT||'—'}</div></div>
+    <div class="box"><div class="lbl">连板高度</div><div class="num">${mLB||'—'}</div></div>
     <div class="box"><div class="lbl">过热板块(涨停≥20)</div><div class="num" style="color:${hot.length?'var(--warn)':'var(--ok)'}">${hot.length}</div></div>
-    <div class="box"><div class="lbl">候选主线(五维≥3.5)</div><div class="num">${data.filter(r=>(r.s[0]+r.s[1]+r.s[2]+r.s[3]+r.s[4])/5>=3.5).length}</div></div>`;
+    <div class="box"><div class="lbl">真主线(五维≥3.5)</div><div class="num">${data.filter(r=>(r.s[0]+r.s[1]+r.s[2]+r.s[3]+r.s[4])/5>=3.5).length}</div></div>
+    <div class="box"><div class="lbl">最大单板块涨停</div><div class="num">${data.length?Math.max(...data.map(r=>r.zt)):'—'}</div></div>`;
 
   const byZ=[...data].sort((a,b)=>b.z-a.z);
   const byF=[...data].sort((a,b)=>b.f-a.f);
   const zTop=new Set(byZ.slice(0,5).map(r=>r.n));
   const fTop=new Set(byF.slice(0,5).map(r=>r.n));
-  document.getElementById('rankBody').innerHTML=data.sort((a,b)=>b.z-a.z).map(r=>{
+  document.getElementById('rankBody').innerHTML=[...data].sort((a,b)=>b.z-a.z).map(r=>{
     const both=zTop.has(r.n)&&fTop.has(r.n);
     return `<tr><td class="name">${r.n}</td>
-      <td class="${r.z>=0?'up':'down'}">${r.z}</td>
-      <td class="${r.f>=0?'up':'down'}">${r.f}</td>
+      <td class="${r.z>=0?'up':'down'}">${r.z>=0?'+':''}${r.z}</td>
+      <td class="${r.f>=0?'up':'down'}">${r.f>=0?'+':''}${r.f}</td>
       <td>${r.zt||'-'}</td>
       <td>${both?'<span class="pill main">双榜交集·候选主线</span>':(zTop.has(r.n)?'涨幅TOP5':(fTop.has(r.n)?'资金TOP5':'-'))}</td></tr>`;
   }).join('');
@@ -300,21 +337,21 @@ function recalc(){
   const judged=[...data].sort((a,b)=>b.score-a.score);
   const main=judged.filter(r=>r.score>=3.5);
   const wait=judged.filter(r=>r.score>=2.5&&r.score<3.5);
-  const mainTxt=main.length?main.map(r=>`<b>${r.n}</b>（${r.score.toFixed(2)}分，位置：${r.pos}，催化：${r.cat}）`).join('、'):'暂无（五维均分≥3.5方为真主线）';
-  const waitTxt=wait.length?wait.map(r=>`${r.n}（${r.score.toFixed(2)}分）`).join('、'):'无';
-  const hotTxt=hot.length?hot.map(r=>`<b>${r.n}</b>（涨停${r.zt}家，已触发过热红线，次日家数腰斩概率≈66%，追高性价比下降）`).join('；'):'无（无单板块涨停≥20家，主线未到过热红线）';
+  const mainTxt=main.length?main.map(r=>`<b>${r.n}</b>（${r.score.toFixed(2)}分｜涨${r.z>=0?'+':''}${r.z}%｜净流入${r.f>=0?'+':''}${r.f}亿｜涨停${r.zt}家｜上榜${r.days}日｜${r.pos}）`).join('、'):'暂无（五维均分≥3.5 方为真主线）';
+  const waitTxt=wait.length?wait.map(r=>`${r.n}（${r.score.toFixed(2)}分｜涨${r.z>=0?'+':''}${r.z}%｜净流入${r.f>=0?'+':''}${r.f}亿｜${r.pos}）`).join('、'):'无';
+  const hotTxt=hot.length?hot.map(r=>`<b>${r.n}</b>（涨停${r.zt}家，已触发过热红线，次日家数腰斩概率≈66%，追高性价比下降）`).join('；'):'无（最大单板块涨停 12 家·医药生物，未触及涨停≥20 家红线，主线处于发酵期而非亢奋顶）';
   const track=judged.slice(0,3).map(r=>`跟踪 <b>${r.n}</b>：次日是否「缩量换手继续晋级」还是「家数腰斩退潮」；中军是否放量确认机构态度`).join('。');
   document.getElementById('conclBody').innerHTML=`
-    <div class="blk main"><b>★ 参考交易日（09-18 周五）主线（五维≥3.5，共 ${main.length} 条）：</b><br>${mainTxt}</div>
+    <div class="blk main"><b>★ 数据基准日（09-21 周一）真主线（五维均分≥3.5，共 ${main.length} 条）：</b><br>${mainTxt}</div>
     <div class="blk wait"><b>◐ 待验证（2.5–3.49，共 ${wait.length} 条）：</b><br>${waitTxt}</div>
-    <div class="blk hot"><b>🔥 过热警示（涨停≥20家）：</b><br>${hotTxt}</div>
+    <div class="blk hot"><b>🔥 过热警示（涨停≥20 家）：</b><br>${hotTxt}</div>
     <div class="blk track"><b>📌 跟踪要点：</b><br>${track||'——'}</div>
-    <p class="note">判定规则：时间持续性+资金质量+广度扩散+位置过热(低位/中段优，高位/过热脆)+催化环境，五维均分≥3.5为真主线；同时以「涨幅榜∩资金榜」交集确认候选，涨停≥20家触发过热红线。<b>09-18 为「半导体/AI硬件全产业链 + 光模块（通信网络设备） + 计算机（AI软件） + 电网设备」科技-电力共振的普涨日</b>（科创50 +2.88%、创业板 +2.25% 领涨）：① <b>半导体</b>一级板块主力净流入 182 亿、100 涨 0 跌、5 家涨停，为全市场最确定主线，09-17 退潮后今日全面回流；<b>数字芯片设计</b>(+4.68%/75亿)、<b>半导体设备</b>(+4.83%/18亿)、<b>集成电路封测</b>(+4.43%/51亿)同步放量，构成「设计-制造-封测-设备」全产业链共振；② <b>通信网络设备（光模块）</b>净流入 67 亿、中际旭创领涨，AI 算力硬件延续强势；③ <b>计算机（AI软件/信创）</b>100 涨 0 跌、4 家涨停，低位启动；④ <b>光学光电子（面板）</b>低位启动、85 涨 9 跌，机构暗线；⑤ <b>电网设备</b>6 家涨停为全市场涨停广度第一（特高压/新型电力系统政策），但资金仅约 16 亿、以小票题材为主，需防分化。<b>风险提示</b>：集成电路封测（量比 8.77 极端爆量、高位加速、仅 1 涨停）与半导体材料（量比 6.85、高位加速、0 涨停）资金强但位置过热，次日若缩量需防回落；全市场涨停 78 家（较 09-17 的 47 家回升但仍非亢奋），最高连板仅 4 板（华瓷股份·家居、锡华科技·风电，均非科技主线），说明科技主线由「机构/趋势资金 + 广度」驱动而非「连板梯队」，整体健康但持续性待确认。真正的持续性主线往往在"怀疑它能否继续"时走出来——要跟踪，不预判。<br><br>⚠️ <b>本报表生成于周日（2026-09-20）休市日，以上全部为 09-18 周五收盘快照，非当日交易数据。下一交易日 09-21 周一收盘后将生成含真实当日数据的报告。</b></p>`;
+    <p class="note">判定规则：时间持续性 + 资金质量 + 广度扩散 + 位置过热（低位/中段优，高位/过热脆）+ 催化环境，五维均分≥3.5 为真主线；同时以「涨幅榜 ∩ 资金榜」交集确认候选，单板块涨停≥20 家触发过热红线。<br><br>${NOTE_0921}<br><br>⚠️ <b>本报告生成于 2026-09-22（周二）上午盘中，正文全部数据为 2026-09-21（周一）收盘口径；09-22 当日数据以文末盘中快照为准（未定盘）。所有结论不构成投资建议。</b></p>`;
 }
 
 function exportJSON(){
   const data=getData();
-  const obj={date:document.getElementById('repDate').value,source:'东方财富push2(ths-advanced-analysis)',
+  const obj={date:document.getElementById('repDate').value,source:'东方财富push2/push2his(ths-advanced-analysis 口径)',
     market:{zt:document.getElementById('mZT').value,dt:document.getElementById('mDT').value,
       lb:document.getElementById('mLB').value,vol:document.getElementById('mVol').value},
     boards:data};
