@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-国金证券 PTrade 量化策略 —— 长线股「核心-卫星 + 波段 + 日内T」三层架构
+山西证券 PTrade 量化策略 —— 长线股「核心-卫星 + 波段 + 日内T」三层架构
 =====================================================================
-平台：PTrade（恒生系白标，Python 3.5 托管环境，无外网、无 os 模块）
+平台：山西证券 PTrade（恒生系白标，Python 3.5 托管环境，无外网、无 os 模块）
 约束（来自 ptrade-strategy-dev 技能，逐条已落实）：
   - 代码后缀 .SS / .SZ / .BJ；内部比较一律用 6 位纯数字（_canon）
   - T+1：卖出必须用 enable_amount（可卖量），current_amount 含当日新仓
@@ -15,6 +15,15 @@
   - 任何接口降级必须 log.warning，绝不静默换口径
 
 默认 TRADE_ENABLED = False：先信号模式跑 3~5 日核对日志，再模拟盘，最后小资金实盘。
+
+山西证券实测口径（ptrade-strategy-dev 技能；与国金版接口层一致）：
+  - get_history 含当日 bar：本策略 3 处日线取数均在 before_trading_start（盘前），
+    此时当日 bar 尚未生成，末根仍为昨收 -> 不受该差异影响（已核查全部调用点）
+  - volume 单位为股；order_value 限价参数名为 limit_price（本策略只用 order_target_value 市价单，不涉及）
+  - 若该引擎不向 handle_data 传 data（技能实测有此行为），L3 自动退化：
+    data -> get_snapshot(last_px) -> 皆无则关闭 L3（预期降级，日志有 [口径] 标注，不影响 L1/L2）
+
+版本：★山西PTrade V1.0★（与国金PTrade_三层量化策略.py 同逻辑，仅券商适配，交易逻辑零改动）
 """
 
 # ============================== 全局状态 ==============================
@@ -562,7 +571,7 @@ def initialize(context):
     g["STATS"] = {"n": 0, "by_reason": {}}
     g["intr_checked"] = False
     g["intr_ok"] = False
-    log.info("[初始化] 国金PTrade三层策略 | 标的%d | L1=%.0f%% L2=%.0f%% | TRADE=%s" %
+    log.info("[初始化] ★山西PTrade V1.0★ 三层策略 | 标的%d | L1=%.0f%% L2=%.0f%% | TRADE=%s" %
              (len(STOCKS), L1_RATIO * 100, L2_RATIO * 100, TRADE_ENABLED))
 
 

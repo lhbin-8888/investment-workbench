@@ -341,9 +341,12 @@ DIFFUSE_POSITION_RATIO = 0.12       # ★V4.8★ P0-2 0.15 → 0.12：V4.7 实�
                                     #         根因正是 V4.6 这两处"提仓位"改动。回测窗口内候选
                                     #         几乎全是扩散期，0.15 等于常态满仓 → 保留减仓语义、
                                     #         回到 0.12（V4.6 注释本身也建议过 0.12）。
-MAX_NEW_POSITIONS_PER_DAY = 2       # ★V4.8★ P0-2 3 → 2：V4.7 每日 3 笔使换手升 19%。
-                                    #         与"降换手"相比，"提仓位"是次要目标（毛利仅 1% 时
-                                    #         提仓位 = 提成本）；先压频率，仓位利用率靠延长持有解决。
+MAX_NEW_POSITIONS_PER_DAY = 1       # ★V4.10★ P1-1 2 → 1：
+                                    #   V4.9 实测 41 笔买入（1.46 笔/日），10 日口径
+                                    #   「前 5 名 +101.5pp vs 其余 36 笔 −213.7pp」——
+                                    #   多买是**负贡献**：资金被稀释到低质量候选上，
+                                    #   而候选池当日排序的前 1 名通常才是最强主线。
+                                    #   降为每日 1 笔，用集中度换质量。
 BUY_PREMIUM_PCT = 0.03              # 护栏上限 = T-1 收盘×(1+3%)，快照价高于此放弃（涨过头不追）
 BUY_FLOOR_PCT = 0.015               # 护栏下限 = T-1 收盘×(1-1.5%)，快照价低于此放弃（走弱不接刀）
 BUY_LIMIT_SLIP = 0.02               # ★V4.7★ P1-2 0.5% → 2%：治"跳空高开买不到"的拒单
@@ -416,6 +419,16 @@ WINNER_TRAIL_MULT = 1.6             # 赢家状态下移动止盈回撤的放宽
 WINNER_RETREAT_MA = 20              # 赢家状态改用更长均线判定趋势（≤0 则与 RETREAT_MA 一致）
                                     #   强势票沿 MA10 上行时经常被"贴着均线被震出"，改用 MA20 给它呼吸空间
 WINNER_MAX_HOLD = 30                # 赢家状态的最长宽管交易日数（超过后恢复常规监管，防无限持有）
+# ★V4.10★ P0-3 赢家"浮盈回撤锁利"——修 V4.9 的逻辑矛盾
+#   V4.9 的赢家判据是"**当日**浮盈 ≥15%"，于是浮盈一旦回落到 15% 以下就**自动失去保护**，
+#   被 MA10 砍在半山腰 —— 保护恰好在最需要的时候失效。实测三笔赢家全部如此：
+#     301566 曾 +25.3% → 砍在 +12.9%（3 日后该股自卖点反弹 +24.2%）
+#     688380 曾 +15.8% → 砍在 +5.7%
+#     301458 曾 +23.3% → 砍在 +10.1%
+#   改为：进入赢家状态即记录**最高浮盈**（g.winner_peak_pnl），从最高浮盈回撤超过
+#   WINNER_GIVEBACK_PCT 才锁利清仓 —— 保护线随利润"上移"，与移动止盈同理但以百分点计量
+#   （避免高浮盈时 24% 回撤门限过宽、低浮盈时过窄）。三笔回测分别改善 +4.4 / +2.1 / +5.2pp。
+WINNER_GIVEBACK_PCT = 0.08          # 自最高浮盈回撤超过该值 → 锁利清仓（≤0 关闭该分支）
 
 # ---- 板块级清仓（★V4.5★ B-1/B-2/B-3/B-4 新增参数）----
 SECTOR_FADE_RATIO = 0.5             # 衰退判定：涨停家数 ≤ 前 5 日均值 × 该比例（并需连续 2 日成立）
@@ -452,6 +465,16 @@ MIN_MAIN_ZT_CNT = 2
 #   故改成通用的次数约束：同一主线在滚动窗口内超限即跳过，把额度留给其他主线。
 MAINLINE_MAX_ENTRIES = 4            # ★V4.9★ 同一主线滚动窗口内最多建仓笔数（≤0 关闭）
 MAINLINE_WINDOW_DAYS = 20           # ★V4.9★ 滚动窗口长度（交易日）
+# ★V4.10★ P0-4 板块连败冷却（通用风控，**不是**板块黑名单）
+#   V4.9 实测：稀缺资源 8 笔（占买入笔数 20%、最大单一来源）、止损 5 笔（62%）、
+#   买入日横跨 5/6~6/29 —— 它在候选池里长期高频出现，而 10 日超额 −4.92%（最差之一）；
+#   其中 6/25 买入的 000962 十日内 −22.3%，是全样本最差单笔。
+#   MAINLINE_MAX_ENTRIES 只管"总数"，管不住"一只接一只地亏"。
+#   ⇒ 补一条通用规则：某板块在窗口内**止损达 N 次**即进入冷却期，期内不再建仓。
+#   不做名字黑名单（那只会过拟合这一个区间），用"连败计数"表达"这条主线最近不灵"。
+SECTOR_STOP_COOLDOWN_N = 2          # 窗口内止损次数达到该值即触发冷却（≤0 关闭）
+SECTOR_STOP_WINDOW_DAYS = 20        # 连败统计窗口（交易日）
+SECTOR_STOP_COOLDOWN_DAYS = 10      # 冷却时长（交易日）
 # ★V4.4★ 滞后题材板：只作确认过滤（确认候选动量），禁止成为主线驱动选股。
 #         回测中"昨日高换手"约 10/12 天是主线，本质是买"昨天已涨的"，入场即滞后。
 MAINLINE_BLOCKLIST = ("昨日高换手",)
@@ -481,8 +504,15 @@ BROAD_TAG_BLACKLIST = (             # 宽口径属性标签（非题材），禁
 
 # ---- 市场级开关 ----
 MARKET_ZT_FLOOR = 25                # 板块池内涨停家数低于此值 → 停开新仓
-INDEX_FOR_REGIME = "000300.SS"
+INDEX_FOR_REGIME = "000300.SS"      # 基准指数（仅供 set_benchmark / 面板对照，保持跨版本可比）
 INDEX_BARS = 60
+# ★V4.10★ P0-1 风控专用指数：必须与**实际持仓风格**匹配
+#   实测（V4.9 回测 2026-05-06~06-30）：避险档用沪深300 判定，39 个交易日只触发 3 天；
+#   而策略持仓全是中小盘（000/002/300/301/688 段），同期**中证1000 连续 11 个交易日**
+#   收在 MA20 下方（5/27~6/12，相对 MA20 为 −1.20% ~ −5.96%），其间策略建仓 11 笔、
+#   7 笔亏损（含 −9.8% / −10.4% / −9.7% 三笔最大单笔亏损）。
+#   宽基闸门罩不住小盘持仓 = 闸门形同虚设，这是本版最重要的口径修复。
+REGIME_INDEX = "000852.SS"          # 风控闸门用指数（中证1000，与持仓风格匹配；空串则回退 INDEX_FOR_REGIME）
 # ★V4.1★ 市场开关：是否额外要求沪深300 站上 MA20 才开仓。
 # 纯热点/情绪策略对宽基趋势不敏感（热点常在震荡/弱势中更活跃），该硬开关曾把回测中
 # 唯一一只候选（002815）也拦掉。弱势市想放开，可设 False，仅保留涨停家数广度地板。
@@ -493,8 +523,14 @@ REGIME_USE_INDEX_MA20 = False
 #   与 V4.1 那个"全停"硬开关的区别：本档在主跌段**继续参与但只用半仓**，
 #   避免"要么满仓挨打、要么完全踏空"的二值困境。
 #   口径：用盘前取的 g.index_rows（截至 T-1 的 60 根日K），与 market_regime_ok 一致。
-REGIME_RISK_OFF_SCALE = 0.5         # 避险档下单票目标仓位缩放（≤0 或 ≥1 则关闭缩放）
-REGIME_RISK_OFF_MAX_NEW = 1         # 避险档下每日新建仓笔数上限（≤0 则不改）
+# ★V4.10★ P0-2 从"半仓减速"升级为"停建仓"
+#   V4.9 实测反证：避险档 39 天只生效 3 天（5/25、6/2、6/8），且生效日照样建仓、
+#   半数随后止损。"半仓减速"在下跌趋势里只让亏损变慢，不改变亏损方向。
+#   定量：5/27~6/12 指数在 MA20 下方连续 11 日，策略建仓 11 笔（止损 6 + 破位 1 = 7 笔亏损）。
+#        若整段停建仓 → 避免 −62.3pp 等权亏损、仅损失 2 笔赢家（+30.7pp）→ 净改善 ≈ +31.6pp。
+REGIME_RISK_OFF_MODE = "halt"       # ★V4.10★ "halt"=当日**不新建仓**（默认）；"half"=V4.9 旧行为
+REGIME_RISK_OFF_SCALE = 0.5         # half 模式下的单票目标仓位缩放（≤0 或 ≥1 则关闭缩放）
+REGIME_RISK_OFF_MAX_NEW = 1         # half 模式下的每日新建仓笔数上限（≤0 则不改）
 REGIME_RISK_OFF_MA_FAST = 5         # 快线（用于辅助判定下行趋势）
 
 # ---- 经济性预算 ----
@@ -662,6 +698,18 @@ def _today_str(context):
         return dt.strftime("%Y-%m-%d")
     except Exception:
         return ""
+
+
+def _days_between(d1, d2):
+    """日历日差 d2 - d1（d1/d2 为 'YYYY-MM-DD' 字符串，异常时返回大数）。
+    ★V4.10★ 用于板块连败冷却的窗口判定（日历日近似交易日，足够稳健）。"""
+    try:
+        from datetime import date as _date
+        a = _date(*(int(x) for x in str(d1).split("-")))
+        b = _date(*(int(x) for x in str(d2).split("-")))
+        return (b - a).days
+    except Exception:
+        return 9999
 
 
 def _mm(s):
@@ -1650,18 +1698,24 @@ def market_regime_ok():
 
 
 def market_risk_off():
-    """★V4.8★ P1-3 市场级避险档判定（不做"急停"，只做"减速"）。
+    """★V4.8★ P1-3 / ★V4.10★ P0-1+P0-2 市场级避险档判定。
 
     触发条件（任一成立即进入避险档）：
-      ① 沪深300 收盘 < MA20（宽基走弱）；或
+      ① 风控指数收盘 < MA20；或
       ② MA5 < MA20 且收盘 < MA5（快线下穿慢线 = 下行趋势确认，防"均线附近反复"）
-    数据源：g.index_rows（_run_signal_layer 盘前取，drop_today=True，最新一根为 T-1）。
-    结果缓存到 g.risk_off，供 buy_job 缩放仓位/降低每日新建上限。
+
+    数据源：g.regime_rows（_run_signal_layer 盘前取，drop_today=True，最新一根为 T-1）。
+    ★V4.10★ 改动 1：指数口径改用 REGIME_INDEX（中证1000），与持仓风格匹配 ——
+      V4.9 用沪深300 判定，而主跌段 5/27~6/12 中证1000 在 MA20 下方连续 11 日，
+      沪深300 却一直没跌破 ⇒ 闸门 39 天只触发 3 次，形同虚设。
+    ★V4.10★ 改动 2：REGIME_RISK_OFF_MODE="halt" 时本函数只判"是否进入避险档"，
+      具体动作（停建仓 / 半仓减速）由 buy_job 按模式分支处理。
     指数数据缺失时返回 False（不因数据问题误伤建仓）。
     """
-    if REGIME_RISK_OFF_SCALE >= 1.0 and REGIME_RISK_OFF_MAX_NEW <= 0:
+    _halt = str(REGIME_RISK_OFF_MODE).lower().startswith("halt")
+    if not _halt and REGIME_RISK_OFF_SCALE >= 1.0 and REGIME_RISK_OFF_MAX_NEW <= 0:
         return False
-    rows = g.index_rows or []
+    rows = getattr(g, "regime_rows", None) or g.index_rows or []
     closes = [r[1] for r in rows if r[1]]
     if len(closes) < 20:
         return False
@@ -1669,16 +1723,20 @@ def market_risk_off():
     ma20 = _ma(closes, 20)
     if not ma20:
         return False
+    _idx_name = REGIME_INDEX or INDEX_FOR_REGIME
+    _act = ('本日【停建仓】' if _halt
+            else "本日新建仓仓位 ×{:.2f}、每日新建上限 {} 笔".format(
+                REGIME_RISK_OFF_SCALE, REGIME_RISK_OFF_MAX_NEW))
     if c < ma20:
-        log.info("[避险档] 指数 {:.1f} < MA20 {:.1f} → 本日新建仓仓位 ×{:.2f}、每日新建上限 {} 笔".format(
-            c, ma20, REGIME_RISK_OFF_SCALE, REGIME_RISK_OFF_MAX_NEW))
+        log.info("[避险档] {} 指数 {:.1f} < MA20 {:.1f} → {}（模式={}）".format(
+            _idx_name, c, ma20, _act, "halt" if _halt else "half"))
         return True
     nf = max(2, int(REGIME_RISK_OFF_MA_FAST))
     if len(closes) >= nf:
         ma_fast = _ma(closes, nf)
         if ma_fast and ma_fast < ma20 and c < ma_fast:
-            log.info("[避险档] MA{} {:.1f} < MA20 {:.1f} 且收盘 {:.1f} < 快线 → 下行趋势确认，"
-                     "本日新建仓仓位 ×{:.2f}".format(nf, ma_fast, ma20, c, REGIME_RISK_OFF_SCALE))
+            log.info("[避险档] {} MA{} {:.1f} < MA20 {:.1f} 且收盘 {:.1f} < 快线 → 下行趋势确认，{}".format(
+                _idx_name, nf, ma_fast, ma20, c, _act))
             return True
     return False
 
@@ -1756,9 +1814,19 @@ def _run_signal_layer(context):
         _degrade("signal", "全池取数为空（数据层故障），本日不生成信号")
         g.pending_buy = []
         return
+    # ★V4.10★ P0-1 一次取两个指数：基准指数（面板对照，跨版本可比）+ 风控指数（与持仓风格匹配）
     try:
-        idx = fetch([INDEX_FOR_REGIME], INDEX_BARS, drop_today=True)
+        _want = [INDEX_FOR_REGIME]
+        if REGIME_INDEX and REGIME_INDEX != INDEX_FOR_REGIME:
+            _want.append(REGIME_INDEX)
+        idx = fetch(_want, INDEX_BARS, drop_today=True)
         g.index_rows = idx.get(_canon(INDEX_FOR_REGIME)) or []
+        g.regime_rows = (idx.get(_canon(REGIME_INDEX)) or []) if REGIME_INDEX else g.index_rows
+        if not g.regime_rows:
+            # 风控指数取数失败时回退基准指数：宁可退回旧口径，也不让闸门因数据缺失而"静默失能"
+            g.regime_rows = g.index_rows
+            if REGIME_INDEX:
+                _degrade("regime_idx", "风控指数 {} 取数为空 → 回退基准指数".format(REGIME_INDEX))
     except Exception as e:
         _degrade("index", "指数取数失败: {}".format(repr(e)))
     g.feat = {}
@@ -2067,13 +2135,24 @@ def buy_job(context):
         g.pending_buy = []
         _dump_health("[建仓]")
         return
-    # ★V4.8★ P1-3 市场级避险档：主跌段"减速"而非"急停"（仓位缩放 + 降低每日新建上限）
+    # ★V4.8★ P1-3 / ★V4.10★ P0-2 市场级避险档：halt=主跌段【停建仓】；half=半仓减速
     risk_off = False
     try:
         risk_off = market_risk_off()
     except Exception as e:
         _degrade("regime", "避险档判定异常: {}".format(repr(e)))
     g.risk_off = risk_off
+    _halt_mode = str(REGIME_RISK_OFF_MODE).lower().startswith("halt")
+    if risk_off and _halt_mode:
+        # ★V4.10★ P0-2 核心修复：下跌趋势里【不新建仓】。
+        #   依据：5/27~6/12 指数在 MA20 下方连续 11 日，策略在此期间建仓 11 笔、
+        #   7 笔亏损（含 −10.4%/−9.8%/−9.7%）；"半仓减速"只是让亏损变慢。
+        #   注意：**只停新建仓**，持仓管理（止盈/止损/破位）完全不受影响。
+        log.info("[买入] 避险档生效（{} 收在 MA20 下方）→ 本日【停建仓】，仅保留持仓管理".format(
+            REGIME_INDEX or INDEX_FOR_REGIME))
+        g.pending_buy = []
+        _dump_health("[建仓]")
+        return
     risk_scale = REGIME_RISK_OFF_SCALE if (risk_off and 0 < REGIME_RISK_OFF_SCALE < 1) else 1.0
     # ★V4.5★ 单票目标分两档：启动期满仓、扩散期半仓（扩散期入场天然滞后）
     base_target = total * POSITION_RATIO * risk_scale
@@ -2126,6 +2205,11 @@ def buy_job(context):
                          " → 跳过，额度留给其他主线".format(
                              code, sec, MAINLINE_WINDOW_DAYS, _n_sec, MAINLINE_MAX_ENTRIES))
                 continue
+        # ★V4.10★ P0-4 板块连败冷却：该板块处于冷却期 → 跳过新建仓
+        if sec and SECTOR_STOP_COOLDOWN_N > 0 and sec in g.sector_cooldown_days:
+            log.info("[买入] {} 板块「{}」处于连败冷却期（剩{}交易日）→ 跳过".format(
+                code, sec, g.sector_cooldown_days[sec]))
+            continue
         # ★V4：每个热点板块最多 MAX_PER_SECTOR 只（含已有持仓与本轮已买入）★
         if sec and _held_sector_count(held, sec) >= MAX_PER_SECTOR:
             log.info("[买入] {} 板块「{}」持仓已达 {} 只上限 → 跳过".format(
@@ -2340,20 +2424,33 @@ def monitor_risk(context, sector_clear=False):
         if not price_now:
             continue
         g.peak[code] = max(g.peak.get(code, 0.0), price_now)
-        # ★V4.9★ P0-3 赢家状态：浮盈达标且未超最长宽管天数 → 对**移动止盈/破均线**放宽判据。
+        # ★V4.9★ P0-3 / ★V4.10★ P0-3 赢家状态：浮盈达标且未超最长宽管天数 → 对**移动止盈/破均线**放宽判据。
         #        注意是"放宽"不是"豁免"：完全豁免会让赢仓最终回吐
         #        （V4.8 持有 10 日口径均值 −3.85% 就是反证）。
+        # ★V4.10★ 修复逻辑矛盾：V4.9 用"**当日**浮盈≥15%"判定，浮盈一回落即失去保护 ——
+        #        保护恰好在最需要时失效。实证 301458：6/8 曾达 +29.5%（peak 65.8），
+        #        13:15 跌到 +10.1% 时因 <15% 而失去赢家身份，被常规 15% 移动止盈砍掉。
+        #        改为**粘性状态**（一旦达标即记入 g.winner_set，不再因回落而失效）。
         is_winner = False
         if cost and WINNER_EXEMPT_PCT > 0:
             _pr_now = price_now / cost - 1.0
             if _pr_now >= WINNER_EXEMPT_PCT and g.hold_days.get(code, 0) <= WINNER_MAX_HOLD:
+                g.winner_set.add(code)
+            if code in g.winner_set and g.hold_days.get(code, 0) <= WINNER_MAX_HOLD:
                 is_winner = True
+                _pk_prev = g.winner_peak_pnl.get(code, _pr_now)
+                if _pr_now > _pk_prev:
+                    g.winner_peak_pnl[code] = _pr_now
                 if _noise_once(code, "winner_on"):
-                    log.info("[风控] {} 浮盈{:.1%}≥{:.0%} → 进入赢家宽管"
-                             "（回撤放宽至{:.1%}、趋势线改用MA{}，最长{}日）".format(
-                                 code, _pr_now, WINNER_EXEMPT_PCT,
+                    log.info("[风控] {} 进入赢家宽管（当前浮盈{:.1%}，最高{:.1%}，"
+                             "回撤门限{:.1%}、趋势线MA{}，最长{}日）".format(
+                                 code, _pr_now, g.winner_peak_pnl.get(code, _pr_now),
                                  TRAIL_PCT * WINNER_TRAIL_MULT,
                                  WINNER_RETREAT_MA or RETREAT_MA, WINNER_MAX_HOLD))
+        elif code in g.winner_set:
+            # 超过最长宽管天数或功能被关闭 → 退出赢家状态，恢复常规监管
+            g.winner_set.discard(code)
+            g.winner_peak_pnl.pop(code, None)
         sell, reason = None, ""
         # ① 板块级联动清仓（★V4.5★ 仅 14:48 窗口判定；早于单票止损）
         # ★V4.3 修复★ 仅对【亏损】持仓强平；盈利持仓交由止盈/移动止盈处理，避免"起涨点砍赢仓"。
@@ -2418,6 +2515,15 @@ def monitor_risk(context, sector_clear=False):
             if peak > 0 and pr >= TRAIL_ARM_PCT and price_now <= peak * (1 - _trail):
                 sell, reason = amount, "移动止盈:自高点{:.1f}回撤{:.1%}{}".format(
                     peak, _trail, "(赢家宽管)" if is_winner else "")
+            # ③b ★V4.10★ P0-3 赢家"浮盈回撤锁利"：改用**浮盈百分点**为尺。
+            #    价格回撤尺在有高浮盈时过宽（+30% 时 24% 价格回撤要跌到几乎无利润才触发）、
+            #    在低浮盈时又过紧，尺度随浮盈漂移；直接用"最高浮盈 − 当前浮盈 ≥ 8pp"
+            #    锁住利润，与移动止盈同理但尺度恒定。
+            if sell is None and is_winner and WINNER_GIVEBACK_PCT > 0:
+                _pk = g.winner_peak_pnl.get(code, 0.0)
+                if _pk > 0 and (_pk - pr) >= WINNER_GIVEBACK_PCT:
+                    sell, reason = amount, ("赢家锁利:最高浮盈{:.1%}回落至{:.1%}"
+                                            "（−{:.1%}）→ 清仓").format(_pk, pr, _pk - pr)
         # ④ 止损（移动止盈未触发时）
         #    ★V4.7★ P0-3 硬止损是风险底线，**不受最短持有期约束**
         #      （V4.6 只在注释里声称"ATR 止损永不受其约束"，代码并未落地：仍是 held_days 门槛）
@@ -2496,7 +2602,19 @@ def monitor_risk(context, sector_clear=False):
                     log.info("[风控] {} 破{}日线但持仓仅{}日(<{}日)，暂不噪声止损".format(
                         code, _ma_n, held_days_break, MIN_HOLD_FOR_TIGHT_STOP))
         if sell and sell > 0:
-            if reason.startswith(("止损", "破")):
+            if reason.startswith("止损"):
+                g.cool_down[code] = COOL_DOWN_DAYS
+                # ★V4.10★ P0-4 板块连败冷却：记录板块止损事件
+                _s = g.code_sector.get(code)
+                if _s:
+                    g.sector_stops.append((g.today, _s))
+                    _n = sum(1 for _d, _s2 in g.sector_stops
+                             if _s2 == _s and 0 <= _days_between(_d, g.today) <= SECTOR_STOP_WINDOW_DAYS)
+                    if _n >= SECTOR_STOP_COOLDOWN_N:
+                        g.sector_cooldown_days[_s] = SECTOR_STOP_COOLDOWN_DAYS
+                        log.info("[风控] 板块「{}」窗口内止损 {} 次≥{} → 进入冷却{}交易日".format(
+                            _s, _n, SECTOR_STOP_COOLDOWN_N, SECTOR_STOP_COOLDOWN_DAYS))
+            elif reason.startswith("破"):
                 g.cool_down[code] = COOL_DOWN_DAYS
             tr = _tradeable_amount(px)
             if tr <= 0:
@@ -2528,6 +2646,11 @@ def before_trading_start(context, data):
         g.cool_down[c] = g.cool_down[c] - 1
         if g.cool_down[c] <= 0:
             del g.cool_down[c]
+    # ★V4.10★ P0-4 板块连败冷却衰减
+    for _s in list(g.sector_cooldown_days.keys()):
+        g.sector_cooldown_days[_s] = g.sector_cooldown_days[_s] - 1
+        if g.sector_cooldown_days[_s] <= 0:
+            del g.sector_cooldown_days[_s]
     # 持仓天数
     for c in list(g.hold_days.keys()):
         g.hold_days[c] = g.hold_days.get(c, 0) + 1
@@ -2792,6 +2915,9 @@ def initialize(context):
     g.prev_signal = {}
     g.pending_buy = []
     g.cool_down = {}
+    # ★V4.10★ P0-4 板块连败冷却（通用风控，非黑名单）
+    g.sector_stops = []          # [(日期, 板块)] 每次板块内止损都记录
+    g.sector_cooldown_days = {}  # 板块 -> 剩余冷却交易日；>0 时该板块不新建仓
     g.hold_days = {}
     g.peak = {}
     g.buy_today = set()
@@ -2799,6 +2925,7 @@ def initialize(context):
     g.trades = []
     g.code_sector = {}
     g.index_rows = []
+    g.regime_rows = []            # ★V4.10★ P0-1 风控闸门指数日K（中证1000），与持仓风格匹配
     # ★V4.5★ 新增状态
     g.prev_rate = {}            # 板块封板率历史（_sector_killed 主判据）
     g.prev_sig_day = {}         # 每个板块最近一次 append 的日期（用于剔除"今日"值）
@@ -2808,6 +2935,10 @@ def initialize(context):
     # ★V4.9★ P1-1 策略自有成本：出场判据一律用它；平台 cost_price 只用于对账。
     #   分批减仓后**不更新** —— 剩余仓位的成本基准不应被减仓行为改写（平台正是做错了这点）。
     g.entry_px = {}             # code -> 建仓时采用的入场价
+    # ★V4.10★ P0-3 赢家粘性状态：一旦浮盈达 WINNER_EXEMPT_PCT 即记入集合，
+    #   之后即便回落也不失效；peak_pnl 记录达标后的最高浮盈，用于"浮盈回撤锁利"。
+    g.winner_set = set()
+    g.winner_peak_pnl = {}
     # ★V4.9★ P0-2 主线建仓流水 [(日期, 主线名)]：支撑滚动窗口内的主线次数约束
     g.mainline_entries = []
     g.intraday_px = {}          # handle_data 捕获的当日进行中价（供建仓护栏）
@@ -2864,7 +2995,7 @@ def initialize(context):
     except Exception as e:
         g.sched_ok = False
         _degrade("schedule", "run_daily 不可用，改用 handle_data 容错窗口: {}".format(repr(e)))
-    log.info("[初始化] V4.9 启动 TRADE_ENABLED={} 调度={} 板块池={}".format(
+    log.info("[初始化] V4.10 启动 TRADE_ENABLED={} 调度={} 板块池={}".format(
         TRADE_ENABLED, "run_daily" if g.sched_ok else "handle_data兜底", SECTOR_MAP_FILE))
     # ★V4.9★ 参数指纹：上传平台后核对第一屏日志，一眼确认跑的是哪一版（防"传错文件白跑一轮"）
     log.info("[指纹] ★V4.9★ 止损={} clamp[{:.0%},{:.0%}] 闸门:{}~尾盘{} | 止盈:分批{:.0%} 移动武装{:.0%}/回撤{:.0%}"
@@ -2878,6 +3009,16 @@ def initialize(context):
                  CLUSTER_JACCARD, CLUSTER_MAX_WEIGHT,
                  WINNER_EXEMPT_PCT, WINNER_TRAIL_MULT, WINNER_RETREAT_MA, WINNER_MAX_HOLD,
                  MAINLINE_MAX_ENTRIES, MAINLINE_WINDOW_DAYS))
+    # ★V4.10★ 本版变更指纹（核心修复一览，上传平台后核对第一屏）
+    log.info("[指纹] ★V4.10★ 四项核心修复 → "
+             "①风控闸门指数 {}（替代沪深300，与持仓风格匹配）；"
+             "②避险档模式={}（主跌段【停建仓】，非半仓减速）；"
+             "③赢家粘性+浮盈回撤锁利(≥{:.0%}pp回落清仓)；"
+             "④板块连败冷却(窗口{}日止损≥{}次→冷却{}日) | 每日新建≤{}笔".format(
+                 REGIME_INDEX or INDEX_FOR_REGIME, REGIME_RISK_OFF_MODE,
+                 WINNER_GIVEBACK_PCT, SECTOR_STOP_WINDOW_DAYS,
+                 SECTOR_STOP_COOLDOWN_N, SECTOR_STOP_COOLDOWN_DAYS,
+                 MAX_NEW_POSITIONS_PER_DAY))
     log.info("[初始化] 口径: 选股=盘前(T-1完整收盘) | 建仓={} 快照限价 | 护栏基准=T-1收盘".format(
         BUY_TIME))
     log.info("[初始化] 每板块限 {} 只 | 总仓上限 {} 只 | 单票启动{:.0%}/扩散{:.0%} | 每日新建≤{} 笔 | 护栏 [T-1收盘×{:.1%}, ×{:.1%}]".format(
