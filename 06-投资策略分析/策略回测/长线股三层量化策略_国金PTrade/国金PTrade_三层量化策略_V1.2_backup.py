@@ -14,7 +14,7 @@
   - 出场分级闸门：风险类(硬止损)只设下限 09:45；趋势类(破线/清仓)尾盘 14:45
   - 任何接口降级必须 log.warning，绝不静默换口径
 
-版本：★国金PTrade V1.4★（与山西PTrade_三层量化策略.py 同逻辑，仅券商适配）
+版本：★国金PTrade V1.3★（与山西PTrade_三层量化策略.py 同逻辑，仅券商适配）
 
 ★V1.3 修复（首跑「真下单模式」回测暴露，见《回测复盘_山西PTrade_20260922.md》D9~D13）：
   D9  下单时点：原五条下单路径全挂在 before_trading_start(08:30) -> 平台一律返回
@@ -50,7 +50,7 @@ g = {}
 # ============================== 一、参数区 ==============================
 # ---- 总开关 ----
 TRADE_ENABLED = False          # [上线前必改] False=只出信号不下单；True=实盘下单
-INTRADAY_T    = False          # ★V1.4 已移除 L3 日内T（V1.3 实测 57 回合、净贡献≈0，仅贡献交易摩擦）
+INTRADAY_T    = True           # 是否启用 L3 日内T（需 handle_data 拿到盘中 data；拿不到自动降级）
 
 # ---- 三层资金架构（占组合净值比例，合计 < 1，余为缓冲）----
 L1_RATIO = 0.58               # L1 长线底仓
@@ -65,17 +65,10 @@ L1_MIN_HOLD_DAYS  = 5         # L1 单只最短持有（交易日），防过度
 L1_TRIM_GAIN       = 0.15   # 单票浮盈>=15%% 触发减仓至目标权重（波动率收割/落袋，复刻 V1.1 误触发行为）
 L1_DRIFT_CTRL_DAYS = 10     # L1 漂移控制检查间隔（交易日）：不止等季度，及时落袋
 
-# ---- ★V1.4 L1 回补对称化（修 V1.3「只减不加」的单向失血）----
-# V1.3 实测：市场开关「跌破120日线砍两成」执行 6 次，而「档位复位」5 次只清标记、
-# 不回补仓位 -> 持仓占比 53.5% 一路砸到 32.0%，现金趴到 67%。本条规则是 V1.4 的核心修复。
-L1_REFILL_DAYS     = 5      # 定期回补检查间隔（交易日）：兜底，不必等 60 天季度
-L1_REFILL_MIN_GAP  = 0.15   # 缺口 >= 目标权重的 15% 才回补（防碎单）
-L1_REFILL_COOLDOWN = 20     # 同一标的回补后 N 个交易日内不再回补（防高频小额）
-
 # ---- L2 波段信号 ----
-L2_PULLBACK_PCT = 0.05        # ★V1.4 放宽 6%->5%（原「回调6%+量比0.8+RSI35-55」三重叠加，全期仅5次信号）
-L2_VOL_RATIO_MAX = 0.90       # ★V1.4 放宽 0.8->0.9：温和缩量即算地量
-L2_RSI_LO, L2_RSI_HI = 35, 58 # ★V1.4 上限 55->58
+L2_PULLBACK_PCT = 0.06        # 收盘价回落至 MA20 下方 6% 视为回调买点
+L2_VOL_RATIO_MAX = 0.80       # 量比上限（地量）：当日量 < 近5日均量*0.8
+L2_RSI_LO, L2_RSI_HI = 35, 55 # RSI(14) 共振区间
 L2_TAKE_PCT   = 0.14          # 目标收益 +14%（止盈上限）
 L2_TRAIL_PCT  = 0.08          # 移动止盈回撤 8%
 L2_STOP_PCT   = 0.07          # 硬止损 -7%（满足 止损<=止盈/2）
@@ -138,11 +131,8 @@ L1_RAW = {
 }
 # L2 波段卫星（流动性好的 10 只），L2_RATIO 在其间均分
 L2_SET = [
-    # ★V1.4 换池：剔除 3 只科创板高价股（688012 中微 1手5.5万 / 688072 拓荆 6.6万 /
-    # 688111 金山 4.6万 —— V1.3 实测 L2 的 5 次信号全落在这 3 只上，100% 买不起），
-    # 换成 1 手成本 1.2千~9千 的中低价标的。8 只全部在 30 万本金的单票预算内。
-    "601899.SS", "600938.SS", "600900.SS", "002027.SZ",
-    "000538.SZ", "603605.SS", "000792.SZ", "002414.SZ",
+    "600519.SS", "601899.SS", "600938.SS", "600900.SS", "300760.SZ",
+    "002027.SZ", "603986.SS", "688012.SS", "688072.SS", "688111.SS",
 ]
 # L3 日内T 标的（最流动的 7 只）
 L3_SET = [
@@ -712,29 +702,18 @@ def _note_reject(code):
 def _mark_bought(code, reason):
     """仅在委托**确认受理**后才写入"已建仓"状态（★D11 防幽灵持仓）。
 
-    原实现把这几行放在 order_target_value 之后无条件执行，平台拒单时会写下
+    原实现把这三行放在 order_target_value 之后无条件执行，平台拒单时会写下
     不存在的建仓日 buy_day，导致 _held_days 误判，L1 再平衡跳过追买。
-
-    ★V1.4 分层记账：L1 与 L2 可以在**同一标的**上同时持有（L1 底仓 + L2 波段仓），
-    因此建仓日与归属标记必须分层写：
-      L1 -> owner_layer[cd]="L1" + buy_day[cd]（供 _held_days 用）
-      L2 -> l2_buy_day[cd]（供 _l2_held_days 用）；仅当该标的**尚无 L1 底仓**时，
-            才把 owner_layer 置为 "L2"（owner_layer 只表达"是否 L1 底仓"）。
-    T 回补不在此登记（T 不改变隔夜持仓层级）。
     """
     cd = _canon(code)
     g.setdefault("buy_codes", set()).add(cd)
+    g.setdefault("buy_day", {})[cd] = g.get("trade_days", 0)
     g.setdefault("reject_by_code", {})[cd] = 0
-    if "T" in reason:
-        _record_turn(reason)
-        return
-    if "L2" in reason:
-        g.setdefault("l2_buy_day", {})[cd] = g.get("trade_days", 0)
-        if g.setdefault("owner_layer", {}).get(cd) != "L1":
-            g["owner_layer"][cd] = "L2"
-    else:
-        g.setdefault("owner_layer", {})[cd] = "L1"
-        g.setdefault("buy_day", {})[cd] = g.get("trade_days", 0)
+    # ★V1.3 D16：记录持仓归属层级，出场规则据此过滤（而非「标的是否在某个池」）。
+    # T 回补不在此登记（T 不改变隔夜持仓层级）。
+    if "T" not in reason:
+        layer = "L2" if "L2" in reason else "L1"
+        g.setdefault("owner_layer", {})[cd] = layer
     _record_turn(reason)
 
 
@@ -776,38 +755,20 @@ def _flush_pending():
                  % (a.get("total_value", 0), a.get("positions_value", 0), a.get("cash", 0)))
 
 
-def _layer_room(total, ratio, codes, layer="L2"):
-    """某层可用额度 = 层目标市值 - 该层**自身**持仓市值。
-
-    ★V1.4 D22：原实现按「标的是否在 codes 池里」统计，把 L1 核心仓的市值也算成
-    L2 已用额度 —— 而 L2 池与 L1 池高度重叠，等于 L2 名义 25% 被 L1 抽干。
-    实测（2026-03-13）：L2 出信号时日志显示"可用额度 21951"，而 21951 = 75000 - 53049，
-    其中 53049 元全是 L1 建的仓。L2 就这样被自己的"池子"锁死，全期 0 回合。
-    现改为按层级份额统计：L2 只认 l2_qty 份额，L1 认总持仓减 L2 份额。
-    """
+def _layer_room(total, ratio, codes):
+    """某层可用额度 = 层目标市值 - 该层标的当前持仓市值。"""
     tgt = total * ratio
     poss = _get_positions()
     used = 0.0
     for code in codes:
-        cd = _canon(code)
-        pos = poss.get(cd)
-        if not pos:
-            continue
-        px = pos.get("current_price", 0) or 0
-        l2q = g.get("l2_qty", {}).get(cd, 0)
-        if layer == "L2":
-            used += l2q * px
-        else:
-            used += pos["current_amount"] * px - l2q * px
+        pos = poss.get(_canon(code))
+        if pos:
+            used += pos["current_amount"] * (pos.get("current_price", 0) or 0)
     return max(0.0, tgt - used)
 
 
-def _redistribute(plan, total, layer="L1", single_cap=None):
+def _redistribute(plan, total, layer="L1"):
     """★V1.3 资金再分配：把「预算买不起 1 手」的标的预算顺延给买得起的标的。
-
-    ★V1.4 新增 single_cap：单票上限（占净值比例）。默认 SINGLE_MAX(10%)，
-    L1 调用时传入 _l1_single_cap()（= L1_RATIO / L1 可买标的数），
-    以免 L1 把可买标的吃满 10%、把同池的 L2 卫星层挤到没有空间。
 
     为什么必须做：本金受限（10 万 / 16 只标的）时，被高价股占住的预算若直接作废，
     名义仓位与实际可落实仓位会严重脱节 —— 首跑实测名义 L1 58% 实际只有 23.2%。
@@ -815,7 +776,6 @@ def _redistribute(plan, total, layer="L1", single_cap=None):
 
     plan: [(code, value), ...]  ->  返回 [(code, value), ...]（已剔除买不起的标的）
     """
-    cap_ratio = SINGLE_MAX if single_cap is None else min(SINGLE_MAX, max(0.0, single_cap))
     keep, pool = [], 0.0
     for code, val in plan:
         lc = _lot_cost(code)
@@ -839,7 +799,7 @@ def _redistribute(plan, total, layer="L1", single_cap=None):
             cd = _canon(code)
             pos = poss.get(cd, {})
             cur = pos.get("current_amount", 0) * (pos.get("current_price", 0) or 0)
-            r_single = total * cap_ratio - cur - val
+            r_single = total * SINGLE_MAX - cur - val
             r_sec = total * SECTOR_MAX - _sector_value(code)
             rooms.append(max(0.0, min(r_single, r_sec)))
         tr = sum(rooms)
@@ -909,22 +869,19 @@ def _capital_fit_report(total):
             buyable.add(_canon(code))
     # L1 经资金再分配后会集中在可买标的上，同一标的的单票额度被 L1 吃掉后 L2 还剩多少
     if l1_ok > 0:
-        # ★V1.4：L1 单票上限主动收敛为「L1_RATIO / 可买标的数」，为 L2 让出单票空间。
-        # V1.3 实测 L1 会把可买标的吃到 6.44%（再分配后），L2 仅余 3.56%/只 x 4 只 = 14.2%。
-        l1_cap_r = _l1_single_cap(total)
-        l1_per = total * l1_cap_r
+        l1_per = min(total * SINGLE_MAX, l1_nominal / l1_ok)
         ov_n = 0
         for code in L2_SET:
             if _canon(code) in buyable:
                 ov_n += 1
         l2_free = max(0.0, l2_single - l1_per) * ov_n
-        log.info("[资本适配] ★V1.4 L1 单票上限收敛为%.2f%%（= L1_RATIO/可买%d只），"
-                 "为其上重叠的%d只 L2 标的留出单票空间合计%.1f%%（L2 名义目标%.1f%%）"
-                 % (l1_cap_r * 100, l1_ok, ov_n, l2_free / total * 100, L2_RATIO * 100))
-        if l2_free < total * L2_RATIO * 0.6:
-            log.warning("[资本适配] ⚠ L2 单票空间偏紧（%.1f%% < 名义%.1f%% 的 60%%）："
-                        "可再下调 L1_RATIO 或提高 SINGLE_MAX。"
-                        % (l2_free / total * 100, L2_RATIO * 100))
+        log.info("[资本适配] L1 再分配后单只约%.1f%%（集中在%d只可买标的），"
+                 "与其重叠的%d只 L2 标的上仅余单票空间合计%.1f%%（L2 名义目标%.1f%%）"
+                 % (l1_per / total * 100, l1_ok, ov_n, l2_free / total * 100, L2_RATIO * 100))
+        if l2_free < total * L2_RATIO * 0.8:
+            log.warning("[资本适配] ⚠ L2 可用空间被 L1 挤压：L2 标的池与 L1 完全重叠，"
+                        "单票 %.0f%% 上限是两层共享的。若要让 L2 独立运作，"
+                        "需下调 L1_RATIO（当前%.0f%%）或提高 SINGLE_MAX。" % (SINGLE_MAX * 100, L1_RATIO * 100))
     nominal = (L1_RATIO + L2_RATIO) * total
     max_pos = min(nominal, len(buyable) * total * SINGLE_MAX)
     utilization = (max_pos / nominal * 100) if nominal > 0 else 0.0
@@ -983,24 +940,12 @@ def initialize(context):
     g["mode_warned"] = False      # 非分钟级周期告警是否已打印
     g["owner_layer"] = {}         # ★V1.3 cd -> "L1"/"L2"：持仓归属层级（D16 防 L2 规则误清 L1 底仓）
     g["last_drift_day"] = -999     # ★V1.3 L1 漂移控制上次执行日
-    # ---- ★V1.4 新增：L1/L2 分层份额记账 + 回补链路 ----
-    g["l2_qty"] = {}              # ★V1.4 cd -> L2 卫星层持有的股数（与 L1 底仓分层记账）
-    g["l2_entry_px"] = {}         # ★V1.4 cd -> L2 份额成本价（L2 自己的止盈/止损基准）
-    g["l2_buy_day"] = {}          # ★V1.4 cd -> L2 份额建仓日（不能复用 L1 的 buy_day）
-    g["last_refill_day"] = {}     # ★V1.4 cd -> 上次 L1 回补的 trade_days（冷却用）
-    g["last_refill_check_day"] = -999   # ★V1.4 上次定期回补检查日
-    g["refill_n"] = 0             # ★V1.4 累计回补笔数（自检用）
-    g["market_off_days"] = 0      # ★V1.4 L2 被市场开关暂停的交易日数（自检用）
-    g["l2_near_signal"] = 0       # ★V1.4 L2 候选"接近信号"累计计数（诊断信号是否过严）
     g["turn_log_l2"] = []        # ★V1.3 L2 回合发生日(trade_days)，_turnover_ok 按 250 日滚动窗口裁剪（D17）
     g["turn_log_l3"] = []        # ★V1.3 L3 日内T 回合发生日，独立计数（D17 不与 L2 共享年度预算）
     g["order_submitted"] = 0     # ★V1.3 实际下发平台的委托数（D19 修正统计口径）
     g["order_rejected"] = 0      # ★V1.3 平台返回 None 的拒单数（D19）
-    log.info("[初始化] ★国金PTrade V1.4★ 三层策略 | 标的%d | L1=%.0f%% L2=%.0f%% | TRADE=%s" %
+    log.info("[初始化] ★国金PTrade V1.3★ 三层策略 | 标的%d | L1=%.0f%% L2=%.0f%% | TRADE=%s" %
              (len(STOCKS), L1_RATIO * 100, L2_RATIO * 100, TRADE_ENABLED))
-    log.info("[初始化] ★V1.4 变更★ ①L1回补对称化(市场开关复位/止盈后/每%d日) ②L2换池%d只中低价股 "
-             "③层额度按份额统计 ④L1单票上限=L1_RATIO/可买数 ⑤L3日内T=%s"
-             % (L1_REFILL_DAYS, len(L2_SET), "移除" if not INTRADAY_T else "启用"))
 
 
 # ============================== 五、盘前：L1 再平衡 + L2 信号 + 风控 ==============================
@@ -1051,17 +996,10 @@ def before_trading_start(context, data):
         _l1_rebalance(total)
         g["last_reb_day"] = g["trade_days"]
 
-    # ★V1.3 L1 漂移控制：浮盈达标的标的减仓至目标权重（落袋）
+    # ★V1.3 L1 漂移控制：浮盈达标的标的减仓至目标权重（落袋），现金由季度再平衡回补欠配标的
     if g["trade_days"] - g["last_drift_day"] >= L1_DRIFT_CTRL_DAYS:
         _l1_drift_control(total)
         g["last_drift_day"] = g["trade_days"]
-
-    # ★V1.4 L1 回补兜底（回补机制的第 3 个触发点）：每 L1_REFILL_DAYS 个交易日检查一次。
-    # 另两个触发点：_market_switch 档位复位、_l1_drift_control 止盈减仓后。
-    # V1.3 只有「季度再平衡」一个回补机会，60 天窗口一旦错过（07-07 整轮失败）就彻底断档。
-    if g["trade_days"] - g.get("last_refill_check_day", -999) >= L1_REFILL_DAYS:
-        g["last_refill_check_day"] = g["trade_days"]
-        _l1_refill(total, "L1定期回补")
 
     # L2 波段：日级信号（已完成数据：昨收为末根）
     if not g["circuit_halt"]:
@@ -1077,17 +1015,10 @@ def _l1_rebalance(total):
     poss = _get_positions()
     plan = []
     for code in STOCKS:
-        if g.get("L1_W", {}).get(code, 0) <= 0:
-            continue
+        target_val = total * g["L1_W"][code]
         cd = _canon(code)
         pos = poss.get(cd)
-        # ★V1.4：L1 只对**自己的份额**（总持仓 - L2 卫星份额）做再平衡。
-        # 否则会把同一标的上的 L2 波段仓也算进 L1 目标里，L1 减仓时连带清掉 L2。
-        l2q = g.get("l2_qty", {}).get(cd, 0)
-        px = (pos["current_price"] or 0) if pos else 0
-        l1_amt = max(0, pos["current_amount"] - l2q) if pos else 0
-        target_val = total * g["L1_W"][code]
-        cur_val = l1_amt * px
+        cur_val = pos["current_amount"] * pos["current_price"] if pos else 0
         delta = target_val - cur_val
         # 再平衡也受 T+1 限制：减仓需可卖量
         if delta > 0:
@@ -1097,17 +1028,14 @@ def _l1_rebalance(total):
             else:
                 plan.append((code, delta))
         elif delta < -1e-6:
-            sell_qty = _round_lot(-delta / (px or 1), code)
-            sell_qty = min(sell_qty, l1_amt)     # ★V1.4 只卖 L1 份额，不碰 L2
+            sell_qty = _round_lot(-delta / (pos["current_price"] or 1), code) if pos else 0
             if sell_qty > 0:
                 _do_sell(code, sell_qty, "L1再平衡减仓")
         g["entry_px"][cd] = pos["cost_price"] if pos else 0
     # ★V1.3 资金再分配：买不起 1 手的标的预算顺延给买得起的标的，避免名义仓位虚高
-    # ★V1.4：单票上限收敛为 L1_RATIO/可买标的数（_l1_single_cap），给 L2 卫星层让出单票空间
-    plan = _redistribute(plan, total, "L1", single_cap=_l1_single_cap(total))
+    plan = _redistribute(plan, total, "L1")
     for code, val in plan:
-        if _do_buy_value(code, val, "L1建仓") > 0:
-            g.setdefault("last_refill_day", {})[_canon(code)] = g.get("trade_days", 0)
+        _do_buy_value(code, val, "L1建仓")
 
 
 def _l1_drift_control(total):
@@ -1136,117 +1064,20 @@ def _l1_drift_control(total):
         cost = g["entry_px"].get(cd) or pos["cost_price"]
         if cost <= 0:
             continue
-        # ★V1.4：只对 L1 份额做止盈（总持仓 - L2 卫星份额），不误卖 L2 波段仓
-        l2q = g.get("l2_qty", {}).get(cd, 0)
-        l1_amt = max(0, pos["current_amount"] - l2q)
-        if l1_amt <= 0:
-            continue
-        cur_val = l1_amt * pos["current_price"]
+        cur_val = pos["current_amount"] * pos["current_price"]
         tgt = total * g["L1_W"][code]
         pnl = pos["current_price"] / cost - 1
         # 显著超配（浮盈达标且市值>目标）才减仓至目标权重，落袋超额收益
         if pnl >= L1_TRIM_GAIN and cur_val > tgt * 1.02:
             sell_val = cur_val - tgt
             qty = _round_lot(sell_val / (pos["current_price"] or 1), code)
-            qty = min(qty, l1_amt)               # ★V1.4 不碰 L2 份额
             if qty > 0:
                 _do_sell(code, qty, "L1止盈减仓")
                 trimmed += 1
                 log.info("[L1-止盈] %s 浮盈%.1f%% 减仓至目标权重(现%.0f->目标%.0f)"
                          % (code, pnl * 100, cur_val, tgt))
     if trimmed:
-        # ★V1.4：止盈释放的现金**立即**回补欠配标的，不再干等季度再平衡。
-        # V1.3 实测：全期止盈 5 次释放现金，但只能等季度（07-07 那次季度回补又整轮失败），
-        # 现金就此长期趴在账上 —— 这是「卖强」与「买弱」不对称的第二个来源。
-        log.info("[L1-止盈] 本轮回减%d只，立即回补欠配标的（★V1.4 不再等季度）" % trimmed)
-        _l1_refill(total, "L1止盈后回补")
-
-
-def _l2_held_days(cd):
-    """★V1.4 L2 卫星份额的持有交易日数（独立于 L1 底仓的 buy_day，防互相污染）。"""
-    bd = g.get("l2_buy_day", {}).get(cd)
-    if bd is None:
-        return 9999
-    return g.get("trade_days", 0) - bd
-
-
-def _l1_single_cap(total):
-    """★V1.4 L1 单票上限：按「L1 可买标的数」分摊 L1_RATIO，为 L2 卫星层预留单票空间。
-
-    为什么必须收紧：SINGLE_MAX(10%) 是 L1/L2 共享的硬上限。若 L1 把可买标的吃满 10%，
-    与 L1 重叠的 L2 标的就再无空间 —— V1.2/V1.3 资本适配自检已实测
-    「L2 仅余单票空间合计 14.2%（L2 名义目标 25.0%）」。改为 L1_RATIO / 可买标的数
-    （30 万 x 9 只 = 6.44%）后，每只标的自然留出约 3.56% 给 L2，两层合计仍 <= SINGLE_MAX。
-    """
-    n = 0
-    for code in STOCKS:
-        if g.get("L1_W", {}).get(code, 0) <= 0:
-            continue
-        lc = _lot_cost(code)
-        if lc > 0 and total * g["L1_W"][code] >= lc:
-            n += 1
-    if n <= 0:
-        return SINGLE_MAX
-    return max(0.02, min(SINGLE_MAX, L1_RATIO / float(n)))
-
-
-def _l1_refill(total, reason="L1回补"):
-    """★V1.4 L1 回补对称化：把欠配的 L1 底仓补足到目标权重（只买不卖）。
-
-    为什么必须有它（V1.3 实测病根）：
-      「市场开关跌破 120 日线砍两成」在 V1.3 是**单向**的 —— 全期砍 6 次
-      （03-05 / 03-10 / 03-20 / 07-14 / 07-17 / 08-19），而「档位复位」5 次全部
-      只清标记、不回补仓位，持仓占比被从 53.5% 一路砸到 32.0%（末日），现金趴到 67%。
-      同期 07-07 那次季度再平衡又因「要补的标的恰好买不起 1 手」整轮失败
-      （日志原话：[资金再分配-L1] 全部标的均买不起1手），回补窗口直接错过 60 天。
-      结果就是「跌了砍、涨了不接」：5-6 月避开下跌确实有效，但 7-8 月指数回升时
-      仓位还停在 32%，反弹只吃掉三分之一 —— 这是 V1.3 收益仅 +2.01% 的头号原因。
-
-    触发点（三处）：
-      1) _market_switch 档位复位（沪深300 站回 120 日线上方）；
-      2) _l1_drift_control 止盈减仓后立刻回补（不再等 60 天季度）；
-      3) before_trading_start 每 L1_REFILL_DAYS 个交易日兜底一次。
-
-    约束：只买不卖 / 尊重 L1 最短持有 / 缺口门槛 / 同标的回补冷却 / 单票+行业+现金上限。
-    """
-    poss = _get_positions()
-    today = g.get("trade_days", 0)
-    plan = []
-    for code in STOCKS:
-        cd = _canon(code)
-        if g.get("L1_W", {}).get(code, 0) <= 0:
-            continue
-        own = g.get("owner_layer", {}).get(cd)
-        if own is not None and own != "L1":
-            continue                      # 只回补归属 L1 的标的
-        if _held_days(cd) < L1_MIN_HOLD_DAYS:
-            continue                      # 尊重最短持有，防过度换手
-        if today - g.get("last_refill_day", {}).get(cd, -9999) < L1_REFILL_COOLDOWN:
-            continue                      # 同标的冷却，防每 5 日打碎单
-        tgt = total * g["L1_W"][code]
-        pos = poss.get(cd)
-        l2v = 0.0
-        if pos:
-            l2v = g.get("l2_qty", {}).get(cd, 0) * (pos.get("current_price", 0) or 0)
-        cur = ((pos["current_amount"] * (pos.get("current_price", 0) or 0)) - l2v) if pos else 0.0
-        gap = tgt - cur
-        if gap < max(_lot_cost(code), tgt * L1_REFILL_MIN_GAP):
-            continue
-        plan.append((code, gap))
-    if not plan:
-        return 0
-    plan = _redistribute(plan, total, "L1回补", single_cap=_l1_single_cap(total))
-    n, amt = 0, 0.0
-    for code, val in plan:
-        got = _do_buy_value(code, val, reason)
-        if got > 0:
-            g.setdefault("last_refill_day", {})[_canon(code)] = today
-            n += 1
-            amt += got
-    if n:
-        g["refill_n"] = g.get("refill_n", 0) + n
-        log.info("[L1-回补] %s：回补 %d 只 合计%.0f 元（本金%.0f）" % (reason, n, amt, total))
-    return n
+        log.info("[L1-止盈] 本轮回减%d只，释放现金待季度再平衡回补欠配标的" % trimmed)
 
 
 def _l2_daily(total):
@@ -1263,7 +1094,6 @@ def _l2_daily(total):
         return
     poss = _get_positions()
     signals = []
-    near = 0
     for code in L2_SET:
         h = _hist_lists(code, 30, "1d")
         if h is None:
@@ -1279,67 +1109,47 @@ def _l2_daily(total):
         prev_ma5_vol = _ma(vols[-6:-1], 5) or 1
         vol_ratio = vols[-1] / prev_ma5_vol if prev_ma5_vol > 0 else 1
         cd = _canon(code)
-        # ★V1.4：建仓判定基准改为「该标的有没有 **L2 卫星份额**」，而不是「有没有持仓」。
-        # 否则 L1 底仓会把同标的的 L2 建仓机会永久堵死（L2 池 8 只全部与 L1 可买标的重叠）。
-        l2_held = g.get("l2_qty", {}).get(cd, 0)
-        pullback = price <= ma20 * (1 - L2_PULLBACK_PCT)
-        quiet = vol_ratio < L2_VOL_RATIO_MAX
-        rsi_ok = L2_RSI_LO <= rsi <= L2_RSI_HI
-        if l2_held == 0:
+        held = poss.get(cd, {}).get("current_amount", 0)
+        # 买入信号：回调 + 地量 + RSI 共振（仅空仓时建）
+        if held == 0:
+            pullback = price <= ma20 * (1 - L2_PULLBACK_PCT)
+            quiet = vol_ratio < L2_VOL_RATIO_MAX
+            rsi_ok = L2_RSI_LO <= rsi <= L2_RSI_HI
             if pullback and quiet and rsi_ok:
-                log.info("[L2-买] %s 价%.2f MA20%.2f 量比%.2f RSI%.1f（L1底仓%d股，L2独立建仓）"
-                         % (code, price, ma20, vol_ratio, rsi,
-                            poss.get(cd, {}).get("current_amount", 0)))
+                log.info("[L2-买] %s 价%.2f MA20%.2f 量比%.2f RSI%.1f"
+                         % (code, price, ma20, vol_ratio, rsi))
                 signals.append((code, price))
-            elif pullback and rsi_ok:
-                near += 1        # 只差"地量"一项：用于诊断信号阈值卡在哪一条
         # 持仓处理下放 _daily_risk_scan / intraday
-    if near:
-        g["l2_near_signal"] = g.get("l2_near_signal", 0) + near
     if not signals:
         return
-    # ★V1.4：L2 可用额度按**层份额**统计（D22 修复），不再被 L1 底仓抽干
-    avail = _layer_room(total, L2_RATIO, L2_SET, "L2")
+    avail = _layer_room(total, L2_RATIO, L2_SET)
     per = avail / len(signals)
-    log.info("[L2] 当日%d只出信号，L2可用额度%.0f -> 单只%.0f" % (len(signals), avail, per))
+    log.info("[L2] 当日%d只出信号，可用额度%.0f -> 单只%.0f" % (len(signals), avail, per))
     plan = _redistribute([(c, per) for c, _p in signals], total, "L2")
     for code, val in plan:
-        got = _do_buy_value(code, val, "L2建仓")
-        if got > 0:
+        if _do_buy_value(code, val, "L2建仓") > 0:
             cd = _canon(code)
             ref = 0.0
             for c2, p2 in signals:
                 if c2 == code:
                     ref = p2
-            px_ref = ref if ref > 0 else (_ref_price(code) or 0)
-            add_qty = _round_lot(got / px_ref, code) if px_ref > 0 else 0
-            # ★V1.4 分层记账：L2 份额与 L1 底仓分开记，出场时只卖自己那份
-            g.setdefault("l2_qty", {})[cd] = g.get("l2_qty", {}).get(cd, 0) + max(0, add_qty)
-            g.setdefault("l2_entry_px", {})[cd] = px_ref
-            g["entry_px"][cd] = px_ref
-            g["peak_px"][cd] = px_ref
-            log.info("[L2-建仓] %s L2份额+%d股 成本%.2f（与L1底仓分层记账）"
-                     % (code, add_qty, px_ref))
+            g["entry_px"][cd] = ref
+            g["peak_px"][cd] = ref
 
 
 def _daily_risk_scan():
     """L2 卫星仓日级退出（用已完成数据，盘前执行）：目标收益 / 超买 / 移动止盈。
-
-    ★V1.4：改为按 **L2 份额**（l2_qty）出场，不再用整个持仓的 enable_amount。
-    V1.3 的 D16 只解决了「池重叠」（L1 持仓不再被 L2 规则误清），但没解决
-    「同一标的 L1/L2 双层共存」—— 若 L1 底仓与 L2 波段仓落在同一只股票上，
-    按 enable_amount 全卖会把 L1 底仓一起清掉。现在只卖 L2 自己那份。
-    """
+    L1 核心仓长持，不在此处理（由断路器/市场开关保护）。"""
     poss = _get_positions()
     for cd, pos in poss.items():
         code = pos["code"]
-        l2q = min(g.get("l2_qty", {}).get(cd, 0), pos["current_amount"])
-        if l2q <= 0:
+        # ★V1.3 D16：只处理「确实由 L2 建仓」的持仓；L1 核心仓即使标的在 L2_SET 也跳过。
+        if g.get("owner_layer", {}).get(cd) != "L2":
             continue
-        cost = g.get("l2_entry_px", {}).get(cd) or g["entry_px"].get(cd) or pos["cost_price"]
+        cost = g["entry_px"].get(cd) or pos["cost_price"]
         if cost <= 0:
             continue
-        if _l2_held_days(cd) < 1:
+        if _held_days(cd) < 1:
             continue
         h = _hist_lists(code, 30, "1d")
         if h is None:
@@ -1359,12 +1169,9 @@ def _daily_risk_scan():
         elif peak_rt >= 0.05 and price <= g["peak_px"].get(cd, price) * (1 - L2_TRAIL_PCT):
             reason = "L2移动止盈回撤%.0f%%" % (L2_TRAIL_PCT * 100)
         if reason:
-            log.info("[L2-卖] %s %s 浮盈%.2f%%（L2份额%d股，L1底仓保留）"
-                     % (code, reason, pnl * 100, l2q))
-            q = _do_sell(code, min(l2q, pos["enable_amount"]), reason)
-            if q > 0:
-                g["l2_qty"][cd] = max(0, l2q - q)
-                _record_turn("L2退出", True)
+            log.info("[L2-卖] %s %s 浮盈%.2f%%" % (code, reason, pnl * 100))
+            _do_sell(code, pos["enable_amount"], reason)
+            _record_turn("L2退出", True)
 
 
 def _held_days(cd):
@@ -1411,9 +1218,7 @@ def _market_switch():
     - 短均线(MKT_MA_SHORT=60)下方 -> L2 暂停新开；回到上方 -> L2 恢复新开（每日双向判定）。
     - 长均线(MKT_MA_LONG=120)下方 -> L1 砍两成、档位置 1；
       回到上方连续 MKT_RESET_CONFIRM_DAYS 个交易日后档位复位为 0，再次跌破可再减仓一次。
-      ★V1.4 关键修复：复位时**同时执行 _l1_refill 把砍掉的仓位补回来**。
-      V1.3 复位只清「档位标记」、不回补仓位，实测全期砍 6 次（03-05/03-10/03-20/07-14/
-      07-17/08-19）而只回补 1 次（且靠季度），持仓占比被单向砸到 32.0% —— 这是收益上不去的头号病根。
+      复位只复位「档位标记」，不回补已砍仓位（与断路器口径一致），补仓交给下一次 L1 季度再平衡。
     - 均线判定取不到数据(None)时维持当前档位，仅打一次降级提示，不误复位。
     """
     below_short = _index_below_ma(INDEX_CODE, MKT_MA_SHORT)
@@ -1425,7 +1230,6 @@ def _market_switch():
             log.warning("[市场开关] 沪深300 均线数据不足，判定跳过，维持当前档位")
     elif below_short:
         g["l2_enabled"] = False
-        g["market_off_days"] = g.get("market_off_days", 0) + 1   # ★V1.4 自检统计
         if _noise_once("__mkt__", "short"):
             log.warning("[市场开关] 沪深300 在%d日线下方 -> L2 暂停新开" % MKT_MA_SHORT)
     else:
@@ -1450,12 +1254,8 @@ def _market_switch():
         g["mkt_above_days"] = g.get("mkt_above_days", 0) + 1
         if g["mkt_stage"] >= 1 and g["mkt_above_days"] >= MKT_RESET_CONFIRM_DAYS:
             g["mkt_stage"] = 0
-            # ★V1.4 核心修复：复位不再只是"清标记"，而是真的把仓位补回来。
-            log.info("[市场开关] 沪深300 回到%d日线上方(连续%d日) -> L1 档位复位，执行回补"
+            log.info("[市场开关] 沪深300 回到%d日线上方(连续%d日) -> L1 档位复位，再次跌破可再减仓"
                      % (MKT_MA_LONG, g["mkt_above_days"]))
-            _acct_m = _account()
-            if _acct_m is not None:
-                _l1_refill(_acct_m.get("total_value", 0) or 0, "市场开关L1回补")
 
 
 # ============================== 七、盘中：L3 日内T + intraday 风控 ==============================
@@ -1489,16 +1289,12 @@ def handle_data(context, data):
                       "本策略要求**分钟级周期**（回测 9:31-15:00）；当前配置下所有委托都无法执行！"
                       % now)
 
-    if not g["intr_ok"]:
-        return  # 无盘中价：日级逻辑已在盘前完成
+    if not g["intr_ok"] or not INTRADAY_T:
+        return  # 无盘中价：L3 关闭，日级逻辑已在盘前完成
 
     # ---- intraday 硬止损补刀（风险类，只设下限 09:45）----
-    # ★V1.4：与 L3 开关**解耦** —— L3 日内T 已移除，但 L2 卫星仓的日内硬止损必须保留。
     if now >= "09:45":
         _intraday_hard_stop(data)
-
-    if not INTRADAY_T:
-        return  # ★V1.4 L3 日内T 已移除（实测净贡献≈0，仅贡献摩擦）
 
     # ---- L3 日内T ----
     if "09:45" <= now <= T_CLOSE:
@@ -1510,16 +1306,15 @@ def handle_data(context, data):
 
 
 def _intraday_hard_stop(data):
-    """★V1.4：只对 L2 份额生效（L1 底仓长持、不受日内波动干扰），且只卖 L2 那一份。"""
     poss = _get_positions()
     for cd, pos in poss.items():
         code = pos["code"]
-        l2q = min(g.get("l2_qty", {}).get(cd, 0), pos["current_amount"])
-        if l2q <= 0:
+        # ★V1.3 D16：仅 L2 卫星仓参与日内硬止损；L1 核心仓长持不受日内波动干扰
+        if g.get("owner_layer", {}).get(cd) != "L2":
             continue
-        if _l2_held_days(cd) < 1:
+        if _held_days(cd) < 1:
             continue  # T+1 当日新仓不卖（§八之二 坑... 风控循环跳过 held<1）
-        cost = g.get("l2_entry_px", {}).get(cd) or g["entry_px"].get(cd) or pos["cost_price"]
+        cost = g["entry_px"].get(cd) or pos["cost_price"]
         if cost <= 0:
             continue
         p, src = _cur_price(code, data)
@@ -1528,12 +1323,9 @@ def _intraday_hard_stop(data):
         pnl = p / cost - 1
         if pnl <= -L2_STOP_PCT:
             if _noise_once(cd, "istop"):
-                log.warning("[intraday止损] %s 浮亏%.2f%% 现价%.2f 来源%s（L2份额%d股）"
-                            % (code, pnl * 100, p, src, l2q))
-            q = _do_sell(code, min(l2q, pos["enable_amount"]), "intraday硬止损")
-            if q > 0:
-                g["l2_qty"][cd] = max(0, l2q - q)
-                _record_turn("L2硬止损", True)
+                log.warning("[intraday止损] %s 浮亏%.2f%% 现价%.2f 来源%s" % (code, pnl * 100, p, src))
+            _do_sell(code, pos["enable_amount"], "intraday硬止损")
+            _record_turn("L2硬止损", True)
 
 
 def _t_once(code, data, now):
@@ -1662,11 +1454,6 @@ def after_trading_end(context, data):
     log.info("[统计] 委托口径：实际下单%d 被平台拒%d 有效%d%s"
              % (sub, rej, max(0, sub - rej),
                 ("  (首日未开盘属正常，若整段回测被拒率>0 需查时点/整手)" if rej else "")))
-    # ★V1.4 回补链路自检：把「减仓 vs 回补」的对称性直接摆进日志
-    #（V1.3 就是死在这里：砍 6 次只补 1 次，且日志上完全看不出异常）
-    log.info("[统计] ★V1.4 回补链路：累计回补%d只 | L2被市场开关暂停%d日 | L2候选接近信号%d次 | L3=%s"
-             % (g.get("refill_n", 0), g.get("market_off_days", 0),
-                g.get("l2_near_signal", 0), "ON" if INTRADAY_T else "已移除"))
     if g.get("unaffordable"):
         log.warning("[统计] 本日因「预算<1手成本」跳过的标的 %d 只：%s"
                     % (len(g["unaffordable"]), ",".join(sorted(g["unaffordable"]))))

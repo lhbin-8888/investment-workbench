@@ -129,32 +129,76 @@ def parse_kline(rows):
     return out
 
 
+def _real_amount_sina():
+    """新浪实时行情：返回 (沪市成交额元, 深市成交额元)。
+    s_sh000001 字段: 名称,当前点数,涨跌,涨跌幅,成交量(万股),成交额(万元)"""
+    url = "https://hq.sinajs.cn/list=s_sh000001,s_sz399001"
+    resp = requests.get(url, headers=SINA_HEADERS, timeout=15, proxies=PROXIES)
+    resp.encoding = "gbk"
+    resp.raise_for_status()
+    out = {}
+    for line in resp.text.strip().splitlines():
+        if "=" not in line:
+            continue
+        key, val = line.split("=", 1)
+        key = key.split("_")[-1].strip()
+        parts = val.strip().strip('";').split(",")
+        if len(parts) >= 6:
+            out[key] = float(parts[5]) * 1e4  # 万元 → 元
+    return out.get("sh000001", 0.0), out.get("sz399001", 0.0)
+
+
+def _real_amount_tencent():
+    """腾讯行情兜底：v_sh000001 中 "close/volume(手)/amount(元)" 段。"""
+    url = "http://qt.gtimg.cn/q=sh000001,sz399001"
+    resp = requests.get(url, headers=HEADERS, timeout=15, proxies=PROXIES)
+    resp.encoding = "gbk"
+    resp.raise_for_status()
+    out = {}
+    for line in resp.text.strip().splitlines():
+        if "=" not in line:
+            continue
+        key = line.split("=", 1)[0].strip().replace("v_", "")
+        body = line.split('"', 1)[-1].strip('";')
+        for seg in body.split("~"):
+            if seg.count("/") == 2:
+                out[key] = float(seg.split("/")[2])
+                break
+    return out.get("sh000001", 0.0), out.get("sz399001", 0.0)
+
+
 def calibrate_amount(records):
-    """用当日真实沪深成交额反推 Sina 量纲，填充 amount。
-    仅当存在 amount==0 的记录（即走了新浪兜底）时调用。"""
-    try:
-        import akshare as ak
-        df = ak.stock_zh_a_spot()
-        df["成交额"] = df["成交额"].astype(float)
-        sh_real = df[df["代码"].str.startswith("6")]["成交额"].sum()
-        sz_real = df[df["代码"].str.startswith(("0", "3"))]["成交额"].sum()
-    except Exception as e:
-        print(f"[WARN] 校准源(stock_zh_a_spot)失败: {e}，amount 保留 0", file=sys.stderr)
+    """用当日真实沪深成交额反推新浪成交量量纲，填充 amount。
+    仅当存在 amount==0 的记录（即走了新浪兜底）时调用。
+    校准源顺序：新浪实时行情 → 腾讯行情（2026-09-22 改造：
+    原 akshare stock_zh_a_spot 走东财通道，通道被重置后返回空，导致成交额全为 0）。"""
+    sh_real = sz_real = 0.0
+    for name, fn in (("新浪", _real_amount_sina), ("腾讯", _real_amount_tencent)):
+        try:
+            sh_real, sz_real = fn()
+            if sh_real > 0 and sz_real > 0:
+                print(f"[INFO] 校准源={name} 今日真实成交额 沪={sh_real/1e8:.0f}亿 深={sz_real/1e8:.0f}亿")
+                break
+            print(f"[WARN] 校准源({name})返回空，尝试下一源", file=sys.stderr)
+        except Exception as e:
+            print(f"[WARN] 校准源({name})失败: {e}", file=sys.stderr)
+
+    if not (sh_real > 0 and sz_real > 0):
+        print("[WARN] 两个校准源均失败，amount 保留 0", file=sys.stderr)
         return
 
-    # 取最近交易日（今天）各指数成交量
+    # 取最近交易日（末位）各指数成交量
     def latest_volume(code):
         rec = records.get(code, {})
         if not rec:
             return 0.0
-        return next(iter(rec.values()))["volume"]  # 最后写入的即最近日
+        return rec[max(rec.keys())]["volume"]
 
     sh_vol = latest_volume(SH_CODE)
     sz_vol = latest_volume(SZ_CODE)
     f_sh = sh_real / sh_vol if sh_vol else 0.0
     f_sz = sz_real / sz_vol if sz_vol else 0.0
-    print(f"[INFO] 量纲校准因子 sh={f_sh:.6g} sz={f_sz:.6g} "
-          f"(今日真实 沪={sh_real/1e8:.0f}亿 深={sz_real/1e8:.0f}亿)")
+    print(f"[INFO] 量纲校准因子 sh={f_sh:.6g} sz={f_sz:.6g}")
 
     for code, rec in records.items():
         factor = f_sh if code.startswith(("000001", "000688")) else f_sz

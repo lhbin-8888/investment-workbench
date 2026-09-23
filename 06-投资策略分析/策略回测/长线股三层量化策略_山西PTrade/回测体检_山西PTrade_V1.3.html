@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>山西PTrade V1.3 回测体检</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;background:#f4f5f7;color:#1f2328;line-height:1.6;padding:26px 16px}
+.wrap{max-width:760px;margin:0 auto}
+.hd{background:linear-gradient(120deg,#1f2937,#374151);color:#fff;border-radius:12px;padding:22px 24px;margin-bottom:16px}
+.hd h1{font-size:20px;font-weight:700}
+.hd .sub{font-size:12.5px;color:#c7ccd4;margin-top:6px}
+.hd .verdict{margin-top:14px;padding:11px 14px;background:rgba(237,125,49,.16);border-left:3px solid #ED7D31;border-radius:5px;font-size:13px;color:#ffd9b8}
+.card{background:#fff;border:1px solid #e6e8eb;border-radius:12px;padding:18px 20px;margin-bottom:14px}
+.card h2{font-size:14.5px;font-weight:700;color:#111827;margin-bottom:4px;display:flex;align-items:center;gap:7px}
+.card h2::before{content:"";width:3px;height:14px;background:#ED7D31;border-radius:2px}
+.card .cap{font-size:12px;color:#8a8f98;margin-bottom:13px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid #e6e8eb;border-radius:10px;padding:12px 13px}
+.kpi-l{font-size:11.5px;color:#8a8f98}
+.kpi-v{font-size:21px;font-weight:700;margin:3px 0 2px;letter-spacing:-.4px}
+.kpi-v.ok{color:#d64541}.kpi-v.bad{color:#d64541}.kpi-v.warn{color:#8a8f98}
+.kpi-s{font-size:11px;color:#9aa0a6}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:8px 9px;border-bottom:1px solid #eef0f2;text-align:left}
+th{background:#fafbfc;color:#6b7280;font-weight:600;font-size:11.5px}
+td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+td.mut{color:#8a8f98;font-size:11.5px}
+tr.sum{background:#fff7ed;font-weight:700;color:#b45309}
+.fx{margin-top:10px;padding:12px 14px;border-radius:8px;font-size:12.5px}
+.fx.r{background:#fef2f2;border-left:3px solid #d64541}
+.fx.y{background:#fffbeb;border-left:3px solid #eab308}
+.fx.g{background:#f0fdf4;border-left:3px solid #2e9e5b}
+.fx b{color:#111827}
+ul{padding-left:19px;font-size:12.5px;color:#374151}
+li{margin:5px 0}
+.tag{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:9px;font-weight:700}
+.tag.p0{background:#fee2e2;color:#b91c1c}
+.tag.p1{background:#fef3c7;color:#92400e}
+.ft{text-align:center;font-size:11px;color:#9aa0a6;padding:14px 0 4px}
+</style></head><body><div class="wrap">
+
+<div class="hd">
+  <h1>山西 PTrade 三层策略 · V1.3 回测体检</h1>
+  <div class="sub">★山西PTrade V1.3★ | 真下单模式 | 本金 300,000 | 2026-01-05 ~ 2026-08-31 · 160 个交易日 | 委托 145 笔 · 被拒 0</div>
+  <div class="verdict"><b>一句话结论：</b>L1 止盈机制已生效并带来实质改善（V1.2 -0.04% → V1.3 +2.01%），但整个组合存在<b>结构性单向失血</b>——减仓由「事件」高频触发（20 笔），回补由「日历」低频执行（首月 + 季度末），仓位从 53.5% 一路掉到 32.0%，67% 现金长期闲置。收益微薄不是某个 bug，而是<b>仓位建不起来 + 两层空转</b>。</div>
+</div>
+
+<div class="kpis"><div class="kpi"><div class="kpi-l">策略收益</div><div class="kpi-v ok">+2.01%</div><div class="kpi-s">300,000 → 306,037</div></div><div class="kpi"><div class="kpi-l">策略年化</div><div class="kpi-v bad">2.86%</div><div class="kpi-s">夏普 -0.15 / 索提诺 -0.20</div></div><div class="kpi"><div class="kpi-l">最大回撤</div><div class="kpi-v bad">-7.36%</div><div class="kpi-s">谷值 291,288 @ 06-29</div></div><div class="kpi"><div class="kpi-l">Alpha / Beta</div><div class="kpi-v warn">0.00 / 0.21</div><div class="kpi-s">信息比 0.25</div></div><div class="kpi"><div class="kpi-l">平均持仓占比</div><div class="kpi-v bad">41.1%</div><div class="kpi-s">名义目标 83%</div></div><div class="kpi"><div class="kpi-l">期末现金占比</div><div class="kpi-v bad">67%</div><div class="kpi-s">期初 46% → 期末 67%</div></div></div>
+
+<div class="card">
+  <h2>净值路径与月度收益</h2>
+  <div class="cap">1–4 月靠 L1 建仓吃到 +4.81% 峰值；5–6 月回吐全部利润、最大回撤 -7.36%；7–8 月仅爬回 +2.01%（因仓位仍只有 32%，反弹吃不到）</div>
+  <svg viewBox="0 0 660 250" width="100%" style="max-width:660px"><line x1="62" y1="208.0" x2="634" y2="208.0" stroke="#eceef1" stroke-width="1"/><text x="56" y="211.0" font-size="9" fill="#9aa0a6" text-anchor="end">288</text><line x1="62" y1="177.0" x2="634" y2="177.0" stroke="#eceef1" stroke-width="1"/><text x="56" y="180.0" font-size="9" fill="#9aa0a6" text-anchor="end">293</text><line x1="62" y1="146.0" x2="634" y2="146.0" stroke="#eceef1" stroke-width="1"/><text x="56" y="149.0" font-size="9" fill="#9aa0a6" text-anchor="end">298</text><line x1="62" y1="115.0" x2="634" y2="115.0" stroke="#eceef1" stroke-width="1"/><text x="56" y="118.0" font-size="9" fill="#9aa0a6" text-anchor="end">303</text><line x1="62" y1="84.0" x2="634" y2="84.0" stroke="#eceef1" stroke-width="1"/><text x="56" y="87.0" font-size="9" fill="#9aa0a6" text-anchor="end">308</text><line x1="62" y1="53.0" x2="634" y2="53.0" stroke="#eceef1" stroke-width="1"/><text x="56" y="56.0" font-size="9" fill="#9aa0a6" text-anchor="end">313</text><line x1="62" y1="22.0" x2="634" y2="22.0" stroke="#eceef1" stroke-width="1"/><text x="56" y="25.0" font-size="9" fill="#9aa0a6" text-anchor="end">318</text><line x1="62" y1="133.6" x2="634" y2="133.6" stroke="#8a8f98" stroke-width="1" stroke-dasharray="4 3"/><text x="572" y="129.6" font-size="9" fill="#8a8f98">本金 30 万</text><path d="M62.0,55.0 L143.7,57.0 L225.4,89.8 L307.1,44.2 L388.9,146.6 L470.6,169.5 L552.3,112.8 L634.0,96.2" fill="none" stroke="#ED7D31" stroke-width="2.4" stroke-linejoin="round"/><circle cx="62.0" cy="55.0" r="3.4" fill="#d64541"/><text x="62.0" y="44.0" font-size="9.5" fill="#d64541" text-anchor="middle" font-weight="600">+4.23%</text><text x="62.0" y="230" font-size="9.5" fill="#6b7280" text-anchor="middle">01</text><circle cx="143.7" cy="57.0" r="3.4" fill="#d64541"/><text x="143.7" y="46.0" font-size="9.5" fill="#d64541" text-anchor="middle" font-weight="600">+4.12%</text><text x="143.7" y="230" font-size="9.5" fill="#6b7280" text-anchor="middle">02</text><circle cx="225.4" cy="89.8" r="3.4" fill="#d64541"/><text x="225.4" y="78.8" font-size="9.5" fill="#d64541" text-anchor="middle" font-weight="600">+2.35%</text><text x="225.4" y="230" font-size="9.5" fill="#6b7280" text-anchor="middle">03</text><circle cx="307.1" cy="44.2" r="3.4" fill="#d64541"/><text x="307.1" y="33.2" font-size="9.5" fill="#d64541" text-anchor="middle" font-weight="600">+4.81%</text><text x="307.1" y="230" font-size="9.5" fill="#6b7280" text-anchor="middle">04</text><circle cx="388.9" cy="146.6" r="3.4" fill="#2e9e5b"/><text x="388.9" y="135.6" font-size="9.5" fill="#2e9e5b" text-anchor="middle" font-weight="600">-0.70%</text><text x="388.9" y="230" font-size="9.5" fill="#6b7280" text-anchor="middle">05</text><circle cx="470.6" cy="169.5" r="3.4" fill="#2e9e5b"/><text x="470.6" y="158.5" font-size="9.5" fill="#2e9e5b" text-anchor="middle" font-weight="600">-1.93%</text><text x="470.6" y="230" font-size="9.5" fill="#6b7280" text-anchor="middle">06</text><circle cx="552.3" cy="112.8" r="3.4" fill="#d64541"/><text x="552.3" y="101.8" font-size="9.5" fill="#d64541" text-anchor="middle" font-weight="600">+1.12%</text><text x="552.3" y="230" font-size="9.5" fill="#6b7280" text-anchor="middle">07</text><circle cx="634.0" cy="96.2" r="3.4" fill="#d64541"/><text x="634.0" y="85.2" font-size="9.5" fill="#d64541" text-anchor="middle" font-weight="600">+2.01%</text><text x="634.0" y="230" font-size="9.5" fill="#6b7280" text-anchor="middle">08</text></svg>
+</div>
+
+<div class="card">
+  <h2>持仓占比轨迹：单向失血的直接证据</h2>
+  <div class="cap">除 04-08 季度再平衡一次回补到 58.1% 外，其余时间全部在 32%~48% 徘徊；现金占比从 46% 升至 67%</div>
+  <svg viewBox="0 0 660 235" width="100%" style="max-width:660px"><line x1="48" y1="189.0" x2="640" y2="189.0" stroke="#eceef1"/><text x="43" y="192.0" font-size="9" fill="#9aa0a6" text-anchor="end">0%</text><line x1="48" y1="155.2" x2="640" y2="155.2" stroke="#eceef1"/><text x="43" y="158.2" font-size="9" fill="#9aa0a6" text-anchor="end">20%</text><line x1="48" y1="121.4" x2="640" y2="121.4" stroke="#eceef1"/><text x="43" y="124.4" font-size="9" fill="#9aa0a6" text-anchor="end">40%</text><line x1="48" y1="87.6" x2="640" y2="87.6" stroke="#eceef1"/><text x="43" y="90.6" font-size="9" fill="#9aa0a6" text-anchor="end">60%</text><line x1="48" y1="53.8" x2="640" y2="53.8" stroke="#eceef1"/><text x="43" y="56.8" font-size="9" fill="#9aa0a6" text-anchor="end">80%</text><line x1="48" y1="20.0" x2="640" y2="20.0" stroke="#eceef1"/><text x="43" y="23.0" font-size="9" fill="#9aa0a6" text-anchor="end">100%</text><line x1="48" y1="91.0" x2="640" y2="91.0" stroke="#2b6cb0" stroke-width="1.2" stroke-dasharray="5 3"/><text x="572" y="87.0" font-size="9.5" fill="#2b6cb0">L1 目标 58%</text><rect x="59.8" y="98.6" width="30.1" height="90.4" rx="2" fill="#ED7D31" opacity="0.88"/><text x="74.9" y="94.6" font-size="9" fill="#b45309" text-anchor="middle" font-weight="600">54</text><text x="74.9" y="209" font-size="9" fill="#6b7280" text-anchor="middle">01-05</text><rect x="113.7" y="107.9" width="30.1" height="81.1" rx="2" fill="#ED7D31" opacity="0.88"/><text x="128.7" y="103.9" font-size="9" fill="#b45309" text-anchor="middle" font-weight="600">48</text><text x="128.7" y="209" font-size="9" fill="#6b7280" text-anchor="middle">01-19</text><rect x="167.5" y="118.2" width="30.1" height="70.8" rx="2" fill="#ED7D31" opacity="0.88"/><text x="182.5" y="114.2" font-size="9" fill="#b45309" text-anchor="middle" font-weight="600">42</text><text x="182.5" y="209" font-size="9" fill="#6b7280" text-anchor="middle">03-05</text><rect x="221.3" y="126.1" width="30.1" height="62.9" rx="2" fill="#ED7D31" opacity="0.88"/><text x="236.4" y="122.1" font-size="9" fill="#b45309" text-anchor="middle" font-weight="600">37</text><text x="236.4" y="209" font-size="9" fill="#6b7280" text-anchor="middle">03-10</text><rect x="275.1" y="129.8" width="30.1" height="59.2" rx="2" fill="#ED7D31" opacity="0.88"/><text x="290.2" y="125.8" font-size="9" fill="#b45309" text-anchor="middle" font-weight="600">35</text><text x="290.2" y="209" font-size="9" fill="#6b7280" text-anchor="middle">03-20</text><rect x="328.9" y="90.8" width="30.1" height="98.2" rx="2" fill="#ED7D31" opacity="0.88"/><text x="344.0" y="86.8" font-size="9" fill="#b45309" text-anchor="middle" font-weight="600">58</text><text x="344.0" y="209" font-size="9" fill="#6b7280" text-anchor="middle">04-08</text><rect x="382.7" y="111.6" width="30.1" height="77.4" rx="2" fill="#ED7D31" opacity="0.88"/><text x="397.8" y="107.6" font-size="9" fill="#b45309" text-anchor="middle" font-weight="600">46</text><text x="397.8" y="209" font-size="9" fill="#6b7280" text-anchor="middle">04-22</text><rect x="436.6" y="130.7" width="30.1" height="58.3" rx="2" fill="#ED7D31" opacity="0.88"/><text x="451.6" y="126.7" font-size="9" fill="#b45309" text-anchor="middle" font-weight="600">34</text><text x="451.6" y="209" font-size="9" fill="#6b7280" text-anchor="middle">07-07</text><rect x="490.4" y="133.4" width="30.1" height="55.6" rx="2" fill="#ED7D31" opacity="0.88"/><text x="505.5" y="129.4" font-size="9" fill="#b45309" text-anchor="middle" font-weight="600">33</text><text x="505.5" y="209" font-size="9" fill="#6b7280" text-anchor="middle">07-14</text><rect x="544.2" y="134.9" width="30.1" height="54.1" rx="2" fill="#ED7D31" opacity="0.88"/><text x="559.3" y="130.9" font-size="9" fill="#b45309" text-anchor="middle" font-weight="600">32</text><text x="559.3" y="209" font-size="9" fill="#6b7280" text-anchor="middle">07-17</text><rect x="598.0" y="132.7" width="30.1" height="56.3" rx="2" fill="#ED7D31" opacity="0.88"/><text x="613.1" y="128.7" font-size="9" fill="#b45309" text-anchor="middle" font-weight="600">33</text><text x="613.1" y="209" font-size="9" fill="#6b7280" text-anchor="middle">08-19</text><text x="48" y="227" font-size="9" fill="#9aa0a6">持仓市值 / 总资产（11 个有委托的交易日采样）</text></svg>
+</div>
+
+<div class="card">
+  <h2>三层分工：名义 vs 实际</h2>
+  <div class="cap">三层里只有 L1 真实运作且被反复砍仓；L2 信号无法落地；L3 打平却贡献了 79% 的委托笔数</div>
+  <svg viewBox="0 0 660 168" width="100%" style="max-width:660px"><text x="0" y="12" font-size="11" fill="#374151" font-weight="600">L1 核心（长线）</text><rect x="150" y="0" width="266.8" height="11" rx="2" fill="#cbd5e1"/><text x="422.8" y="10" font-size="10" fill="#64748b">名义 58%</text><rect x="150" y="15" width="189.1" height="11" rx="2" fill="#ED7D31"/><text x="345.1" y="25" font-size="10" fill="#b45309">实际 41.1%</text><text x="150" y="41" font-size="9.5" fill="#9aa0a6">建仓 12 笔 / 止盈减仓 5 笔 / 市场开关减仓 13 笔 / 季度再平衡 3 次</text><text x="0" y="68" font-size="11" fill="#374151" font-weight="600">L2 卫星（波段）</text><rect x="150" y="56" width="115.0" height="11" rx="2" fill="#cbd5e1"/><text x="271.0" y="66" font-size="10" fill="#64748b">名义 25%</text><rect x="150" y="71" width="3.0" height="11" rx="2" fill="#ED7D31"/><text x="159.0" y="81" font-size="10" fill="#d64541">实际 0.0%</text><text x="150" y="97" font-size="9.5" fill="#9aa0a6">买入信号 5 次 → 实际成交 0 笔 → 回合 0（信号被静默丢弃）</text><text x="0" y="124" font-size="11" fill="#374151" font-weight="600">L3 日内 T</text><rect x="150" y="112" width="78.2" height="11" rx="2" fill="#cbd5e1"/><text x="234.2" y="122" font-size="10" fill="#64748b">名义 17%</text><rect x="150" y="127" width="3.0" height="11" rx="2" fill="#ED7D31"/><text x="159.0" y="137" font-size="10" fill="#d64541">实际 0.6%</text><text x="150" y="153" font-size="9.5" fill="#9aa0a6">57 回合 / 114 笔 / 综合成本率 0.002（净贡献≈0）</text></svg>
+</div>
+
+<div class="card">
+  <h2>核心归因：减仓 / 回补 不对称（D22）</h2>
+  <div class="cap">同一层里，「要减仓」是事件驱动（跌破即砍、浮盈即砍），「要回补」只有首月和每 60 日季度末两种机会</div>
+  <table>
+    <tr><th>动作</th><th style="text-align:right">笔数</th><th>触发机制</th></tr>
+    <tr class=""><td>市场开关 L1 减仓</td><td class="num">13</td><td class="mut">事件驱动（跌破 120 日线即砍一档）</td></tr><tr class=""><td>L1 止盈减仓</td><td class="num">5</td><td class="mut">事件驱动（浮盈 ≥15% 即砍）</td></tr><tr class=""><td>L1 再平衡减仓</td><td class="num">2</td><td class="mut">日历驱动（每 60 日）</td></tr><tr class="sum"><td>减仓合计</td><td class="num">20</td><td class="mut">全部为「事件驱动」，随时可能发生</td></tr><tr class=""><td>L1 建仓 / 回补</td><td class="num">12</td><td class="mut">日历驱动（仅首月 + 每 60 日季度再平衡）</td></tr>
+  </table>
+  <div class="fx r" style="margin-top:12px">
+    <b>不对称的代价：</b>5–6 月跌破 120 日线时减仓 13 笔确实避开了下跌（保护有效），但 7 月指数回到 120 日线上方时，市场开关只做了「档位复位」（清零计数器），<b>没有回补</b>。结果就是「跌了减、涨了不接」——仓位单向流失，反弹时只有 32% 仓位在场。
+  </div>
+</div>
+
+<div class="card">
+  <h2>本轮新暴露的缺陷（D22–D24）</h2>
+  <div class="cap">均为真下单模式 + 实盘级本金才会暴露</div>
+  <table>
+    <tr><th>编号</th><th>缺陷</th><th>后果</th></tr>
+    <tr><td><span class="tag p0">P0</span> D22</td><td>L1 减仓事件驱动、回补日历驱动</td><td>仓位单向失血 53.5%→32.0%，现金 67% 闲置</td></tr>
+    <tr><td><span class="tag p0">P0</span> D23</td><td>L2 标的池与本金不匹配（688 系列一手 5–6 万 vs 单票预算 7,500 元），且信号被丢弃时<b>无告警</b></td><td>L2 名义 25%、实际 0%；8 个月 5 次信号 0 笔成交</td></tr>
+    <tr><td><span class="tag p1">P1</span> D24</td><td>L3 日内 T 57 回合、综合成本率 0.002、净贡献≈0，却占 145 笔委托中的 114 笔</td><td>无效复杂度 + 交易摩擦，建议评估移除</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h2>三代版本对比</h2>
+  <table>
+    <tr><th>版本</th><th style="text-align:right">总收益</th><th style="text-align:right">峰值</th><th style="text-align:right">最大回撤</th><th style="text-align:right">平均仓位</th><th>关键变化</th></tr>
+    <tr><td>V1.1</td><td class="num" style="color:#d64541">+3.49%</td><td class="num">+5.51%</td><td class="num">-4.71%</td><td class="num">37.0%</td><td class="mut">含 D16 缺陷（L2 规则误清 L1 底仓）</td></tr>
+    <tr><td>V1.2</td><td class="num" style="color:#2e9e5b">-0.04%</td><td class="num">+4.02%</td><td class="num">-6.84%</td><td class="num">34.0%</td><td class="mut">修 D16–D21，裸露真实水平</td></tr>
+    <tr class="sum"><td>V1.3</td><td class="num" style="color:#d64541">+2.01%</td><td class="num">+4.81%</td><td class="num">-7.36%</td><td class="num">41.1%</td><td>新增 L1 止盈再平衡（生效 5 笔）</td></tr>
+  </table>
+  <div class="fx y">
+    <b>V1.1 的 +3.49% 是被缺陷撑起来的：</b>D16 让 L2 的 +14% 止盈规则错误作用在 L1 持仓上，等于「涨了就落袋」，恰好吃到 1–4 月上涨。V1.2 修正后裸露真实水平；V1.3 把「止盈」正式做成纪律，方向正确、确实改善，但<b>只做了一半</b>——有卖出纪律，没有买入纪律。
+  </div>
+</div>
+
+<div class="card">
+  <h2>下一步的三条结构性选择</h2>
+  <ul>
+    <li><b>A. 让回补对称化（直击 D22）</b>：市场开关改为真正双向——回到 120 日线上方则回补一档；L1 止盈释放的现金在 10 日周期内立即回补欠配标的，不再等季度。预期仓位稳定在 50–58%。</li>
+    <li><b>B. 清掉空转层（D23 + D24）</b>：把 L2 标的池换成买得起的中低价股（或直接砍掉 L2），移除净贡献为 0 的 L3 日内 T，让策略回归「L1 单层 + 择时」的简单结构。</li>
+    <li><b>C. 重构标的池与本金</b>：16 只标的在 30 万本金下只能建 9 只；压缩到 6–8 只 20–60 元的中低价龙头，单票预算翻倍，让 L1 与 L2 都能真正落地。</li>
+  </ul>
+  <div class="fx g">
+    <b>建议：</b>先做 A（改动最小、直击病根、有 1–4 月与 7–8 月的实证支撑），再评估 B。C 涉及资金决策，需要先定本金规模。
+  </div>
+</div>
+
+<div class="ft">数据来源：长线回测1.txt（1,368 行）· 数字闭合验证：委托 145 = 买入 69 + 卖出 76；受理 145 / 被拒 0</div>
+</div></body></html>
