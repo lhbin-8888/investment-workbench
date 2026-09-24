@@ -87,6 +87,12 @@
   ],
   "每日晨报": [
     {
+      "title": "晨报_2026-09-02",
+      "file": "01-投研信息收集/每日晨报/晨报_2026-09-02.pdf",
+      "type": "pdf",
+      "desc": ""
+    },
+    {
       "title": "2026-09-24-晨报",
       "file": "01-投研信息收集/每日晨报/2026-09-24-晨报.md",
       "type": "md",
@@ -97,12 +103,6 @@
       "file": "01-投研信息收集/每日晨报/2026-09-24-晨报.pdf",
       "type": "pdf",
       "desc": "外围齐跌+美债10Y破5.11%压制，央行8000亿MLF对冲，预测低开后偏弱震荡分化，沪指3900-3950拉锯"
-    },
-    {
-      "title": "晨报_2026-09-02",
-      "file": "01-投研信息收集/每日晨报/晨报_2026-09-02.pdf",
-      "type": "pdf",
-      "desc": ""
     },
     {
       "title": "2026-09-23-晨报",
@@ -621,39 +621,7 @@
       "desc": ""
     }
   ],
-  "ptrade_verify": [
-    {
-      "title": "strategy_original",
-      "file": "06-投资策略分析/ptrade_verify/strategy_original.py",
-      "type": "md",
-      "desc": ""
-    },
-    {
-      "title": "harness_v3",
-      "file": "06-投资策略分析/ptrade_verify/harness_v3.py",
-      "type": "md",
-      "desc": ""
-    },
-    {
-      "title": "harness",
-      "file": "06-投资策略分析/ptrade_verify/harness.py",
-      "type": "md",
-      "desc": ""
-    },
-    {
-      "title": "cost_model",
-      "file": "06-投资策略分析/ptrade_verify/cost_model.py",
-      "type": "md",
-      "desc": ""
-    }
-  ],
   "策略回测": [
-    {
-      "title": "PTrade热点追踪策略_体检报告_20260912",
-      "file": "06-投资策略分析/策略回测/PTrade热点追踪策略_体检报告_20260912.html",
-      "type": "html",
-      "desc": ""
-    },
     {
       "title": "build_pdf",
       "file": "06-投资策略分析/策略回测/build_pdf.py",
@@ -661,15 +629,9 @@
       "desc": ""
     },
     {
-      "title": "三策略对比分析",
-      "file": "06-投资策略分析/策略回测/三策略对比分析.md",
+      "title": "BatchLog",
+      "file": "06-投资策略分析/策略回测/BatchLog.txt",
       "type": "md",
-      "desc": ""
-    },
-    {
-      "title": "三策略对比分析",
-      "file": "06-投资策略分析/策略回测/三策略对比分析.pdf",
-      "type": "pdf",
       "desc": ""
     }
   ]
