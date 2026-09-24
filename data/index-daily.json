@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-22 16:02",
+  "updated": "2026-09-23 15:31",
   "period": "2026-09-02 ~ 2026-09-22",
   "days": 15,
   "dates": [
@@ -112,93 +112,93 @@
   "turnover": [
     {
       "date": "09-02",
-      "total": 20962.35,
-      "shanghai": 10285.57,
-      "shenzhen": 10676.78
+      "total": 17325.6,
+      "shanghai": 8511.47,
+      "shenzhen": 8814.13
     },
     {
       "date": "09-03",
-      "total": 20118.24,
-      "shanghai": 9897.57,
-      "shenzhen": 10220.67
+      "total": 16627.99,
+      "shanghai": 8190.4,
+      "shenzhen": 8437.59
     },
     {
       "date": "09-04",
-      "total": 22546.21,
-      "shanghai": 10700.07,
-      "shenzhen": 11846.15
+      "total": 18633.97,
+      "shanghai": 8854.48,
+      "shenzhen": 9779.49
     },
     {
       "date": "09-07",
-      "total": 19766.85,
-      "shanghai": 9506.94,
-      "shenzhen": 10259.92
+      "total": 16337.14,
+      "shanghai": 7867.15,
+      "shenzhen": 8469.99
     },
     {
       "date": "09-08",
-      "total": 21803.83,
-      "shanghai": 10554.82,
-      "shenzhen": 11249.02
+      "total": 18020.82,
+      "shanghai": 8734.28,
+      "shenzhen": 9286.53
     },
     {
       "date": "09-09",
-      "total": 20836.97,
-      "shanghai": 10306.11,
-      "shenzhen": 10530.86
+      "total": 17222.14,
+      "shanghai": 8528.47,
+      "shenzhen": 8693.66
     },
     {
       "date": "09-10",
-      "total": 19412.84,
-      "shanghai": 9652.32,
-      "shenzhen": 9760.52
+      "total": 16045.17,
+      "shanghai": 7987.45,
+      "shenzhen": 8057.72
     },
     {
       "date": "09-11",
-      "total": 22639.33,
-      "shanghai": 11533.25,
-      "shenzhen": 11106.08
+      "total": 18712.49,
+      "shanghai": 9543.95,
+      "shenzhen": 9168.53
     },
     {
       "date": "09-14",
-      "total": 18025.37,
-      "shanghai": 9138.78,
-      "shenzhen": 8886.58
+      "total": 14898.74,
+      "shanghai": 7562.49,
+      "shenzhen": 7336.25
     },
     {
       "date": "09-15",
-      "total": 18046.94,
-      "shanghai": 8780.69,
-      "shenzhen": 9266.25
+      "total": 14915.84,
+      "shanghai": 7266.16,
+      "shenzhen": 7649.68
     },
     {
       "date": "09-16",
-      "total": 18412.92,
-      "shanghai": 9143.49,
-      "shenzhen": 9269.43
+      "total": 15218.69,
+      "shanghai": 7566.38,
+      "shenzhen": 7652.3
     },
     {
       "date": "09-17",
-      "total": 18766.38,
-      "shanghai": 9019.24,
-      "shenzhen": 9747.14
+      "total": 15510.24,
+      "shanghai": 7463.57,
+      "shenzhen": 8046.67
     },
     {
       "date": "09-18",
-      "total": 20099.22,
-      "shanghai": 9672.98,
-      "shenzhen": 10426.25
+      "total": 16611.85,
+      "shanghai": 8004.55,
+      "shenzhen": 8607.3
     },
     {
       "date": "09-21",
-      "total": 21034.0,
-      "shanghai": 10004.41,
-      "shenzhen": 11029.59
+      "total": 17384.2,
+      "shanghai": 8278.81,
+      "shenzhen": 9105.39
     },
     {
       "date": "09-22",
-      "total": 21355.5,
-      "shanghai": 10079.96,
-      "shenzhen": 11275.55
+      "total": 17649.76,
+      "shanghai": 8341.33,
+      "shenzhen": 9308.44
     }
   ]
 }

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-热点追踪量化策略 v4.0（分层出场版 · 山西证券 PTrade）
+热点追踪量化策略 v4.1（分层出场版 · 山西证券 PTrade）
 =====================================================
 相对 v2.0 的修复（对应体检报告编号）：
 
@@ -28,6 +28,10 @@
 ⚠️ 实盘自动交易风险自负。TRADE_ENABLED 默认 False，请先跑信号模式观察。
 
   v4.0 相对 v3.0 的唯一改动：分层出场（TIERED_EXIT）
+v4.1 相对 v4.0：修日志（初始化行版本号、时间止损打印实际生效天数与档位、新增 [分层] 定档日志）；
+              新增 STRONG_TIER_ON 开关（False=只留 weak 档），用于同窗口 A/B 分离 strong 档净贡献。
+              依据：092301 实测（05-06~06-30 同窗口）strong 档把 6/8% 减半闸抬到 10/12% 后，
+              600956/688112/300939 三笔 v3 盈利票被回撤归零，002552/300975/300179 三笔大赚 —— 高方差，需 A/B 定夺。
   --------------------------------------------------
   依据：真实回测账本（2026-05-06~06-30）22 只已平仓票单票 +8.64%、胜率 68.2%，
         但 MFE(10 日内盘中最大浮盈) 均值 +21.41% -> 实现 +8.64%，捕捉率仅 40%，
@@ -117,6 +121,7 @@ MAX_HOLD_DAYS = 5              # 时间止损（亏损票）：持有超过 N �
 # 依据：T+1 分层表在 5 月 / 6 月两个子样本上均单调（MFE 从 +7.42% 到 +30.23%）
 # 强启动票机会是弱启动票的 4 倍，却共用同一套参数 —— 强票被过早减半、弱票被持有过久
 TIERED_EXIT      = True            # False = 完全回退 v3.0 全局口径（一键回退开关）
+STRONG_TIER_ON   = True            # v4.1: False=停用 strong 档放宽（保留 weak 档）。A/B 用：先跑 True（=v4.0），再跑 False，同窗口对照
 TIER_STRONG_T1   = 5.0             # T+1 收盘浮盈 >= +5%  判为「强启动」
 TIER_WEAK_T1     = 0.0             # T+1 收盘浮盈 <   0%  判为「弱启动」
 # 强启动：放宽减半 / 回撤阈值，让利润奔跑（v3.4 全局放宽已证伪，这里是【仅对强票】放宽）
@@ -6619,12 +6624,17 @@ def _tier_of(context, code, held_days, rt):
     if code in t:
         return t[code]
     if held_days >= 1:
-        if rt >= TIER_STRONG_T1 / 100.0:
+        if rt >= TIER_STRONG_T1 / 100.0 and STRONG_TIER_ON:
             t[code] = "strong"
         elif rt < TIER_WEAK_T1 / 100.0:
             t[code] = "weak"
         else:
             t[code] = "base"
+        try:
+            log.info("[分层] {} T+1浮盈{:+.1f}% 定档={}（strong>=+{}% / weak<+{}%）".format(
+                code, rt * 100.0, t[code], TIER_STRONG_T1, TIER_WEAK_T1))
+        except Exception:
+            pass
         return t[code]
     return "base"
 
@@ -6741,7 +6751,7 @@ def monitor_risk(context, data=None):
         # 5) 时间止损（亏损票）：持有 >= MAX_HOLD_DAYS 天 → 清仓
         _mh = _exit_param("MAX_HOLD_DAYS", MAX_HOLD_DAYS, board, _tier, 5)
         if held_days >= 1 and rt <= 0 and _mh > 0 and held_days >= _mh:
-            if _sell_all(code, px, "时间止损 亏损持仓{}天".format(MAX_HOLD_DAYS)):
+            if _sell_all(code, px, "时间止损 亏损持仓{}天({}档)".format(_mh, _tier)):
                 _clear(code)
             continue
         # 6) +15% 清仓（盈利减半后的终点兜底）
@@ -6982,7 +6992,8 @@ def initialize(context):
             log.info("[配置] 佣金未设置: {}".format(repr(e2)))
 
     log.info("=" * 60)
-    log.info("[初始化] 热点追踪 v3.0 加固版启动；TRADE_ENABLED={}".format(TRADE_ENABLED))
+    log.info("[初始化] 热点追踪 v4.1 分层出场版启动；TIERED_EXIT={} STRONG_TIER_ON={}；TRADE_ENABLED={}".format(
+        TIERED_EXIT, STRONG_TIER_ON, TRADE_ENABLED))
     _diag_api()
     log.info("[初始化] 行情/成交量/口径自检将延迟到首个交易日执行（PTrade 初始化阶段禁止取数）")
     log.info("=" * 60)
