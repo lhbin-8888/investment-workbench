@@ -2,13 +2,14 @@
 """
 hotspot_trader_v1_ptrade.py
 =====================================================================
-自选股 · 热点短线突破策略（Ptrade / QMT 托管机骨架  v1.4）
+自选股 · 热点短线突破策略（Ptrade / QMT 托管机骨架  v1.7）
 ---------------------------------------------------------------------
 设计目标（与彬哥哥商定）：
   选股 = 热点板块追踪结果 ∩ 股价站上5/10日线（多头排列）∩ 连续两天放量上涨 ∩ 非涨停
   出场 = ATR 自适应移动止盈 + 固定百分比硬止损 + 保本线 + 分批减仓 + 时间止损
   执行 = 自有资金波短，T+1，单票风险预算控仓
   v1.3 硬性剔除：ST/*ST、次新股(上市<250交易日)；只买 WATCHLIST；换手率<20%(百分比单位)；同板块≤40% 集中度
+  v1.7 硬性剔除追加：科创板(688开头)——8个月回测 688019 一笔 -24.8%(隔夜跳空击穿5%止损)，方案A直接剔除；时间止损日志补盈利%
   v1.3 修正(山西证券官方API文档核对)：
     . before_trading_start(context, data) 两参 OK；run_daily 回调只收 context(无 data) -> 现价改由 get_snapshot(交易)/get_history(回测) 兜底
     . get_history(is_dict=True) 返回 2D 数组(行=K线,列=字段)，_hist 已转成 {字段:array} 供 df['close'] 访问，修掉必崩
@@ -292,6 +293,7 @@ MAX_HOLD_DAYS = 8        # 时间止损：持仓上限天数（仍亏损才砍�
 # ---- 硬性剔除 / 过滤（彬哥哥要求 v1.1）----
 EXCLUDE_ST = True            # 剔除 ST / *ST
 EXCLUDE_NEW_STOCK = True     # 剔除次新股
+EXCLUDE_STAR = True          # 剔除科创板(688开头)：20cm波动配5%固定止损易被隔夜跳空击穿(彬哥哥拍板 方案A 2026-09-24)
 NEW_STOCK_DAYS = 250         # 次新判定：上市不足 N 个交易日视为次新
 TURNOVER_CAP = 20             # 换手率上限（20%，百分比单位），防庄股爆量
 SECTOR_CAP = 0.40            # 同板块集中度上限（占净值）
@@ -769,7 +771,9 @@ def _is_candidate(df, code, now_dt):
     if c0 / close[-21] - 1.0 >= STAGE_GAIN_CAP:
         return False
 
-    # 5) 硬性剔除：ST / 次新股 / 换手率超限（彬哥哥要求）
+    # 5) 硬性剔除：科创板 / ST / 次新股 / 换手率超限（彬哥哥要求）
+    if EXCLUDE_STAR and code.startswith('688'):
+        return False
     if _is_st(code):
         return False
     if _is_new_stock(code, now_dt):
@@ -1067,7 +1071,7 @@ def _risk_control(context, data=None):
             _do_sell(_suffix(p['code']), amount)
             context.hold_state.pop(code, None)
             if profit < 0:
-                log.info('[%s] %s 时间止损 持仓=%d日', LOG_TAG, _suffix(p['code']), held_days)
+                log.info('[%s] %s 时间止损 盈利=%.1f%% 持仓=%d日', LOG_TAG, _suffix(p['code']), profit * 100, held_days)
             else:
                 log.info('[%s] %s 底仓闭环(止盈后到期清仓) 盈利=%.1f%% 持仓=%d日',
                          LOG_TAG, _suffix(p['code']), profit * 100, held_days)

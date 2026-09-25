@@ -139,9 +139,10 @@ EXIT_TIER_OVERRIDE = {
 }
 
 # ---- 大盘择时总闸（纯多头动量必须有"总闸"，弱市/空头不追涨）----
-MARKET_TIMING = True           # True=开启大盘择时：沪深300 跌破 MA20 则暂停建仓
-MKT_INDEX = "000300.SS"        # 择时参考指数（沪深300；看成长风格可换 399006.SZ 创业板指）
-MKT_MA = 20                    # 择时均线周期
+MARKET_TIMING = True           # True=开启大盘择时：创业板指 跌破 MA60 则暂停建仓
+MKT_INDEX = "399006.SZ"        # 择时参考指数（创业板指，贴合本策略动量/小盘股宇宙；原 000300.SS 沪深300 与个股错配，会误关闸）
+MKT_MA = 60                    # 择时均线周期（由 20 放宽到 60，减少被关闸天数）
+MKT_GATE_TOL = -0.01           # 闸门容忍带：指数低于 MA 不到 1% 仍允许建仓，过滤均线抖动误关（0=原刚性阈值）
 MKT_EXIT_WHEN_BEAR = False     # True=大盘破 MA20 时清空全部持仓（系统性撤退；默认关，避免盘中均线抖动误清）
 
 # ---- 保本止损（减半后启用：把止损线上移到成本价，锁定已落袋利润）----
@@ -6549,8 +6550,11 @@ def positions_map(context=None):
             log.error("[持仓] get_position 回退异常: {}".format(repr(e)))
 
     if not out:
-        log.info("[持仓] 持仓为空。注意：TRADE_ENABLED=False 信号模式不真正下单，"
-                 "持仓为空属正常；开 True 买入后才能读到持仓并触发止损止盈。")
+        if TRADE_ENABLED:
+            log.info("[持仓] 持仓为空（当前无持仓；TRADE_ENABLED=True 实盘/回测模式下属正常空仓日）。")
+        else:
+            log.info("[持仓] 持仓为空。TRADE_ENABLED=False 信号模式不真正下单，持仓为空属正常；"
+                     "开 True 买入后才能读到持仓并触发止损止盈。")
     return out
 
 
@@ -7031,9 +7035,10 @@ def _market_timing_ok(context, data):
         if cur is None:
             cur = closes[-1]
         ma = _ma(closes, MKT_MA)
-        ok = cur >= ma
-        log.info("[择时] {} 现价{:.2f} MA{}={:.2f} 状态={}".format(
-            MKT_INDEX, cur, MKT_MA, ma, "多头·可建仓" if ok else "空头·暂停建仓"))
+        thr = ma * (1.0 + MKT_GATE_TOL)
+        ok = cur >= thr
+        log.info("[择时] {} 现价{:.2f} MA{}={:.2f} 闸门线={:.2f}(MA{:+.1%}) 状态={}".format(
+            MKT_INDEX, cur, MKT_MA, ma, thr, MKT_GATE_TOL, "多头·可建仓" if ok else "空头·暂停建仓"))
         return ok
     except Exception as e:
         log.error("[择时] 异常 {}，默认放行".format(repr(e)))

@@ -167,6 +167,114 @@ def _real_amount_tencent():
     return out.get("sh000001", 0.0), out.get("sz399001", 0.0)
 
 
+def _tencent_symbol(secid: str) -> str:
+    prefix, code = secid.split(".")
+    return ("sh" if prefix == "1" else "sz") + code
+
+
+def fetch_tencent_latest(secid: str, beg: str, end: str):
+    """腾讯日K + 实时快照。返回 dict 或 None。
+    kline 的 day 数组为 [日期, 开, 收, 高, 低, 成交量(手)]（无成交额）；
+    快照 qt 段含 "收盘/成交量(手)/成交额(元)" 复合字段，成交额口径为全市场。
+    """
+    sym = _tencent_symbol(secid)
+    url = (
+        "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get"
+        f"?param={sym},day,{beg},{end},20,qfq"
+    )
+    try:
+        resp = requests.get(url, headers=HEADERS, timeout=20, proxies=PROXIES)
+        resp.raise_for_status()
+        node = resp.json().get("data", {}).get(sym, {}) or {}
+    except Exception as e:
+        print(f"[WARN] 腾讯 {secid} 失败: {e}", file=sys.stderr)
+        return None
+
+    days = node.get("day") or node.get("qfqday") or []
+    if not days:
+        return None
+    row = days[-1]
+    out = {
+        "date": row[0],
+        "open": float(row[1]), "close": float(row[2]),
+        "high": float(row[3]), "low": float(row[4]),
+        "volume": float(row[5]) * 100.0 if len(row) > 5 else 0.0,  # 手 → 股
+        "amount": 0.0,
+    }
+    for seg in (node.get("qt", {}) or {}).get(sym, []) or []:
+        if isinstance(seg, str) and seg.count("/") == 2:
+            try:
+                out["amount"] = float(seg.split("/")[2])
+            except ValueError:
+                pass
+            break
+    return out
+
+
+def _realtime_amounts_sina(secids):
+    """新浪实时快照，返回 {code: 成交额(元)}。字段: 名称,点位,涨跌,涨跌幅,成交量,成交额(万元)。"""
+    syms = ",".join("s_" + _tencent_symbol(s) for s in secids)
+    resp = requests.get("https://hq.sinajs.cn/list=" + syms,
+                        headers=SINA_HEADERS, timeout=15, proxies=PROXIES)
+    resp.encoding = "gbk"
+    resp.raise_for_status()
+    out = {}
+    for line in resp.text.strip().splitlines():
+        if "=" not in line:
+            continue
+        key = line.split("=", 1)[0].strip().replace("var hq_str_", "").replace("s_", "")
+        parts = line.split('"', 1)[-1].strip('";').split(",")
+        if len(parts) >= 6:
+            try:
+                out[key] = float(parts[5]) * 1e4  # 万元 → 元
+            except ValueError:
+                pass
+    return out
+
+
+def append_latest_bar(records):
+    """新浪兜底源不含「当日」K线（滞后一个交易日），导致 JSON 缺当日、且成交额
+    校准因子跨日错配（曾把当日成交额错误地写成前一交易日值）。
+    收盘后用腾讯行情补齐当日：收盘价取腾讯日K，成交额取腾讯快照（全市场口径），
+    成交量统一换算为「股」以对齐新浪 K 线量纲，使校准因子建立在同一交易日上。"""
+    now = datetime.now()
+    if not (now.hour > 15 or (now.hour == 15 and now.minute >= 1)):
+        print("[INFO] 未到收盘时点，跳过当日补齐", file=sys.stderr)
+        return False
+
+    today = now.strftime("%Y-%m-%d")
+    beg = (now.date() - timedelta(days=45)).strftime("%Y-%m-%d")
+    latest = {}
+    for idx in INDEXES:
+        info = fetch_tencent_latest(idx["secid"], beg, today)
+        if info and info.get("date") == today:
+            latest[idx["code"]] = info
+    if len(latest) != len(INDEXES):
+        print(f"[WARN] 腾讯当日数据不全（{len(latest)}/{len(INDEXES)}），跳过补齐", file=sys.stderr)
+        return False
+
+    if today in records.get(SH_CODE, {}):
+        print("[INFO] 主源已含当日数据，无需补齐")
+        return False
+
+    if any(v["amount"] <= 0 for v in latest.values()):
+        try:
+            amt = _realtime_amounts_sina([i["secid"] for i in INDEXES])
+            for idx in INDEXES:
+                if latest[idx["code"]]["amount"] <= 0 and idx["code"] in amt:
+                    latest[idx["code"]]["amount"] = amt[idx["code"]]
+        except Exception as e:
+            print(f"[WARN] 新浪实时成交额兜底失败: {e}", file=sys.stderr)
+
+    for code, v in latest.items():
+        records.setdefault(code, {})[today] = {
+            "open": v["open"], "close": v["close"], "high": v["high"],
+            "low": v["low"], "volume": v["volume"], "amount": v["amount"],
+        }
+    print(f"[INFO] 已用腾讯行情补齐当日 {today}（成交额=全市场口径，成交量=股）")
+    return True
+
+
 def calibrate_amount(records):
     """用当日真实沪深成交额反推新浪成交量量纲，填充 amount。
     仅当存在 amount==0 的记录（即走了新浪兜底）时调用。
@@ -226,6 +334,7 @@ def main():
         records[idx["code"]] = parse_kline(rows)
 
     if used_fallback:
+        append_latest_bar(records)
         calibrate_amount(records)
 
     common_dates = sorted(set(records[SH_CODE]) & set(records[SZ_CODE]))

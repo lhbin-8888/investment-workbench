@@ -293,17 +293,21 @@ def main():
             new_row["down"] = cached["down"]
         rows.append(new_row)
 
-    # 对最后一天尝试抓当天涨跌家数
+    # 对最后一天尝试抓当天涨跌家数（乐咕乐股仅提供「当天」快照，故仅当
+    # 末日就是今天时才写入，否则会把今日涨跌家数串到上一交易日身上）
     if rows:
         last_date_full = dates[-1]
-        activity = fetch_market_activity()
-        if activity:
-            last = rows[-1]
-            last["up"] = activity.get("up")
-            last["down"] = activity.get("down")
-            # 如果乐咕数据里的涨停/跌停更全，也可以覆盖
-            if activity.get("actual_zt") and not last.get("actual_limit_up"):
-                last["actual_limit_up"] = activity.get("actual_zt")
+        if last_date_full == datetime.now().strftime("%Y-%m-%d"):
+            activity = fetch_market_activity()
+            if activity:
+                last = rows[-1]
+                last["up"] = activity.get("up")
+                last["down"] = activity.get("down")
+                # 如果乐咕数据里的涨停/跌停更全，也可以覆盖
+                if activity.get("actual_zt") and not last.get("actual_limit_up"):
+                    last["actual_limit_up"] = activity.get("actual_zt")
+        else:
+            print(f"[info] 末日 {last_date_full} 非今日，跳过乐咕涨跌家数覆盖", file=sys.stderr)
 
     # 周期判断
     for i in range(len(rows)):
