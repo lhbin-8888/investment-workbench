@@ -241,7 +241,7 @@ class _Log(object):
 
 # ----------------------- 加载策略并注入 -----------------------
 SPEC = importlib.util.spec_from_file_location(
-    'hotspot_trader_v1_ptrade', 'D:/投研工作台/strategies/hotspot_trader_v1_ptrade.py')
+    'hotspot_trader_v1_ptrade', 'D:/投研工作台/06-投资策略分析/策略回测/hotspot_trader_v1_ptrade.py')
 mod = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(mod)
 

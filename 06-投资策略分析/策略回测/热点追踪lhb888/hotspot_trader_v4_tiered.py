@@ -139,10 +139,12 @@ EXIT_TIER_OVERRIDE = {
 }
 
 # ---- 大盘择时总闸（纯多头动量必须有"总闸"，弱市/空头不追涨）----
-MARKET_TIMING = True           # True=开启大盘择时：创业板指 跌破 MA60 则暂停建仓
-MKT_INDEX = "399006.SZ"        # 择时参考指数（创业板指，贴合本策略动量/小盘股宇宙；原 000300.SS 沪深300 与个股错配，会误关闸）
-MKT_MA = 60                    # 择时均线周期（由 20 放宽到 60，减少被关闸天数）
-MKT_GATE_TOL = -0.01           # 闸门容忍带：指数低于 MA 不到 1% 仍允许建仓，过滤均线抖动误关（0=原刚性阈值）
+MARKET_TIMING = True           # True=开启大盘择时总闸：宽基指数站上 MA 或 存在强领涨板块 才允许建仓
+MKT_INDEX = "000300.SS"        # 择时参考指数（沪深300 宽基；v4.2 由创业板指回退——创业板指=成长/小盘代表，单用会在弱市被长期压制而 0 成交）
+MKT_MA = 20                    # 择时均线周期（v4.2 由 60 回退到 20：MA60 太钝，弱市会连续数周关闸→全程空仓）
+MKT_GATE_TOL = -0.01           # 闸门容忍带：指数低于 MA 不到 1% 仍允许建仓，过滤均线抖动误关
+SECTOR_VALVE_ON = True         # 领涨板块软阀（v4.2 新增）：指数弱但当日最强行业涨幅达标时仍允许建仓，避免"弱指数+强主线"被一刀切空仓
+SECTOR_VALVE_RISE = 0.02       # 软阀阈值：当日最强申万一级行业平均涨幅 >= 2% 视为存在可骑的强主线
 MKT_EXIT_WHEN_BEAR = False     # True=大盘破 MA20 时清空全部持仓（系统性撤退；默认关，避免盘中均线抖动误清）
 
 # ---- 保本止损（减半后启用：把止损线上移到成本价，锁定已落袋利润）----
@@ -6550,11 +6552,16 @@ def positions_map(context=None):
             log.error("[持仓] get_position 回退异常: {}".format(repr(e)))
 
     if not out:
-        if TRADE_ENABLED:
-            log.info("[持仓] 持仓为空（当前无持仓；TRADE_ENABLED=True 实盘/回测模式下属正常空仓日）。")
-        else:
-            log.info("[持仓] 持仓为空。TRADE_ENABLED=False 信号模式不真正下单，持仓为空属正常；"
-                     "开 True 买入后才能读到持仓并触发止损止盈。")
+        try:
+            _d = _context_date(context)
+        except Exception:
+            _d = ""
+        if _EMPTY_LOG_DATE[0] != _d:
+            _EMPTY_LOG_DATE[0] = _d
+            if TRADE_ENABLED:
+                log.info("[持仓] 持仓为空（当前无持仓；TRADE_ENABLED=True 实盘/回测模式下属正常空仓日；本日仅提示一次）")
+            else:
+                log.info("[持仓] 持仓为空。TRADE_ENABLED=False 信号模式不真正下单，持仓为空属正常（本日仅提示一次）")
     return out
 
 
@@ -6668,7 +6675,13 @@ def monitor_risk(context, data=None):
     peak = getattr(context, "peak", {})
     context.peak = peak
     if not pm:
-        log.info("[风控] 当前无持仓")
+        try:
+            _d = _context_date(context)
+        except Exception:
+            _d = ""
+        if _EMPTY_LOG_DATE[0] != _d:
+            _EMPTY_LOG_DATE[0] = _d
+            log.info("[风控] 当前无持仓（本日仅提示一次）")
         return
     entry = getattr(context, "entry_date", {})
     halved = getattr(context, "halved", {})
@@ -6973,6 +6986,7 @@ def execute_buy(context, picks):
 # ============================================================
 _LAST_DATE = [""]
 _DIAG_DONE = [False]
+_EMPTY_LOG_DATE = [None]   # 空仓提示降频：每个交易日最多打印一次，避免每分钟刷屏撑爆日志（平台报"日志内容过长"截断）
 
 
 def initialize(context):
@@ -7022,27 +7036,47 @@ def initialize(context):
 
 
 def _market_timing_ok(context, data):
-    """大盘择时总闸：指数站上 MA(MKT_MA) 才允许建仓；弱市/空头不追涨。"""
+    """大盘择时总闸（v4.2）：宽基指数站上 MA(MKT_MA) 为强市况；
+    指数弱但存在强领涨板块（板块轮动机会）时，软阀放行。
+    避免"弱势指数 + 强主线"并存时被一刀切空仓（v4.1 全程 0 成交的教训）。"""
     if not MARKET_TIMING:
         return True
+    # 1) 指数闸
+    idx_ok = True
     try:
         rows = _fetch_panel([MKT_INDEX], MKT_MA + 5, ["close"], "择时")
         closes = (rows.get(MKT_INDEX) or {}).get("close") or []
         closes = [x for x in closes if x]
         if len(closes) < MKT_MA:
-            return True
-        cur = _current_price(data, MKT_INDEX)
-        if cur is None:
-            cur = closes[-1]
-        ma = _ma(closes, MKT_MA)
-        thr = ma * (1.0 + MKT_GATE_TOL)
-        ok = cur >= thr
-        log.info("[择时] {} 现价{:.2f} MA{}={:.2f} 闸门线={:.2f}(MA{:+.1%}) 状态={}".format(
-            MKT_INDEX, cur, MKT_MA, ma, thr, MKT_GATE_TOL, "多头·可建仓" if ok else "空头·暂停建仓"))
-        return ok
+            idx_ok = True
+        else:
+            cur = _current_price(data, MKT_INDEX)
+            if cur is None:
+                cur = closes[-1]
+            ma = _ma(closes, MKT_MA)
+            thr = ma * (1.0 + MKT_GATE_TOL)
+            idx_ok = cur >= thr
+            log.info("[择时] {} 现价{:.2f} MA{}={:.2f} 闸门线={:.2f}(MA{:+.1%}) 指数闸={}".format(
+                MKT_INDEX, cur, MKT_MA, ma, thr, MKT_GATE_TOL, "开" if idx_ok else "关"))
     except Exception as e:
-        log.error("[择时] 异常 {}，默认放行".format(repr(e)))
-        return True
+        log.error("[择时] 指数闸异常 {}，默认放行".format(repr(e)))
+        idx_ok = True
+    # 2) 领涨板块软阀（用 scan_market 已算好的全局 SECTOR_STRENGTH）
+    val_ok = False
+    try:
+        if SECTOR_VALVE_ON:
+            _ss = globals().get("SECTOR_STRENGTH") or {}
+            if _ss:
+                top = max(_ss.values())
+                val_ok = top >= SECTOR_VALVE_RISE
+                log.info("[择时] 领涨板块软阀：最强行业涨幅{:.2f}%（阈值{:.2f}%）→ {}".format(
+                    top * 100, SECTOR_VALVE_RISE * 100, "开" if val_ok else "关"))
+    except Exception:
+        val_ok = False
+    ok = idx_ok or val_ok
+    log.info("[择时] 最终闸门={}（指数闸={} 板块软阀={}）".format(
+        "开·可建仓" if ok else "关·暂停建仓", idx_ok, val_ok))
+    return ok
 
 
 def _market_defense(context, data):
