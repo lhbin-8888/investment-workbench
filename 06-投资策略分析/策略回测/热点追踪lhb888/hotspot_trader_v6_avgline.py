@@ -32,6 +32,27 @@ v4.1 相对 v4.0：修日志（初始化行版本号、时间止损打印实际�
               新增 STRONG_TIER_ON 开关（False=只留 weak 档），用于同窗口 A/B 分离 strong 档净贡献。
               依据：092301 实测（05-06~06-30 同窗口）strong 档把 6/8% 减半闸抬到 10/12% 后，
               600956/688112/300939 三笔 v3 盈利票被回撤归零，002552/300975/300179 三笔大赚 —— 高方差，需 A/B 定夺。
+
+  v5 相对 v4.2（本版）：关闭「领涨板块软阀」SECTOR_VALVE_ON=False，择时闸回归单条件
+              「沪深300 站上 MA20(-1% 容忍) 才建仓」（= 指数闸单独决定）。
+              依据：092601 实测（2026-08-03~09-23，38 交易日）把 31 个开闸日按来源拆分后一边倒 ——
+                · 指数闸开  19 天 → 当日买入 23 只 → 产出平台 6 个盈利笔中的 5 个
+                  （301282 +30.7% / 300120 +30.1% / 300798 +31.3% / 000823 +31.0% / 001337 +17.6%），
+                  估算贡献约 +12% 净值；
+                · 仅靠软阀开 12 天 → 当日买入 22 只 → 仅 002638 一只盈利，其余 21 只全部止损
+                  （含全区间最大爆亏 301130 -14.9%，单笔吃掉约 -4.4% 净值），估算贡献约 -15% 净值。
+              即：软阀在「弱指数 + 板块一日游」环境下把闸门硬开，把账户最差的那批日子全放进来了。
+              回退：把 SECTOR_VALVE_ON 改回 True 即恢复 v4.2 行为（代码与阈值均保留未删）。
+              另：给「时间止损」日志补打印浮盈%（v4.2 该行只写天数/档位、不写浮亏，导致 19 笔
+              时间止损在 txt 里完全不可见，只能靠猜——本次诊断被这一盲区卡住一整轮）。
+  v6 相对 v5（本版）：① 选股/买入信号时间 SIGNAL_TIME 由 10:30 改 10:35（handle_data 触发点后移 5 分钟）；
+              ② 新增「10:30 分时均线(均价线)过滤」EXCLUDE_BELOW_AVGLINE=True：每天 10:30 这一刻快照全市场
+                 「10:30 时股价」与「截至 10:30 的 VWAP(分时均线)」，交易时剔除 price_1030 < avg_1030 的弱势票
+                 （即 10:30 时股价还在均价线下方的票——日内承接弱、被均价线压制，不碰）。
+              实现：新增 _capture_1030_avglines（日期幂等，每天抓一次）+ 全局 _G_1030_AVGLINE/_G_1030_DATE；
+                 在 handle_data 首个 >=10:30 的分钟触发；_assess 内比对 price_1030 与 avg_1030，弱则 return None。
+              退化：10:30 快照抓不到该票（无分钟线）→ 按「不过滤」放行，避免静默丢信号。
+              回退：EXCLUDE_BELOW_AVGLINE=False 即关掉均价线过滤；SIGNAL_TIME 改回 "10:30" 即恢复 v5 触发点。
   --------------------------------------------------
   依据：真实回测账本（2026-05-06~06-30）22 只已平仓票单票 +8.64%、胜率 68.2%，
         但 MFE(10 日内盘中最大浮盈) 均值 +21.41% -> 实现 +8.64%，捕捉率仅 40%，
@@ -49,8 +70,12 @@ v4.1 相对 v4.0：修日志（初始化行版本号、时间止损打印实际�
 # ============================================================
 # 一、参数配置区
 # ============================================================
-TRADE_ENABLED = False          # True=自动下单；False=信号模式（只输出热点榜）
-SIGNAL_TIME = "10:30"          # 每日选股/买入执行时间（handle_data 触发，上午买入）
+TRADE_ENABLED = True           # True=自动下单；False=信号模式（只输出热点榜）
+SIGNAL_TIME = "10:35"          # 每日选股/买入执行时间（handle_data 触发，上午买入）
+
+# 10:30 分时均线(均价线)快照：每天在 10:30 这一刻抓一次，供 10:35 交易时剔除弱势票
+_G_1030_AVGLINE = {}      # code -> (price_1030, avg_1030)；price_1030=10:30那根分钟bar收盘；avg_1030=截至10:30的VWAP(分时均线)
+_G_1030_DATE = [None]     # 当天是否已抓取（日期幂等，跨天自动重置）
 
 # ---- 扫描方式 ----
 SCAN_MODE = "FULL"             # FULL=全市场批量粗筛（推荐）；SAMPLE=抽样（慢环境兜底）
@@ -143,7 +168,10 @@ MARKET_TIMING = True           # True=开启大盘择时总闸：宽基指数站
 MKT_INDEX = "000300.SS"        # 择时参考指数（沪深300 宽基；v4.2 由创业板指回退——创业板指=成长/小盘代表，单用会在弱市被长期压制而 0 成交）
 MKT_MA = 20                    # 择时均线周期（v4.2 由 60 回退到 20：MA60 太钝，弱市会连续数周关闸→全程空仓）
 MKT_GATE_TOL = -0.01           # 闸门容忍带：指数低于 MA 不到 1% 仍允许建仓，过滤均线抖动误关
-SECTOR_VALVE_ON = True         # 领涨板块软阀（v4.2 新增）：指数弱但当日最强行业涨幅达标时仍允许建仓，避免"弱指数+强主线"被一刀切空仓
+SECTOR_VALVE_ON = False        # 【v5 关闭】领涨板块软阀（v4.2 新增）：指数弱但当日最强行业涨幅达标时仍允许建仓。
+                               # 关掉的原因（092601 实测）：仅靠软阀硬开的 12 天里买入 22 只、仅 1 只盈利，
+                               # 含最大爆亏 301130(-14.9%)；而指数闸开的 19 天贡献了 6 个盈利笔中的 5 个。
+                               # 改回 True 即恢复 v4.2 行为（软阀逻辑与阈值全部保留，未删）。
 SECTOR_VALVE_RISE = 2.0        # 软阀阈值：当日最强申万一级行业平均涨幅 >= 2% 视为存在可骑的强主线（量纲=百分点，与 SECTOR_STRENGTH 一致；切勿写 0.02）
 MKT_EXIT_WHEN_BEAR = False     # True=大盘破 MA20 时清空全部持仓（系统性撤退；默认关，避免盘中均线抖动误清）
 
@@ -164,6 +192,8 @@ MAX_SINGLE_RATIO = 0.30       # 单票上限（占总资产比例），防过度
 # 2) 10:30 分时回踩过滤：只做「回踩不破开盘价」（cur >= 当日开盘价才买，动量未转弱）
 BUY_PULLBACK_FILTER = True    # True=开启分时回踩过滤
 PULLBACK_OPEN_BREAK = True    # True=要求 cur>=open（回踩不破开盘价）；False=关闭该条件
+# 3) 10:30 分时均线(均价线)过滤：交易时剔除「10:30 时股价处于 10:30 分时均线下方」的弱势票
+EXCLUDE_BELOW_AVGLINE = True   # True=开启均价线过滤（只做股价在均价线上方、日内承接强的票）
 
 
 # ---- 成本假设（回测用）----
@@ -6265,6 +6295,48 @@ def _intraday_ranges(codes):
     return out
 
 
+def _capture_1030_avglines(context, data):
+    """在 10:30 这一刻快照全市场「10:30 时股价」与「10:30 分时均线(VWAP)」。
+    供 10:35 交易时剔除「10:30 价 < 分时均线」的弱势票。每天只算一次（日期幂等）。
+
+    分时均线(均价线) = 截至 10:30 的金额加权均价 VWAP = sum(money)/sum(volume)；
+    取不到 money 时退化为收盘简单均价。price_1030 = 10:30 那根分钟 bar 的收盘。
+    抓取失败/无分钟线则置空 dict，调用方按「不过滤」降级，避免静默丢信号。
+    """
+    d = _context_date(context) or ""
+    if d and d == _G_1030_DATE[0]:
+        return                       # 当天已抓过，跳过
+    pool = _get_market_pool()
+    if not pool:
+        return
+    out = {}
+    for i in range(0, len(pool), BATCH_SIZE):
+        batch = pool[i:i + BATCH_SIZE]
+        m = _fetch_panel(batch, 60, ["close", "volume", "money"],
+                         "10:30均价线", quiet=True, freq="1m")
+        for c in batch:
+            dd = m.get(c) or {}
+            cl = dd.get("close") or []
+            vol = dd.get("volume") or []
+            money = dd.get("money") or []
+            if not cl:
+                continue
+            price_1030 = float(cl[-1])            # 10:30 那根分钟 bar 收盘 = 10:30 时股价
+            tot_money = sum(x for x in money if x)
+            tot_vol = sum(x for x in vol if x)
+            if tot_money and tot_vol:
+                avg = tot_money / tot_vol         # 金额加权均价(VWAP) = 分时均线
+            elif cl:
+                avg = sum(cl) / len(cl)            # 退化：收盘简单均价
+            else:
+                continue
+            out[c] = (price_1030, float(avg))
+    _G_1030_AVGLINE.clear()
+    _G_1030_AVGLINE.update(out)
+    _G_1030_DATE[0] = d
+    log.info("[均价线] 10:30 快照完成：{} 只（price_1030 对比 VWAP）".format(len(out)))
+
+
 def _assess(code, v, snap, intraday=None):
     closes = [x for x in (v.get("close") or []) if x]   # 日线收盘（不含当日）
     vols = v.get("volume") or []
@@ -6300,6 +6372,17 @@ def _assess(code, v, snap, intraday=None):
         log.info("[回踩] {} 跳过（cur={:.2f} open={}：跌破开盘价，动量转弱）".format(
             code, cur, _of))
         return None
+
+    # ---- 10:30 分时均线(均价线)过滤：剔除 10:30 时股价在均价线下方的弱势票 ----
+    if EXCLUDE_BELOW_AVGLINE:
+        av = _G_1030_AVGLINE.get(code)
+        if av is not None:
+            price_1030, avg_1030 = av
+            if price_1030 < avg_1030:
+                log.info("[均价线] {} 跳过（10:30价={:.2f} < 分时均线{:.2f}，弱势）".format(
+                    code, price_1030, avg_1030))
+                return None
+        # av is None（该票未在 10:30 快照里，如当日新抓不到）→ 退化为不过滤，避免静默丢信号
 
     # ---- 可买性：涨停判定用昨收基准 + 当日价（保险，区间上限已低于涨停）----
     lim = _limit_pct(code, name)
@@ -6768,7 +6851,7 @@ def monitor_risk(context, data=None):
         # 5) 时间止损（亏损票）：持有 >= MAX_HOLD_DAYS 天 → 清仓
         _mh = _exit_param("MAX_HOLD_DAYS", MAX_HOLD_DAYS, board, _tier, 5)
         if held_days >= 1 and rt <= 0 and _mh > 0 and held_days >= _mh:
-            if _sell_all(code, px, "时间止损 亏损持仓{}天({}档)".format(_mh, _tier)):
+            if _sell_all(code, px, "时间止损 亏损持仓{}天({}档) 浮盈{:.1%}".format(_mh, _tier, rt)):
                 _clear(code)
             continue
         # 6) +15% 清仓（盈利减半后的终点兜底）
@@ -7010,15 +7093,15 @@ def initialize(context):
             log.info("[配置] 佣金未设置: {}".format(repr(e2)))
 
     log.info("=" * 60)
-    log.info("[初始化] 热点追踪 v4.1 分层出场版启动；TIERED_EXIT={} STRONG_TIER_ON={}；TRADE_ENABLED={}".format(
-        TIERED_EXIT, STRONG_TIER_ON, TRADE_ENABLED))
+    log.info("[初始化] 热点追踪 v6 软阀关闭+10:35+均价线过滤版启动（SECTOR_VALVE_ON={}）；TIERED_EXIT={} STRONG_TIER_ON={}；TRADE_ENABLED={}".format(
+        SECTOR_VALVE_ON, TIERED_EXIT, STRONG_TIER_ON, TRADE_ENABLED))
     _diag_api()
     log.info("[初始化] 行情/成交量/口径自检将延迟到首个交易日执行（PTrade 初始化阶段禁止取数）")
     log.info("=" * 60)
 
     # 定时：统一用 handle_data 按时间触发。不用 run_daily —— 不同券商版本 run_daily
     # 签名不一（实测出现过参数顺序颠倒，导致字符串被当成 func，报 'str' object is
-    # not callable）。handle_data 已实测稳定：分钟级在 10:30 触发，配合日期幂等每天只跑一次。
+    # not callable）。handle_data 已实测稳定：分钟级在 10:35 触发，配合日期幂等每天只跑一次。
     log.info("[初始化] 定时方式：handle_data（>= {} 触发，日期幂等）".format(SIGNAL_TIME))
 
     # 分批止盈状态：记录哪些票已经「减半」过（首次减半标记，halved 同时驱动保本止损）
@@ -7179,6 +7262,12 @@ def handle_data(context, data):
         log.error("[择时] 防御异常: {}".format(repr(e)))
     if hhmm and hhmm < SIGNAL_TIME:
         return                       # 未到信号时间，仅做风控
+    # —— 10:30 均价线快照（每天一次，最早在 10:30 这一刻抓，供 10:35 交易时剔除弱势票）——
+    if hhmm and hhmm >= "10:30":
+        try:
+            _capture_1030_avglines(context, data)
+        except Exception as e:
+            log.error("[均价线] 快照异常: {}".format(repr(e)))
     # hhmm >= SIGNAL_TIME 才执行选股+建仓；_daily_routine 内按日期幂等，分钟级不会重复跑
     _daily_routine(context, data)
 
