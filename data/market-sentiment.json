@@ -1,6 +1,6 @@
 {
-  "updated": "2026-09-25 15:31",
-  "period": "2026-09-04 ~ 2026-09-24",
+  "updated": "2026-09-28 15:59",
+  "period": "2026-09-07 ~ 2026-09-28",
   "days": 15,
   "fields": [
     "date",
@@ -22,25 +22,6 @@
     "cycle"
   ],
   "rows": [
-    {
-      "date": "09-04",
-      "up": null,
-      "down": null,
-      "limit_up": 39,
-      "limit_down": 9,
-      "failed": 48,
-      "continuous": 7,
-      "actual_limit_up": 39,
-      "cyb_limit_up": 0,
-      "kcb_limit_up": 0,
-      "first_board": 32,
-      "two_board": 6,
-      "three_board": 0,
-      "four_board": 0,
-      "five_board": 1,
-      "six_plus": 0,
-      "cycle": "振荡"
-    },
     {
       "date": "09-07",
       "up": null,
@@ -303,6 +284,25 @@
       "two_board": 8,
       "three_board": 1,
       "four_board": 3,
+      "five_board": 1,
+      "six_plus": 0,
+      "cycle": "退潮"
+    },
+    {
+      "date": "09-28",
+      "up": 862,
+      "down": 4245,
+      "limit_up": 33,
+      "limit_down": 56,
+      "failed": 11,
+      "continuous": 7,
+      "actual_limit_up": 33,
+      "cyb_limit_up": 1,
+      "kcb_limit_up": 1,
+      "first_board": 26,
+      "two_board": 3,
+      "three_board": 3,
+      "four_board": 0,
       "five_board": 1,
       "six_plus": 0,
       "cycle": "退潮"
