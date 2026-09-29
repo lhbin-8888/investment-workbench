@@ -3,208 +3,202 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>板块轮动与主线确定每日报告 · 2026-09-28</title>
+<title>板块轮动与主线确定每日报告 · 2026-09-29</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:#f3f5f9;color:#1f2937;line-height:1.6}
-.wrap{max-width:1180px;margin:0 auto;padding:18px 14px 40px}
-header{background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff;border-radius:12px;padding:22px 24px;margin-bottom:14px}
-header h1{font-size:22px;letter-spacing:1px}
-header .meta{margin-top:8px;font-size:13px;opacity:.92;display:flex;flex-wrap:wrap;gap:14px}
-.tag{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:2px 12px;font-size:12px}
-.banner{border-radius:10px;padding:14px 18px;margin-bottom:14px;font-size:14px}
-.banner b{font-size:15px}
-.banner.red{background:#fee2e2;border:1px solid #fca5a5;color:#7f1d1d}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
-.kpi{background:#fff;border-radius:10px;padding:14px 10px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.kpi .num{font-size:26px;font-weight:700;color:#1e3a8a}
-.kpi .num.warn{color:#dc2626}
-.kpi .lbl{font-size:12px;color:#6b7280;margin-top:4px}
-.card{background:#fff;border-radius:12px;padding:18px 20px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.card h2{font-size:16px;color:#1e3a8a;margin-bottom:12px;padding-left:10px;border-left:4px solid #3b82f6}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{background:#eff6ff;color:#1e3a8a;padding:8px 6px;text-align:center;white-space:nowrap;position:sticky;top:0}
-td{padding:7px 6px;text-align:center;border-bottom:1px solid #f1f5f9;white-space:nowrap}
-tr:hover td{background:#f8fafc}
-.up{color:#dc2626;font-weight:600}
-.down{color:#16a34a;font-weight:600}
-.neutral{color:#6b7280}
-.lv-main{background:#fee2e2 !important;font-weight:700}
-.lv-wait{background:#fef9c3 !important}
-.lv-rot{background:#f1f5f9 !important}
-.seg{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-select,.btn{padding:6px 12px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font-size:13px;cursor:pointer}
-.btn{background:#1e3a8a;color:#fff;border:none}
-.btn:hover{background:#1d4ed8}
-.note{font-size:12px;color:#6b7280;margin-top:10px}
-.mini{font-size:12.5px;color:#374151}
-.mini li{margin:5px 0 5px 18px}
-.warnbox{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:13px;color:#7f1d1d;margin-top:10px}
-.goodbox{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;font-size:13px;color:#14532d;margin-top:10px}
-footer{text-align:center;font-size:12px;color:#9ca3af;margin-top:18px}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:"Microsoft YaHei","PingFang SC",sans-serif; background:#f1f5f9; color:#1e293b; padding:20px; }
+.wrap { max-width:1200px; margin:0 auto; }
+.header { background:linear-gradient(135deg,#0f172a,#1e3a5f); color:#fff; border-radius:14px; padding:26px 30px; margin-bottom:16px; }
+.header h1 { font-size:24px; margin-bottom:8px; }
+.header .sub { font-size:13px; opacity:.85; line-height:1.8; }
+.tags { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; }
+.tag { background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); padding:3px 12px; border-radius:20px; font-size:12px; }
+.banner { border-radius:10px; padding:14px 20px; margin-bottom:16px; font-size:14px; line-height:1.8; }
+.banner.closed { background:#dcfce7; border:1px solid #86efac; color:#14532d; }
+.kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:16px; }
+.kpi { background:#fff; border-radius:10px; padding:16px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+.kpi .v { font-size:22px; font-weight:700; }
+.kpi .l { font-size:12px; color:#64748b; margin-top:4px; }
+.kpi .d { font-size:12px; margin-top:2px; }
+.up { color:#dc2626; } .down { color:#16a34a; } .flat { color:#64748b; }
+.card { background:#fff; border-radius:12px; padding:22px 24px; margin-bottom:16px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+.card h2 { font-size:17px; margin-bottom:14px; padding-left:10px; border-left:4px solid #2563eb; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { background:#f8fafc; padding:9px 8px; text-align:left; white-space:nowrap; border-bottom:2px solid #e2e8f0; }
+td { padding:9px 8px; border-bottom:1px solid #f1f5f9; }
+tr:hover td { background:#f8fafc; }
+.rank { display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; border-radius:50%; background:#e2e8f0; font-size:12px; font-weight:700; }
+.rank.r1 { background:#fca5a5; color:#7f1d1d; }
+.rank.r2 { background:#fdba74; color:#7c2d12; }
+.rank.r3 { background:#fcd34d; color:#78350f; }
+.pill { display:inline-block; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap; }
+.pill.true { background:#fee2e2; color:#b91c1c; }
+.pill.pend { background:#fef9c3; color:#a16207; }
+.pill.rot { background:#e2e8f0; color:#475569; }
+.bar-wrap { display:inline-block; width:60px; height:8px; background:#e2e8f0; border-radius:4px; vertical-align:middle; margin-right:6px; }
+.bar { display:inline-block; height:100%; border-radius:4px; background:#2563eb; }
+.dim { font-size:11px; color:#64748b; }
+.verdict { border-left:4px solid #2563eb; background:#eff6ff; padding:12px 16px; border-radius:8px; margin-top:12px; font-size:13.5px; line-height:2; }
+.verdict b { color:#1d4ed8; }
+.warn { border-left-color:#d97706; background:#fffbeb; }
+.warn b { color:#b45309; }
+.ladder { display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; }
+.step { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; font-size:12.5px; line-height:1.9; flex:1; min-width:150px; }
+.step b { display:block; color:#0f172a; font-size:13px; }
+.src { font-size:12px; color:#64748b; line-height:2; }
+.src li { margin-left:18px; }
+.footer { text-align:center; font-size:12px; color:#94a3b8; padding:16px 0 6px; }
+.btn { display:inline-block; background:#2563eb; color:#fff; border:none; padding:8px 18px; border-radius:8px; cursor:pointer; font-size:13px; margin-top:10px; }
+.btn:hover { background:#1d4ed8; }
+select { padding:3px 6px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px; }
+@media (max-width:760px){ body{padding:10px;} .header{padding:18px;} td,th{padding:6px 5px; font-size:12px;} .dim{display:none;} }
 </style>
 </head>
 <body>
 <div class="wrap">
-<header>
-<h1>📊 板块轮动与主线确定每日报告</h1>
-<div class="meta">
-<span class="tag">📅 报告日期：2026-09-28（周一）</span>
-<span class="tag">⏱️ 数据口径：当日收盘（16:00 生成）</span>
-<span class="tag">🔬 五维打分体系 v2</span>
-<span class="tag">📉 今日定性：节后首日普跌杀跌日</span>
-</div>
-</header>
 
-<div class="banner red">
-<b>🔴 收盘口径正式报告 · 五维体系启用以来首个「零主线日」。</b>
-中秋假期后首个交易日，在「国庆长假前流动性退潮 + 中美利好兑现 + 高位科技结账」三重压力下全线杀跌：创业板指 -4.53%、科创50 -4.06%，超 4500 只个股下跌，跌停 56 家远超涨停 33 家。10 个候选板块最高五维均分仅 <b>3.20</b>（真主线阈值 3.5），<b>无一构成真主线</b>——本结论本身就是当日最重要信号：主线全面退潮，等待出清结束。
+<div class="header">
+  <h1>📊 板块轮动与主线确定每日报告</h1>
+  <div class="sub">报告日期：2026-09-29（周二）· 数据口径：当日收盘（东财数据中心 128 个申万二级行业板块）<br>
+  生成：投研工作台自动化任务（收盘后触发）· 五维打分体系 v2</div>
+  <div class="tags">
+    <span class="tag">当日状态：交易日 · 收盘口径</span>
+    <span class="tag">成交 1.41 万亿 · 年内新低</span>
+    <span class="tag">节前倒数第 2 个交易日</span>
+    <span class="tag">09-28 零主线日 → 今日修复为 3 条真主线</span>
+  </div>
 </div>
 
-<div class="kpis">
-<div class="kpi"><div class="num warn">33</div><div class="lbl">涨停家数（前值 52）</div></div>
-<div class="kpi"><div class="num warn">56</div><div class="lbl">跌停家数（前值 13）</div></div>
-<div class="kpi"><div class="num">5 板</div><div class="lbl">最高连板·新华传媒(出版)</div></div>
-<div class="kpi"><div class="num">1.70 万亿</div><div class="lbl">两市成交（放量约 494 亿）</div></div>
-<div class="kpi"><div class="num warn">898 : 4554</div><div class="lbl">上涨 : 下跌（媒体口径）</div></div>
-<div class="kpi"><div class="num warn">-918 亿</div><div class="lbl">128 板块主力净流入合计</div></div>
-</div>
+<div class="banner closed">✅ <b>收盘口径正式报告</b>：本报告全部指标为 2026-09-29（周二）A 股收盘真实数据。今日三大指数缩量微涨，个股普涨（超 3400 只上涨），09-28 集中杀跌后出现超跌反抽；两市成交 1.41 万亿创年内新低，缩量反弹持续性待验证。所有结论仅为盘面记录，不构成投资建议。</div>
 
-<div class="card">
-<h2>一、指数与市场温度</h2>
-<table>
-<thead><tr><th>指数</th><th>收盘</th><th>涨跌幅</th></tr></thead>
-<tbody>
-<tr><td>上证指数</td><td>3823.62</td><td class="down">-1.67%</td></tr>
-<tr><td>深证成指</td><td>12858.75</td><td class="down">-3.44%</td></tr>
-<tr><td>创业板指</td><td>3139.82</td><td class="down">-4.53%</td></tr>
-<tr><td>科创50</td><td>1555.98</td><td class="down">-4.06%</td></tr>
-<tr><td>沪深300</td><td>4340.76</td><td class="down">-2.22%</td></tr>
-<tr><td>北证50</td><td>1026.57</td><td class="down">-2.76%</td></tr>
-</tbody>
-</table>
-<p class="note">两市成交 17028 亿元（沪 8045 + 深 8983），较上一交易日放量约 494 亿——<b>放量下跌，属出清型杀跌而非缩量阴跌</b>。涨跌家数 898 : 4554 : 105（中新经纬口径；乐咕乐股口径 862 : 4245）。</p>
+<div class="kpi-grid">
+  <div class="kpi"><div class="v">3830.45</div><div class="l">上证指数</div><div class="d up">+0.18%</div></div>
+  <div class="kpi"><div class="v">12901.95</div><div class="l">深证成指</div><div class="d up">+0.34%</div></div>
+  <div class="kpi"><div class="v">3142.56</div><div class="l">创业板指</div><div class="d up">+0.09%</div></div>
+  <div class="kpi"><div class="v">1569.34</div><div class="l">科创50</div><div class="d up">+0.86%</div></div>
+  <div class="kpi"><div class="v">1.41万亿</div><div class="l">两市成交（年内新低）</div><div class="d down">缩量 2936 亿</div></div>
+  <div class="kpi"><div class="v">57 / 10</div><div class="l">涨停 / 跌停家数</div><div class="d flat">09-28：33 / 56</div></div>
+  <div class="kpi"><div class="v">6 板</div><div class="l">最高连板（新华传媒·出版）</div><div class="d flat">4 板断层</div></div>
+  <div class="kpi"><div class="v">3471 : 1933</div><div class="l">上涨 : 下跌（平 155）</div><div class="d up">普涨修复日</div></div>
 </div>
 
 <div class="card">
-<h2>二、候选板块五维评分表（按均分降序）</h2>
-<div class="seg">
-<label>主线判定筛选：<select id="fSel">
-<option value="all">全部</option>
-<option value="main">真主线（≥3.5）</option>
-<option value="wait">待验证（2.5–3.49）</option>
-<option value="rot">轮动（&lt;2.5）</option>
-</select></label>
-<label>板块搜索：<select id="nSel"><option value="">全部板块</option></select></label>
-<button class="btn" onclick="exportJSON()">⬇ 导出当日 JSON</button>
-</div>
-<table id="tbl">
-<thead><tr><th>#</th><th>板块</th><th>涨跌幅%</th><th>主力净流入(亿)</th><th>涨停</th><th>连板高</th><th>量比*</th><th>领涨中军</th><th>位置</th><th>上榜天</th><th>催化</th><th>五维(时/资/广/位/催)</th><th>均分</th></tr></thead>
-<tbody id="tbody"></tbody>
-</table>
-<p class="note">* 量比 = 当日板块成交额 ÷ 前 5 个交易日均额（东财资金流报表反推）。五维＝时间持续性 / 资金质量 / 广度扩散 / 位置过热 / 催化环境，各 0–5 分；红底=真主线(≥3.5)、黄底=待验证(2.5–3.49)、灰底=轮动(&lt;2.5)。<b>今日无红底行。</b></p>
+  <h2>🎯 当日主线判定（五维均分 ≥3.5 为真主线）</h2>
+  <div class="verdict">
+    <b>核心结论：节前缩量反弹日，「房地产开发 + 元件(PCB) + 电池」三线确立为真主线（均分 4.0 / 3.6 / 3.6），双政策点火 + 单产业催化共振。</b><br>
+    ① <b>房地产开发（4.0，政策密集）</b>：09-28 国常会「研究出台稳定房地产市场」+ 上海四部门商品住房销售制度新政双催化，板块 +3.57% / 主力净流入 13.25 亿（全市场第四）/ 6 家涨停（深物业A 2 连板、万科A、滨江集团、信达地产、华发股份），租售同权概念 +3.57% / +10.62 亿共振；地产链 9 月中旬启动后回踩，属<b>低位政策点火</b>。<br>
+    ② <b>元件（3.6，业绩窗口）</b>：09-28 杀跌重灾区（-6.91%）今日大逆转 +4.17%（板块涨幅第一）/ 主力净流入 29.21 亿（全市场第一）/ 7 家涨停（全市场板块最多：澳弘电子、依顿电子、奥士康、超声电子、崇达技术、迅捷兴、协和电子），PCB 概念 +25.77 亿；催化＝上游材料涨价后厂商重新报价、机构共识 Q3 为盈利改善起涨点。<b>但量比仅 0.69 为缩量反抽、近 5 日板块仍净流出 176 亿</b>，反弹定性暂保守。<br>
+    ③ <b>电池（3.6，政策密集）</b>：09-28 七部门《新型电池产业发展"十五五"规划》（2030 全固态初步规模化）引爆固态电池，板块 +3.74% / 净流入 21.75 亿（全市场第二）/ 6 家涨停（武汉蓝电 30cm、尚水智能 20cm、国轩高科、上海洗霸、金龙羽、时代万恒 2 板），固态电池概念 +24.36 亿、钠离子电池 +10.25 亿共振。<br>
+    <span class="dim">次要叙事：房地产服务（3.2）为地产链跟随；个护用品 days=7 全市场最长（机构防御底仓连续 7 日净流入、净占比 15.8% 全市场最高）；广告营销 / 数字媒体 / 出版为 AI 漫剧题材脉冲（出版含 6 板龙头新华传媒＝高位加速，位置分压至 2）；半导体 +6.87 亿为存储涨价预期下的低位试探（0 涨停、量比失真留空）。流出侧：光学光电子 -11.16 亿、电子化学品Ⅱ -8.80 亿、通用设备 -7.58 亿、军工电子Ⅱ -6.83 亿，玻璃基板概念 -9.63 亿（沃格光电续跌）——09-28 前高位链继续被兑现。</span>
+  </div>
 </div>
 
 <div class="card">
-<h2>三、今日核心叙事：三重压力下的科技链集中出清</h2>
-<ul class="mini">
-<li><b>① 科技链获利盘集中兑现：</b>假期外围费半四连涨（全周 +6.27%）、存储涨价等利好今日全数「兑现即离场」。128 个行业板块主力合计净流出 <b>918 亿</b>；概念端流出榜：通信技术 -378.76 亿、5G -337.13 亿、半导体 -292.74 亿、国产芯片 -257.30 亿、华为概念 -251.21 亿、CPO -245.09 亿、光通信模块 -232.57 亿。「易中天」（中际旭创/新易盛/天孚通信）均跌超 7%；通信设备板块跌停 12 家、元件 7 家为跌停重灾区，烽火通信、亨通光电、光迅科技、长飞光纤、江海股份、风华高科等集体跌停。</li>
-<li><b>② 高位人气股批量闪崩（情绪标杆全灭）：</b>大亚圣象、内蒙新华、金健米业、澳弘电子（9天7板）、泰慕士、南华生物、天威视讯跌停——09-18～09-24 各周期积累的高位龙头一日出清，山东黄金亦跌停。</li>
-<li><b>③ 资金唯一合力方向＝防御三线：</b>概念净流入前列：汽车整车 +10.34 亿、换电概念 +10.15 亿、电力 +6.50 亿、白酒概念 +5.84 亿。行业端电力 -0.14% 几乎平盘但净流入 6.44 亿居首、商用车 +1.59% 涨幅第一且净流入 6.30 亿、个护用品连续 7 日上榜（全市场最长）。</li>
-<li><b>④ 情绪结构断档：</b>连板梯队 5板1（新华传媒·出版）/ 3板3（雪龙集团·汽车零部件、金辰股份·玻璃基板、福建水泥·水泥）/ 2板3（襄阳轴承、吉鑫科技、大业股份）/ 首板 26——<b>4 板完全断层</b>，梯队残缺，接力环境极差。</li>
-<li><b>⑤ 个股事件型涨停（非板块逻辑）：</b>网络安全（永信至诚20cm、中新赛克）、分散染料（善水科技20cm、醋化股份）、深圳本地地产（深物业A、深华发A）均有个股涨停但所属板块资金净流出，属个股事件，不构成板块主线。</li>
-</ul>
+  <h2>📋 候选板块五维打分表（按均分降序 · 10 条）</h2>
+  <table id="tbl">
+    <thead><tr>
+      <th>#</th><th>板块</th><th>涨幅%</th><th>主力净流入(亿)</th><th>涨停</th><th>连板高</th><th>量比</th><th>领涨中军</th><th>位置</th><th>days</th><th>催化</th><th>五维分</th><th>均分</th><th>判定</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+  <div style="margin-top:10px;">
+    <span class="dim">量比 = 当日板块成交额 ÷ 前 5 个交易日可信日均额（可信日 = |主力净占比| ≥ 1%，成交额由净流入 ÷ 净占比反推）；半导体当日净占比 0.40% 反推失真，量比留空。</span><br>
+    <span class="dim">days = 连续处于「涨幅 TOP20 ∪ 主力净流入 TOP20」的交易日数（东财 128 个申万二级行业全量计算）。五维 = [时间持续性, 资金质量, 广度扩散, 位置过热, 催化环境]。</span>
+  </div>
 </div>
 
 <div class="card">
-<h2>四、结论与操作提示</h2>
-<div class="warnbox">
-<b>主线判定：今日零主线。</b>10 个候选板块中 7 个待验证（2.5–3.49）、3 个轮动（&lt;2.5），无一个 ≥3.5。五维体系自 09-22 启用以来首次全表无真主线——这是体系给出的「防守优先/空仓等待」信号，而非选股信号。
-</div>
-<ul class="mini">
-<li><b>观察位一 · 商用车/汽车整车（3.10）：</b>今日唯一「涨幅+资金+事件」三要素同向的进攻线（江淮 4天3板、车市 Q4 冲量期、9 月超 50 款新车密集上市），但广度仅 2 涨停、days=1，需 09-29 确认能否扩散。</li>
-<li><b>观察位二 · 电力（3.10）：</b>净流入 6.44 亿居行业第一 + 2 涨停（浙江新能）+ 能源局 1-8 月装机数据（+11.1%）支撑，属避险+数据双属性；若 09-29 继续逆势红盘可升级。</li>
-<li><b>观察位三 · 个护用品（3.20）：</b>连续 7 日上榜全市场最长、净占比 19.73% 全市场最高，机构防御底仓属性，但 0 涨停无弹性，仅作仓位稳定器。</li>
-<li><b>风险提示：</b>① 本周仅 09-29/09-30 两个交易日，节前避险情绪或延续，出清未必一次完成；② 元件/半导体/通信设备为今日跌停重灾区，抄底需等待缩量企稳信号；③ 09-30 公布 9 月 PMI、华为昇腾 950 智算集群上线，为节前仅有的两个可观察催化点。</li>
-</ul>
-<div class="goodbox">
-<b>节后视角（条件性判断，非预测）：</b>科技链今日为放量集中出清，若节前两日出现「跌停家数骤降 + 通信/元件缩量止跌」，则国庆后资金回流硬件主线的概率占优；反之若继续放量下杀，防守方向（电力/银行/红利）仍是资金容身之所。
-</div>
-<p class="note">所有结论不构成投资建议；实时主线以当日盘中监测为准。</p>
+  <h2>🌡️ 情绪结构 · 连板梯队与涨停分布</h2>
+  <div class="ladder">
+    <div class="step"><b>6 板 ×1</b>新华传媒（出版）——AI 漫剧题材总龙头，高位加速</div>
+    <div class="step"><b>4 板 ×1</b>雪龙集团（汽车零部件）</div>
+    <div class="step"><b>3 板 ×1</b>襄阳轴承（汽车零部件）</div>
+    <div class="step"><b>2 板 ×7</b>深物业A（房地产开发）、时代万恒（电池）、九阳股份、中新赛克、善水科技、浙江新能、津药药业</div>
+    <div class="step"><b>首板 ×47</b>封板率约 84%（财联社口径），涨停 57 家较 09-28 的 33 家回升</div>
+  </div>
+  <div class="verdict warn" style="margin-top:14px;">
+    <b>风险提示：</b>① 梯队 4 板完全断层（6→4→3→2×7→首板47），情绪高度依赖新华传媒单点；② 成交 1.41 万亿创年内新低，明日（09-30）为节前最后一个交易日，缩量反弹「宜看不宜追」；③ 元件为高位链超跌反抽，若明日不能放量收复，PCB 反弹大概率退化为节前博弈；④ 地产政策兑现后留意「利好出尽」节奏；⑤ 明日关注：9 月 PMI、华为昇腾 950 智算集群上线、国庆假期外围变量。<br>
+    <span class="dim">未入表披露：工业金属（2.4 轮动，+10.92 亿但 0 涨停无量能）、航海装备Ⅱ（2.4 轮动）、医疗服务（2.4 轮动，+5.76 亿机构低吸；默沙东 21.3 亿美元 KRAS 授权催化化学制药 +7.63 亿）、影视院线 +2.51%、电视广播Ⅱ +2.37%。</span>
+  </div>
 </div>
 
 <div class="card">
-<h2>五、数据来源与口径说明</h2>
-<ul class="mini">
-<li>板块涨跌幅 / 主力净流入 / 净占比 / 量比 / 上榜天数：东方财富数据中心报表 RPT_INDUSTRY_FUNDFLOW（128 个申万二级行业，回溯 2026-08-28～09-28 共 21 个交易日真算）。</li>
-<li>涨停池 / 跌停池 / 连板高度：东方财富 push2ex（2026-09-28，涨停 33 家 / 跌停 56 家，hybk 前缀回补后 Σ板块涨停 = 33、Σ跌停 = 56，零未匹配）。</li>
-<li>指数与两市成交额：新浪财经 hq.sinajs（两市合计 17028 亿，与中新经纬/金融界收评口径一致）。</li>
-<li>催化与涨跌家数经中证网、中新经纬、东方财富、金融界 09-28 收评稿件交叉核验。</li>
-<li>概念资金流：东方财富 RPT_CONCEPT_FUNDFLOW（约 400 个概念板块，当日口径）。</li>
-</ul>
+  <h2>📥 数据导出与口径说明</h2>
+  <div class="src">
+    数据来源：
+    <li>板块涨跌幅 / 主力净流入 / 净占比：东方财富数据中心报表 RPT_INDUSTRY_FUNDFLOW（128 个申万二级行业，2026-08-28～09-29 区间回溯，22 个交易日 / 2816 行）</li>
+    <li>涨停池 / 跌停池：东财 push2ex（涨停 57 / 跌停 10，板块归位 57/57 零未匹配，hybk 截断已前缀回补）</li>
+    <li>指数与两市成交额：新浪财经（成交 14092 亿与央广网 / 中新经纬媒体口径一致；涨跌家数 3471:1933 取自中新经纬）</li>
+    <li>概念端交叉验证：RPT_CONCEPT_FUNDFLOW（PCB +25.77 亿 / 固态电池 +24.36 亿 / 租售同权 +10.62 亿 / 存储芯片 +19.05 亿）</li>
+    <li>催化核验：央广网 / 中证网 / 中新经纬 / 财联社 / 21 财经 2026-09-29 收评稿件</li>
+  </div>
+  <div style="margin-top:8px;">
+    <select id="fmt"><option value="json">JSON</option><option value="csv">CSV</option></select>
+    <button class="btn" onclick="exportJSON()">导出当日数据</button>
+  </div>
 </div>
 
-<footer>投研工作台 · 板块轮动每日报告 · 自动生成于 2026-09-28 16:00 · 仅供参考，不构成投资建议</footer>
+<div class="footer">投研工作台 · 板块轮动自动化 · 报告生成 2026-09-29 22:15 · 所有结论不构成投资建议</div>
 </div>
 
 <script>
-var seed=[
-{"n":"个护用品","z":-0.32,"f":3.52,"zt":0,"lb":0,"vb":1.05,"mr":"百亚股份","pos":"低位启动","days":7,"cat":"无","s":[5,4,1,4,2]},
-{"n":"商用车","z":1.59,"f":6.3,"zt":2,"lb":1,"vb":1.31,"mr":"江淮汽车、众泰汽车、北汽蓝谷","pos":"低位启动","days":1,"cat":"事件驱动","s":[1.5,4.5,2,4.5,3]},
-{"n":"电力","z":-0.14,"f":6.44,"zt":2,"lb":1,"vb":0.97,"mr":"浙江新能、新筑股份、大连热电","pos":"低位启动","days":1,"cat":"事件驱动","s":[1.5,4.5,2.5,4,3]},
-{"n":"非白酒","z":1.15,"f":4.32,"zt":1,"lb":1,"vb":1.18,"mr":"会稽山","pos":"低位启动","days":1,"cat":"无","s":[1.5,4,1.5,4,2]},
-{"n":"汽车零部件","z":-1.78,"f":-4.44,"zt":3,"lb":3,"vb":0.99,"mr":"雪龙集团、襄阳轴承","pos":"趋势中段","days":0,"cat":"事件驱动","s":[2,2,3.5,3.5,2]},
-{"n":"影视院线","z":-1.8,"f":1.71,"zt":1,"lb":1,"vb":0.81,"mr":"博纳影业","pos":"低位启动","days":1,"cat":"事件驱动","s":[1,3,1.5,3.5,4]},
-{"n":"养殖业","z":0.8,"f":2.27,"zt":1,"lb":1,"vb":1.15,"mr":"东瑞股份、牧原股份","pos":"低位启动","days":1,"cat":"事件驱动","s":[1,3.5,1.5,4,3]},
-{"n":"白色家电","z":-0.19,"f":2.42,"zt":0,"lb":0,"vb":0.79,"mr":"美的集团","pos":"低位启动","days":2,"cat":"无","s":[2,3.5,1,3.5,2]},
-{"n":"互联网电商","z":-0.86,"f":3.43,"zt":1,"lb":1,"vb":0.95,"mr":"跨境通","pos":"低位启动","days":1,"cat":"无","s":[1,4,1.5,3.5,2]},
-{"n":"小家电","z":1.33,"f":1.53,"zt":1,"lb":1,"vb":1.34,"mr":"九阳股份、小熊电器","pos":"低位启动","days":1,"cat":"无","s":[1,3,1.5,4,2]}
+var SEED = [
+  {"n":"房地产开发","z":3.57,"f":13.25,"zt":6,"lb":2,"vb":1.06,"mr":"万科A、深物业A、滨江集团、信达地产、华发股份","pos":"低位启动","days":1,"cat":"政策密集","s":[2,4,5,4,5]},
+  {"n":"元件","z":4.17,"f":29.21,"zt":7,"lb":1,"vb":0.69,"mr":"华正新材、澳弘电子、依顿电子、奥士康、超声电子","pos":"趋势中段","days":1,"cat":"业绩窗口","s":[2,4,5,3,4]},
+  {"n":"电池","z":3.74,"f":21.75,"zt":6,"lb":2,"vb":1.08,"mr":"国轩高科、武汉蓝电、尚水智能、上海洗霸、金龙羽","pos":"趋势中段","days":1,"cat":"政策密集","s":[2,4,4,3,5]},
+  {"n":"房地产服务","z":2.95,"f":2.26,"zt":0,"lb":0,"vb":1.40,"mr":"特发服务","pos":"低位启动","days":2,"cat":"政策密集","s":[3,3,1,4,5]},
+  {"n":"个护用品","z":0.35,"f":2.74,"zt":0,"lb":0,"vb":1.01,"mr":"百亚股份","pos":"趋势中段","days":7,"cat":"无","s":[5,4,1,3,2]},
+  {"n":"广告营销","z":3.47,"f":3.51,"zt":3,"lb":1,"vb":0.73,"mr":"引力传媒、华媒控股、纵横通信","pos":"低位启动","days":1,"cat":"事件驱动","s":[2,3,3,4,3]},
+  {"n":"白色家电","z":0.33,"f":2.33,"zt":0,"lb":0,"vb":0.73,"mr":"美的集团","pos":"趋势中段","days":3,"cat":"无","s":[4,3,1,3,3]},
+  {"n":"数字媒体","z":3.21,"f":3.80,"zt":1,"lb":1,"vb":0.78,"mr":"掌阅科技","pos":"低位启动","days":1,"cat":"事件驱动","s":[2,3,2,4,3]},
+  {"n":"出版","z":3.15,"f":2.14,"zt":3,"lb":6,"vb":1.05,"mr":"新华传媒、中国出版、新华文轩","pos":"高位加速","days":1,"cat":"事件驱动","s":[2,3,3,2,3]},
+  {"n":"半导体","z":0.45,"f":6.87,"zt":0,"lb":0,"vb":null,"mr":"兆易创新","pos":"趋势中段","days":1,"cat":"业绩窗口","s":[2,3,1,3,4]}
 ];
-function avg(s){var t=0;for(var i=0;i<s.length;i++)t+=s[i];return Math.round(t/s.length*100)/100;}
-function lv(a){if(a>=3.5)return ["lv-main","真主线"];if(a>=2.5)return ["lv-wait","待验证"];return ["lv-rot","轮动"];}
-function fmtZ(v){return v>0?'<span class="up">+'+v.toFixed(2)+'%</span>':(v<0?'<span class="down">'+v.toFixed(2)+'%</span>':'<span class="neutral">0.00%</span>');}
-function fmtF(v){return v>0?'<span class="up">+'+v.toFixed(2)+'</span>':(v<0?'<span class="down">'+v.toFixed(2)+'</span>':'<span class="neutral">0.00</span>');}
+function avg(s){ var t=0; for(var i=0;i<s.length;i++){t+=s[i];} return Math.round(t/s.length*100)/100; }
+function verdictClass(a){ return a>=3.5?["true","真主线"]:(a>=2.5?["pend","待验证"]:["rot","轮动"]); }
 function render(){
-  var fs=document.getElementById("fSel").value, ns=document.getElementById("nSel").value;
-  var tb=document.getElementById("tbody"); tb.innerHTML="";
-  var idx=0;
-  for(var i=0;i<seed.length;i++){
-    var d=seed[i], a=avg(d.s), l=lv(a);
-    if(fs==="main"&&l[0]!=="lv-main")continue;
-    if(fs==="wait"&&l[0]!=="lv-wait")continue;
-    if(fs==="rot"&&l[0]!=="lv-rot")continue;
-    if(ns&&d.n!==ns)continue;
-    idx++;
-    var tr=document.createElement("tr");
-    tr.innerHTML='<td>'+idx+'</td>'
-      +'<td class="'+l[0]+'">'+d.n+'</td>'
-      +'<td>'+fmtZ(d.z)+'</td>'
-      +'<td>'+fmtF(d.f)+'</td>'
-      +'<td>'+(d.zt||0)+'</td>'
-      +'<td>'+(d.lb||0)+'</td>'
-      +'<td>'+d.vb.toFixed(2)+'</td>'
-      +'<td>'+d.mr+'</td>'
-      +'<td>'+d.pos+'</td>'
-      +'<td>'+d.days+'</td>'
-      +'<td>'+d.cat+'</td>'
-      +'<td>'+d.s.join(' / ')+'</td>'
-      +'<td class="'+l[0]+'">'+a.toFixed(2)+'<br><span style="font-size:11px">'+l[1]+'</span></td>';
-    tb.appendChild(tr);
+  var tb = document.querySelector("#tbl tbody");
+  var html = "";
+  for(var i=0;i<SEED.length;i++){
+    var d = SEED[i], a = avg(d.s), vc = verdictClass(a);
+    var vbs = (d.vb===null||d.vb===undefined)?"—":d.vb.toFixed(2);
+    var dims = d.s.join(" / ");
+    var zc = d.z>0?"up":(d.z<0?"down":"flat");
+    var fc = d.f>0?"up":(d.f<0?"down":"flat");
+    html += "<tr><td><span class='rank r"+(i+1)+"'>"+(i+1)+"</span></td>"
+      + "<td><b>"+d.n+"</b></td>"
+      + "<td class='"+zc+"'>"+(d.z>0?"+":"")+d.z.toFixed(2)+"</td>"
+      + "<td class='"+fc+"'>"+(d.f>0?"+":"")+d.f.toFixed(2)+"</td>"
+      + "<td>"+(d.zt>0?d.zt:"—")+"</td>"
+      + "<td>"+(d.lb>0?d.lb+"板":"—")+"</td>"
+      + "<td>"+vbs+"</td>"
+      + "<td class='dim'>"+d.mr+"</td>"
+      + "<td>"+d.pos+"</td>"
+      + "<td>"+d.days+"</td>"
+      + "<td>"+d.cat+"</td>"
+      + "<td><span class='bar-wrap'><span class='bar' style='width:"+(a/5*100)+"%'></span></span><span class='dim'>"+dims+"</span></td>"
+      + "<td><b>"+a.toFixed(2)+"</b></td>"
+      + "<td><span class='pill "+vc[0]+"'>"+vc[1]+"</span></td></tr>";
   }
-  if(!idx){tb.innerHTML='<tr><td colspan="13" class="neutral">无符合条件板块</td></tr>';}
+  tb.innerHTML = html;
 }
-(function(){
-  var sel=document.getElementById("nSel");
-  for(var i=0;i<seed.length;i++){var o=document.createElement("option");o.value=seed[i].n;o.textContent=seed[i].n;sel.appendChild(o);}
-  document.getElementById("fSel").addEventListener("change",render);
-  sel.addEventListener("change",render);
-  render();
-})();
 function exportJSON(){
-  var payload={report:"板块轮动与主线确定每日报告",date:"2026-09-28",cutoff:"2026-09-28 15:00 收盘",source:"东方财富数据中心 RPT_INDUSTRY_FUNDFLOW + push2ex 涨跌停池 + 新浪指数 + 中证网/中新经纬/金融界收评交叉核验",note:"今日零主线：最高均分 3.20（个护用品），无一板块达真主线阈值 3.5",data:seed};
-  var blob=new Blob([JSON.stringify(payload,null,1)],{type:"application/json"});
-  var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="sector-rotation-2026-09-28.json";a.click();
+  var fmt = document.getElementById("fmt").value;
+  var txt = "";
+  if(fmt==="json"){
+    txt = JSON.stringify({report:"板块轮动与主线确定每日报告",date:"2026-09-29",cutoff:"2026-09-29 15:00 收盘",source:"东方财富数据中心 RPT_INDUSTRY_FUNDFLOW + push2ex 涨跌停池 + 新浪指数",data:SEED},null,2);
+  } else {
+    var rows = ["n,z,f,zt,lb,vb,mr,pos,days,cat,s"];
+    for(var i=0;i<SEED.length;i++){ var d=SEED[i]; rows.push(d.n+","+d.z+","+d.f+","+d.zt+","+d.lb+","+d.vb+",\""+d.mr+"\","+d.pos+","+d.days+","+d.cat+",\""+d.s.join("|")+"\""); }
+    txt = rows.join("\n");
+  }
+  var blob = new Blob([txt],{type:"text/plain;charset=utf-8"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "sector-rotation-2026-09-29."+fmt;
+  a.click();
 }
+render();
 </script>
 </body>
 </html>
