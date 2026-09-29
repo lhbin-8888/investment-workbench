@@ -45,14 +45,19 @@ v4.1 相对 v4.0：修日志（初始化行版本号、时间止损打印实际�
               回退：把 SECTOR_VALVE_ON 改回 True 即恢复 v4.2 行为（代码与阈值均保留未删）。
               另：给「时间止损」日志补打印浮盈%（v4.2 该行只写天数/档位、不写浮亏，导致 19 笔
               时间止损在 txt 里完全不可见，只能靠猜——本次诊断被这一盲区卡住一整轮）。
-  v6 相对 v5（本版）：① 选股/买入信号时间 SIGNAL_TIME 由 10:30 改 10:35（handle_data 触发点后移 5 分钟）；
-              ② 新增「10:30 分时均线(均价线)过滤」EXCLUDE_BELOW_AVGLINE=True：每天 10:30 这一刻快照全市场
-                 「10:30 时股价」与「截至 10:30 的 VWAP(分时均线)」，交易时剔除 price_1030 < avg_1030 的弱势票
-                 （即 10:30 时股价还在均价线下方的票——日内承接弱、被均价线压制，不碰）。
-              实现：新增 _capture_1030_avglines（日期幂等，每天抓一次）+ 全局 _G_1030_AVGLINE/_G_1030_DATE；
-                 在 handle_data 首个 >=10:30 的分钟触发；_assess 内比对 price_1030 与 avg_1030，弱则 return None。
-              退化：10:30 快照抓不到该票（无分钟线）→ 按「不过滤」放行，避免静默丢信号。
-              回退：EXCLUDE_BELOW_AVGLINE=False 即关掉均价线过滤；SIGNAL_TIME 改回 "10:30" 即恢复 v5 触发点。
+
+  v5.1 相对 v5（本版分支，基于 v5_valveoff）：新增「10:30 分时均线(成交均价/VWAP)下方剔除」过滤，
+              移植自 FUSION v1.6 系列（该系列独有的、实打实过滤弱势票的逻辑，lhb888 原版没有）。
+              实现：复用 _intraday_ranges 聚合当日分钟线、加算 vwap=Σmoney/Σvolume（锚定 10:30），
+              在 _assess 中剔除「10:30 时点价 < 分时均价」的个股；并对取数量纲异常做降级保护
+              （vwap 与现价偏离超 3 倍则不过滤，防单位错配误杀整池）。其余（指数闸/分层出场/分板硬止损/
+              内嵌行业映射/无大市档位压仓）完全保留 v5 原版，未改动。新文件独立存在，v5 母版零改动。
+  v5.2 相对 v5.1（本版分支）：仅动一个变量 —— strong 档止盈终点封顶 TP_FULL_PCT 放宽到 +50%
+              （新增 TP_FULL_STRONG=0.50，weak/base 档仍 +30% 不动），同窗口 A/B 对照 v5.1。
+              依据：08-03~09-23 回测五笔大赢家全部 +30% 封顶走人（300120/301282/001337/300798/000823），
+              12%/15% 峰值回撤跟踪全程未把它们半路踢出 -> +30% 封顶是当前赢家侧收益天花板。
+              放宽封顶让 strong 档利润继续奔跑，回撤跟踪（12%/15%）仍作为出场保护。
+              回退：把 TP_FULL_STRONG 改回 0.30 即恢复 v5.1 行为。
   --------------------------------------------------
   依据：真实回测账本（2026-05-06~06-30）22 只已平仓票单票 +8.64%、胜率 68.2%，
         但 MFE(10 日内盘中最大浮盈) 均值 +21.41% -> 实现 +8.64%，捕捉率仅 40%，
@@ -71,11 +76,7 @@ v4.1 相对 v4.0：修日志（初始化行版本号、时间止损打印实际�
 # 一、参数配置区
 # ============================================================
 TRADE_ENABLED = True           # True=自动下单；False=信号模式（只输出热点榜）
-SIGNAL_TIME = "10:35"          # 每日选股/买入执行时间（handle_data 触发，上午买入）
-
-# 10:30 分时均线(均价线)快照：每天在 10:30 这一刻抓一次，供 10:35 交易时剔除弱势票
-_G_1030_AVGLINE = {}      # code -> (price_1030, avg_1030)；price_1030=10:30那根分钟bar收盘；avg_1030=截至10:30的VWAP(分时均线)
-_G_1030_DATE = [None]     # 当天是否已抓取（日期幂等，跨天自动重置）
+SIGNAL_TIME = "10:30"          # 每日选股/买入执行时间（handle_data 触发，上午买入）
 
 # ---- 扫描方式 ----
 SCAN_MODE = "FULL"             # FULL=全市场批量粗筛（推荐）；SAMPLE=抽样（慢环境兜底）
@@ -116,7 +117,7 @@ SECTOR_TOP_N = 10              # 申万一级共 31 个行业，当日平均涨�
 SECTOR_MIN_RISE = 0.0         # 强板块最低涨幅门槛（设 0.005 可要求板块整体上涨才入选）
 SECTOR_MIN_STOCKS = 5          # 行业内当日样本 >= N 只才参与排名，过滤小行业噪声
 SECTOR_MAP_BUDGET = 0          # 单日行业映射调用上限（0=不限）；全市场 5000+ 次 get_industry 若平台慢，
-INDUSTRY_MAP_FILE = "只读/industry_map.json"  # 本地静态行业映射表（v3.3/v3.3.1/v3.3.3：PTrade「研究/只读」实为 JupyterHub 工作区根下文件夹，用 Jupyter 树式相对路径；加载器拼到 cwd(/home/fly/)/家目录/__file__同目录等候选根下，绕开无 get_industry 环境）
+INDUSTRY_MAP_FILE = "只读/industry_map.json"  # 本地静态行业映射表（v3.3/v3.3.1/v3.3.3：PTrade「研究/只读」实为 JupyterHub 工作区根下文件夹，用 Jupyter 树式相对路径；加载器拼到 cwd(沙箱家目录/)/家目录/__file__同目录等候选根下，绕开无 get_industry 环境）
                                # 可设 2000 分批构建：未映射的票次交易日继续，INDUSTRY_OF 会累积收敛
 
 # ---- 仓位与风控 ----
@@ -153,13 +154,15 @@ TIER_WEAK_T1     = 0.0             # T+1 收盘浮盈 <   0%  判为「弱启动
 TP_HALF_STRONG   = {"main": 0.10, "kcb": 0.12, "cyb": 0.12}
 TRAIL_STRONG     = {"main": 0.12, "kcb": 0.15, "cyb": 0.15}
 HALF_DD_STRONG   = {"main": 0.08, "kcb": 0.10, "cyb": 0.10}
+TP_FULL_STRONG   = 0.50            # v5.2: strong 档止盈终点封顶放宽到 +50%（weak/base 档仍 +30%；回退=改回 0.30）
 # 弱启动：缩短持有，尽早离场（不动止损，只把时间止损提前）
 MAX_HOLD_WEAK    = 2               # 弱启动票最长再持有 2 个交易日
 # 覆盖表（tier -> {参数名: 覆盖值}）；不在表内的参数沿用基线
 EXIT_TIER_OVERRIDE = {
     "strong": {"TP_HALF_PCT": TP_HALF_STRONG,
                "TRAIL_PCT": TRAIL_STRONG,
-               "HALF_DRAWDOWN": HALF_DD_STRONG},
+               "HALF_DRAWDOWN": HALF_DD_STRONG,
+               "TP_FULL_PCT": TP_FULL_STRONG},
     "weak":   {"MAX_HOLD_DAYS": MAX_HOLD_WEAK},
 }
 
@@ -192,8 +195,11 @@ MAX_SINGLE_RATIO = 0.30       # 单票上限（占总资产比例），防过度
 # 2) 10:30 分时回踩过滤：只做「回踩不破开盘价」（cur >= 当日开盘价才买，动量未转弱）
 BUY_PULLBACK_FILTER = True    # True=开启分时回踩过滤
 PULLBACK_OPEN_BREAK = True    # True=要求 cur>=open（回踩不破开盘价）；False=关闭该条件
-# 3) 10:30 分时均线(均价线)过滤：交易时剔除「10:30 时股价处于 10:30 分时均线下方」的弱势票
-EXCLUDE_BELOW_AVGLINE = True   # True=开启均价线过滤（只做股价在均价线上方、日内承接强的票）
+
+# 3) v5.1 新增：10:30 分时均线(成交均价/VWAP)下方剔除（移植自 v1.6 系列，独立价值）
+#    剔除「10:30 时点价 < 当日累计成交额/累计成交量（分时均价/黄线）」的个股——弱于均价线、日内偏弱。
+VWAP_1030_FILTER = True       # True=开启 10:30 分时均价过滤；False=关闭（回退 v5 原版）
+VWAP_1030_BARS = 61           # 锚定 10:30 的分钟线根数（09:30~10:30）；回测 10:30 触发时即当日全部分钟 bar
 
 
 # ---- 成本假设（回测用）----
@@ -5838,6 +5844,16 @@ def _get_market_pool():
 # ============================================================
 # 五·五、板块共振（行业强度过滤）
 # ============================================================
+def _safe_isfile(p):
+    """国金/山西 PTrade 沙箱禁止 stat 某些路径（cwd 可能映射到沙箱家目录），
+    os.path.isfile 可能抛 PermissionError；此处静默吞掉并返回 False，避免部署/运行失败。"""
+    try:
+        import os
+        return os.path.isfile(p)
+    except Exception:
+        return False
+
+
 def _load_industry_map_file():
     """从同目录 industry_map.json 加载静态 {code: 申万一级行业} 映射（v3.3 新增，绕开无 get_industry 环境）。
 
@@ -5870,7 +5886,7 @@ def _load_industry_map_file():
     if os.path.isabs(INDUSTRY_MAP_FILE):
         cands.append(INDUSTRY_MAP_FILE)
     # 2) 相对解释：把首部斜杠剥掉后，拼到多个候选「根目录」下（v3.3.3 关键修复）。
-    #    根因：PTrade「研究/只读」实为 JupyterHub 工作区根（回测进程 cwd=/home/fly/）下的文件夹，
+    #    根因：PTrade「研究/只读」实为 JupyterHub 工作区根（回测进程 cwd=沙箱家目录/）下的文件夹，
     #    写成 /只读/ 会被当 Linux 根目录绝对路径而找不到；真正的绝对路径是 <根>/只读/industry_map.json。
     if not os.path.isabs(INDUSTRY_MAP_FILE):
         rel = INDUSTRY_MAP_FILE.lstrip("/")
@@ -5879,9 +5895,9 @@ def _load_industry_map_file():
             _roots.append(os.path.dirname(os.path.abspath(__file__)))   # 部署的 .py 同目录
         except Exception:
             pass
-        _roots.append(os.getcwd())                                       # 当前工作目录（/home/fly/）
+        _roots.append(os.getcwd())                                       # 当前工作目录（沙箱家目录/）
         _roots.append(os.path.expanduser("~"))                          # 用户家目录
-        _roots += ["/home/fly", "/home/jovyan", "/root"]                # 常见 JupyterHub 家目录
+                # 常见 JupyterHub 家目录
         for r in _roots:
             if r:
                 cands.append(os.path.join(r, rel))
@@ -5903,7 +5919,7 @@ def _load_industry_map_file():
     # 去重，保持顺序
     _seen = set(); cands = [c for c in cands if not (c in _seen or _seen.add(c))]
     for p in cands:
-        if os.path.isfile(p):
+        if _safe_isfile(p):
             try:
                 with open(p, encoding='utf-8') as f:
                     d = json.load(f)
@@ -6270,71 +6286,47 @@ def _pass_pullback(cur, o, h, lo):
 
 
 def _intraday_ranges(codes):
-    """聚合当日分钟线，返回 {code: (open, high, low)} 的当日值。
+    """聚合当日分钟线，返回 {code: (open, high, low, vwap)} 的当日值。
 
     回测里 1m 可得当日数据（已实测），取多根聚合出「当日开盘/最高/最低」。
+    v5.1 新增 vwap = 当日累计成交额/累计成交量（分时均价/黄线），锚定 10:30（取末 VWAP_1030_BARS 根）；
+    无 money/volume 时 vwap 退化为 close 均值；取不到返回 vwap=None，调用方降级不过滤。
     取不到（接口不支持/无分钟线）返回空 dict，调用方退化为「不过滤」。
     """
     out = {}
     if not codes:
         return out
     try:
-        m = _fetch_panel(list(codes), 330, ["open", "high", "low", "close"],
+        m = _fetch_panel(list(codes), 330,
+                         ["open", "high", "low", "close", "volume", "money"],
                          "分时区间", quiet=True, freq="1m")
         for c in codes:
             d = m.get(c) or {}
             o = d.get("open") or []
             h = d.get("high") or []
             l = d.get("low") or []
+            cl = d.get("close") or []
+            vols = d.get("volume") or []
+            moneys = d.get("money") or []
             if not h:
                 continue
+            # v5.1：分时均价 VWAP（锚定 10:30 时点）
+            vwap = None
+            if VWAP_1030_FILTER:
+                nb = VWAP_1030_BARS
+                vv = vols[-nb:] if len(vols) >= nb else vols
+                mm = moneys[-nb:] if len(moneys) >= nb else moneys
+                if mm and vv and sum(vv) > 0:
+                    vwap = sum(mm) / sum(vv)
+                elif cl:
+                    cln = cl[-nb:] if len(cl) >= nb else cl
+                    vwap = sum(cln) / len(cln) if cln else None
             out[c] = (float(o[0]) if o else None,
-                      float(max(h)), float(min(l)) if l else None)
+                      float(max(h)), float(min(l)) if l else None,
+                      vwap)
     except Exception:
         pass
     return out
-
-
-def _capture_1030_avglines(context, data):
-    """在 10:30 这一刻快照全市场「10:30 时股价」与「10:30 分时均线(VWAP)」。
-    供 10:35 交易时剔除「10:30 价 < 分时均线」的弱势票。每天只算一次（日期幂等）。
-
-    分时均线(均价线) = 截至 10:30 的金额加权均价 VWAP = sum(money)/sum(volume)；
-    取不到 money 时退化为收盘简单均价。price_1030 = 10:30 那根分钟 bar 的收盘。
-    抓取失败/无分钟线则置空 dict，调用方按「不过滤」降级，避免静默丢信号。
-    """
-    d = _context_date(context) or ""
-    if d and d == _G_1030_DATE[0]:
-        return                       # 当天已抓过，跳过
-    pool = _get_market_pool()
-    if not pool:
-        return
-    out = {}
-    for i in range(0, len(pool), BATCH_SIZE):
-        batch = pool[i:i + BATCH_SIZE]
-        m = _fetch_panel(batch, 60, ["close", "volume", "money"],
-                         "10:30均价线", quiet=True, freq="1m")
-        for c in batch:
-            dd = m.get(c) or {}
-            cl = dd.get("close") or []
-            vol = dd.get("volume") or []
-            money = dd.get("money") or []
-            if not cl:
-                continue
-            price_1030 = float(cl[-1])            # 10:30 那根分钟 bar 收盘 = 10:30 时股价
-            tot_money = sum(x for x in money if x)
-            tot_vol = sum(x for x in vol if x)
-            if tot_money and tot_vol:
-                avg = tot_money / tot_vol         # 金额加权均价(VWAP) = 分时均线
-            elif cl:
-                avg = sum(cl) / len(cl)            # 退化：收盘简单均价
-            else:
-                continue
-            out[c] = (price_1030, float(avg))
-    _G_1030_AVGLINE.clear()
-    _G_1030_AVGLINE.update(out)
-    _G_1030_DATE[0] = d
-    log.info("[均价线] 10:30 快照完成：{} 只（price_1030 对比 VWAP）".format(len(out)))
 
 
 def _assess(code, v, snap, intraday=None):
@@ -6373,16 +6365,16 @@ def _assess(code, v, snap, intraday=None):
             code, cur, _of))
         return None
 
-    # ---- 10:30 分时均线(均价线)过滤：剔除 10:30 时股价在均价线下方的弱势票 ----
-    if EXCLUDE_BELOW_AVGLINE:
-        av = _G_1030_AVGLINE.get(code)
-        if av is not None:
-            price_1030, avg_1030 = av
-            if price_1030 < avg_1030:
-                log.info("[均价线] {} 跳过（10:30价={:.2f} < 分时均线{:.2f}，弱势）".format(
-                    code, price_1030, avg_1030))
-                return None
-        # av is None（该票未在 10:30 快照里，如当日新抓不到）→ 退化为不过滤，避免静默丢信号
+    # ---- v5.1 新增：10:30 分时均线(VWAP/成交均价)下方剔除 ----
+    # 弱于均价线 = 当日累计成交均价在现价之上，说明抛压重、日内偏弱；与「回踩不破开盘价」互补
+    if VWAP_1030_FILTER:
+        vw = (intraday or (None, None, None, None))[3] if intraday else None
+        # 单位异常保护：vwap 与现价偏离超 3 倍视为取数量纲错（如 volume 单位为手/股差异），
+        # 此时降级为不过滤，绝不因单位问题误杀整池（与 lhb888「取不到→降级」哲学一致）
+        if vw and cur and 0.3 * cur <= vw <= 3.0 * cur and cur < vw:
+            log.info("[VWAP] {} 跳过（cur={:.2f} < 分时均价{:.2f}，弱于均价线）".format(
+                code, cur, vw))
+            return None
 
     # ---- 可买性：涨停判定用昨收基准 + 当日价（保险，区间上限已低于涨停）----
     lim = _limit_pct(code, name)
@@ -6743,7 +6735,7 @@ def monitor_risk(context, data=None):
       3) 破 20 日线（RETREAT_MA）      → 清仓（更保守兜底，趋势彻底走坏）
       4) 保本止损（仅已减半票）：cur <= 保本价 → 清仓（锁定已落袋利润）
       5) 时间止损（亏损票）：持有 >= MAX_HOLD_DAYS 天 → 清仓
-      6) 浮盈 >= +15%（TP_FULL_PCT）   → 清仓（盈利减半后的终点兜底）
+      6) 浮盈 >= TP_FULL_PCT（分档：v5.2 strong 档 TP_FULL_STRONG=+50%，其余 +30%）→ 清仓（终点兜底）
       7) 峰值回撤减半（分板块 HALF_DRAWDOWN）：从峰值回落超阈值 → 减半（最多到 1/4，
          首减半写入 context.breakeven[code] 保本基准）
       8) 盈利减半（分板块 TP_HALF_PCT）：主板 +8% / 科创板·创业板 +12% 且未减半过 → 减半
@@ -6854,9 +6846,10 @@ def monitor_risk(context, data=None):
             if _sell_all(code, px, "时间止损 亏损持仓{}天({}档) 浮盈{:.1%}".format(_mh, _tier, rt)):
                 _clear(code)
             continue
-        # 6) +15% 清仓（盈利减半后的终点兜底）
-        if rt >= TP_FULL_PCT:
-            if _sell_all(code, px, "止盈 浮盈{:.1%} 触+{}%清仓".format(rt, int(TP_FULL_PCT * 100))):
+        # 6) 止盈终点封顶（v5.2 起分档：strong 档 +50%，其余 +30%）
+        tp_full = _exit_param("TP_FULL_PCT", TP_FULL_PCT, board, _tier, 0.30)
+        if rt >= tp_full:
+            if _sell_all(code, px, "止盈 浮盈{:.1%} 触+{}%清仓".format(rt, int(tp_full * 100))):
                 _clear(code)
             continue
         # 7) 峰值回撤减半（分板块）：从持仓峰值回落超 HALF_DRAWDOWN[board] → 减半（最多到 1/4）
@@ -7093,15 +7086,19 @@ def initialize(context):
             log.info("[配置] 佣金未设置: {}".format(repr(e2)))
 
     log.info("=" * 60)
-    log.info("[初始化] 热点追踪 v6 软阀关闭+10:35+均价线过滤版启动（SECTOR_VALVE_ON={}）；TIERED_EXIT={} STRONG_TIER_ON={}；TRADE_ENABLED={}".format(
+    log.info("[初始化] 热点追踪 v5 软阀关闭版启动（SECTOR_VALVE_ON={}）；TIERED_EXIT={} STRONG_TIER_ON={}；TRADE_ENABLED={}".format(
         SECTOR_VALVE_ON, TIERED_EXIT, STRONG_TIER_ON, TRADE_ENABLED))
+    log.info("[指纹] v5.1 新增 10:30 分时均线(VWAP)下方剔除：VWAP_1030_FILTER={} BARS={}（移植自 v1.6 系列，独立于原回踩/日内回撤过滤）".format(
+        VWAP_1030_FILTER, VWAP_1030_BARS))
+    log.info("[指纹] v5.2 strong 档止盈终点封顶放宽：TP_FULL_STRONG={}（base/weak 仍 +{}%）；同窗口 A/B 对照 v5.1".format(
+        TP_FULL_STRONG, int(TP_FULL_PCT * 100)))
     _diag_api()
     log.info("[初始化] 行情/成交量/口径自检将延迟到首个交易日执行（PTrade 初始化阶段禁止取数）")
     log.info("=" * 60)
 
     # 定时：统一用 handle_data 按时间触发。不用 run_daily —— 不同券商版本 run_daily
     # 签名不一（实测出现过参数顺序颠倒，导致字符串被当成 func，报 'str' object is
-    # not callable）。handle_data 已实测稳定：分钟级在 10:35 触发，配合日期幂等每天只跑一次。
+    # not callable）。handle_data 已实测稳定：分钟级在 10:30 触发，配合日期幂等每天只跑一次。
     log.info("[初始化] 定时方式：handle_data（>= {} 触发，日期幂等）".format(SIGNAL_TIME))
 
     # 分批止盈状态：记录哪些票已经「减半」过（首次减半标记，halved 同时驱动保本止损）
@@ -7262,12 +7259,6 @@ def handle_data(context, data):
         log.error("[择时] 防御异常: {}".format(repr(e)))
     if hhmm and hhmm < SIGNAL_TIME:
         return                       # 未到信号时间，仅做风控
-    # —— 10:30 均价线快照（每天一次，最早在 10:30 这一刻抓，供 10:35 交易时剔除弱势票）——
-    if hhmm and hhmm >= "10:30":
-        try:
-            _capture_1030_avglines(context, data)
-        except Exception as e:
-            log.error("[均价线] 快照异常: {}".format(repr(e)))
     # hhmm >= SIGNAL_TIME 才执行选股+建仓；_daily_routine 内按日期幂等，分钟级不会重复跑
     _daily_routine(context, data)
 

@@ -32,6 +32,34 @@ v4.1 相对 v4.0：修日志（初始化行版本号、时间止损打印实际�
               新增 STRONG_TIER_ON 开关（False=只留 weak 档），用于同窗口 A/B 分离 strong 档净贡献。
               依据：092301 实测（05-06~06-30 同窗口）strong 档把 6/8% 减半闸抬到 10/12% 后，
               600956/688112/300939 三笔 v3 盈利票被回撤归零，002552/300975/300179 三笔大赚 —— 高方差，需 A/B 定夺。
+
+  v5 相对 v4.2（本版）：关闭「领涨板块软阀」SECTOR_VALVE_ON=False，择时闸回归单条件
+              「沪深300 站上 MA20(-1% 容忍) 才建仓」（= 指数闸单独决定）。
+              依据：092601 实测（2026-08-03~09-23，38 交易日）把 31 个开闸日按来源拆分后一边倒 ——
+                · 指数闸开  19 天 → 当日买入 23 只 → 产出平台 6 个盈利笔中的 5 个
+                  （301282 +30.7% / 300120 +30.1% / 300798 +31.3% / 000823 +31.0% / 001337 +17.6%），
+                  估算贡献约 +12% 净值；
+                · 仅靠软阀开 12 天 → 当日买入 22 只 → 仅 002638 一只盈利，其余 21 只全部止损
+                  （含全区间最大爆亏 301130 -14.9%，单笔吃掉约 -4.4% 净值），估算贡献约 -15% 净值。
+              即：软阀在「弱指数 + 板块一日游」环境下把闸门硬开，把账户最差的那批日子全放进来了。
+              回退：把 SECTOR_VALVE_ON 改回 True 即恢复 v4.2 行为（代码与阈值均保留未删）。
+              另：给「时间止损」日志补打印浮盈%（v4.2 该行只写天数/档位、不写浮亏，导致 19 笔
+              时间止损在 txt 里完全不可见，只能靠猜——本次诊断被这一盲区卡住一整轮）。
+
+  v5.1 相对 v5（本版分支，基于 v5_valveoff）：新增「10:30 分时均线(成交均价/VWAP)下方剔除」过滤，
+              移植自 FUSION v1.6 系列（该系列独有的、实打实过滤弱势票的逻辑，lhb888 原版没有）。
+              实现：复用 _intraday_ranges 聚合当日分钟线、加算 vwap=Σmoney/Σvolume（锚定 10:30），
+              在 _assess 中剔除「10:30 时点价 < 分时均价」的个股；并对取数量纲异常做降级保护
+              （vwap 与现价偏离超 3 倍则不过滤，防单位错配误杀整池）。其余（指数闸/分层出场/分板硬止损/
+              内嵌行业映射/无大市档位压仓）完全保留 v5 原版，未改动。新文件独立存在，v5 母版零改动。
+  v5.2 相对 v5.1（独立分支）：strong 档止盈封顶放宽到 +50% —— 已被 092801 A/B 证弃用（跑输约 2.5~3pp），仅存档。
+  v5.3 相对 v5.1（本版分支，基于 v5.1）：仅动一个变量 —— 新增「20cm 连板加速末段防接盘」入场过滤
+              ACCEL20_FILTER：创业板/科创板 且 连板>=1 且 量比>=2.6 的候选剔除。
+              依据：08-03~09-23 全部 15 笔逐特征检验（强度/涨幅/量比/连板/市场宽度均无法单独区分输赢），
+              唯一不伤赢家的组合特征：300363(连板1 量比2.68 -> -0.7%) 与 301080(连板2 量比3.36 -> -3.2%)
+              两笔 weak 碎亏被剔除；6 笔大赢家全部不受影响（唯一连板赢家 600961 为主板低量比 1.73）。
+              ⚠️ 样本仅 n=2，假设级改动：逻辑=20cm 连板股再大幅放量=加速末段接力风险高；
+              上线前须加跑 05-06~06-30 窗口验证不误杀。回退：ACCEL20_FILTER=False。
   --------------------------------------------------
   依据：真实回测账本（2026-05-06~06-30）22 只已平仓票单票 +8.64%、胜率 68.2%，
         但 MFE(10 日内盘中最大浮盈) 均值 +21.41% -> 实现 +8.64%，捕捉率仅 40%，
@@ -49,7 +77,7 @@ v4.1 相对 v4.0：修日志（初始化行版本号、时间止损打印实际�
 # ============================================================
 # 一、参数配置区
 # ============================================================
-TRADE_ENABLED = False          # True=自动下单；False=信号模式（只输出热点榜）
+TRADE_ENABLED = True           # True=自动下单；False=信号模式（只输出热点榜）
 SIGNAL_TIME = "10:30"          # 每日选股/买入执行时间（handle_data 触发，上午买入）
 
 # ---- 扫描方式 ----
@@ -84,6 +112,11 @@ MA20_ENTRY_BUFFER = 0.02       # 入场 MA20 缓冲：须站上 MA20 至少 2% �
 REQUIRE_ABOVE_MA60 = True     # 必须站上 60 日线（中期趋势确认，过滤弱势反弹/一日游）
 MA_SHAPE_MIN = 2              # 均线多头形态门槛：shape>=2 即站上 MA10+MA20（设 3=全多头更严）
 INTRADAY_PULLBACK_MAX = 0.04  # 日内回撤上限：当前价距日内最高回撤 >4% 视为冲高回落，剔除（避免追尖顶）
+# 4) v5.3 新增：20cm 连板加速末段防接盘（创业板/科创板 连板>=1 且 量比>=2.6 剔除）
+#    依据 08-03~09-23 逐笔检验：恰好剔掉 300363/301080 两笔 weak 碎亏、6 笔大赢家零误伤（n=2，假设级，须加窗验证）
+ACCEL20_FILTER = True         # True=开启 20cm 加速末段过滤；False=回退 v5.1 行为
+ACCEL20_LIANBAN_MIN = 1       # 连板数下限（>=1 视为连板股）
+ACCEL20_VR_MIN = 2.6          # 量比下限（>=2.6 视为大幅放量；300798 赢家 2.56 恰在其下，请勿随意下调）
 
 # ---- 板块共振（提胜率：个股须属当日强势行业才入选；v3.1 新增，针对回测 17.86% 低胜率）----
 SECTOR_CONFIRM = True          # True=开启板块共振（个股所属申万一级行业当日须为强势板块才入选；平台无 get_industry 自动降级关闭）
@@ -91,7 +124,7 @@ SECTOR_TOP_N = 10              # 申万一级共 31 个行业，当日平均涨�
 SECTOR_MIN_RISE = 0.0         # 强板块最低涨幅门槛（设 0.005 可要求板块整体上涨才入选）
 SECTOR_MIN_STOCKS = 5          # 行业内当日样本 >= N 只才参与排名，过滤小行业噪声
 SECTOR_MAP_BUDGET = 0          # 单日行业映射调用上限（0=不限）；全市场 5000+ 次 get_industry 若平台慢，
-INDUSTRY_MAP_FILE = "只读/industry_map.json"  # 本地静态行业映射表（v3.3/v3.3.1/v3.3.3：PTrade「研究/只读」实为 JupyterHub 工作区根下文件夹，用 Jupyter 树式相对路径；加载器拼到 cwd(/home/fly/)/家目录/__file__同目录等候选根下，绕开无 get_industry 环境）
+INDUSTRY_MAP_FILE = "只读/industry_map.json"  # 本地静态行业映射表（v3.3/v3.3.1/v3.3.3：PTrade「研究/只读」实为 JupyterHub 工作区根下文件夹，用 Jupyter 树式相对路径；加载器拼到 cwd(沙箱家目录/)/家目录/__file__同目录等候选根下，绕开无 get_industry 环境）
                                # 可设 2000 分批构建：未映射的票次交易日继续，INDUSTRY_OF 会累积收敛
 
 # ---- 仓位与风控 ----
@@ -143,7 +176,10 @@ MARKET_TIMING = True           # True=开启大盘择时总闸：宽基指数站
 MKT_INDEX = "000300.SS"        # 择时参考指数（沪深300 宽基；v4.2 由创业板指回退——创业板指=成长/小盘代表，单用会在弱市被长期压制而 0 成交）
 MKT_MA = 20                    # 择时均线周期（v4.2 由 60 回退到 20：MA60 太钝，弱市会连续数周关闸→全程空仓）
 MKT_GATE_TOL = -0.01           # 闸门容忍带：指数低于 MA 不到 1% 仍允许建仓，过滤均线抖动误关
-SECTOR_VALVE_ON = True         # 领涨板块软阀（v4.2 新增）：指数弱但当日最强行业涨幅达标时仍允许建仓，避免"弱指数+强主线"被一刀切空仓
+SECTOR_VALVE_ON = False        # 【v5 关闭】领涨板块软阀（v4.2 新增）：指数弱但当日最强行业涨幅达标时仍允许建仓。
+                               # 关掉的原因（092601 实测）：仅靠软阀硬开的 12 天里买入 22 只、仅 1 只盈利，
+                               # 含最大爆亏 301130(-14.9%)；而指数闸开的 19 天贡献了 6 个盈利笔中的 5 个。
+                               # 改回 True 即恢复 v4.2 行为（软阀逻辑与阈值全部保留，未删）。
 SECTOR_VALVE_RISE = 2.0        # 软阀阈值：当日最强申万一级行业平均涨幅 >= 2% 视为存在可骑的强主线（量纲=百分点，与 SECTOR_STRENGTH 一致；切勿写 0.02）
 MKT_EXIT_WHEN_BEAR = False     # True=大盘破 MA20 时清空全部持仓（系统性撤退；默认关，避免盘中均线抖动误清）
 
@@ -164,6 +200,11 @@ MAX_SINGLE_RATIO = 0.30       # 单票上限（占总资产比例），防过度
 # 2) 10:30 分时回踩过滤：只做「回踩不破开盘价」（cur >= 当日开盘价才买，动量未转弱）
 BUY_PULLBACK_FILTER = True    # True=开启分时回踩过滤
 PULLBACK_OPEN_BREAK = True    # True=要求 cur>=open（回踩不破开盘价）；False=关闭该条件
+
+# 3) v5.1 新增：10:30 分时均线(成交均价/VWAP)下方剔除（移植自 v1.6 系列，独立价值）
+#    剔除「10:30 时点价 < 当日累计成交额/累计成交量（分时均价/黄线）」的个股——弱于均价线、日内偏弱。
+VWAP_1030_FILTER = True       # True=开启 10:30 分时均价过滤；False=关闭（回退 v5 原版）
+VWAP_1030_BARS = 61           # 锚定 10:30 的分钟线根数（09:30~10:30）；回测 10:30 触发时即当日全部分钟 bar
 
 
 # ---- 成本假设（回测用）----
@@ -5808,6 +5849,16 @@ def _get_market_pool():
 # ============================================================
 # 五·五、板块共振（行业强度过滤）
 # ============================================================
+def _safe_isfile(p):
+    """国金/山西 PTrade 沙箱禁止 stat 某些路径（cwd 可能映射到沙箱家目录），
+    os.path.isfile 可能抛 PermissionError；此处静默吞掉并返回 False，避免部署/运行失败。"""
+    try:
+        import os
+        return os.path.isfile(p)
+    except Exception:
+        return False
+
+
 def _load_industry_map_file():
     """从同目录 industry_map.json 加载静态 {code: 申万一级行业} 映射（v3.3 新增，绕开无 get_industry 环境）。
 
@@ -5840,7 +5891,7 @@ def _load_industry_map_file():
     if os.path.isabs(INDUSTRY_MAP_FILE):
         cands.append(INDUSTRY_MAP_FILE)
     # 2) 相对解释：把首部斜杠剥掉后，拼到多个候选「根目录」下（v3.3.3 关键修复）。
-    #    根因：PTrade「研究/只读」实为 JupyterHub 工作区根（回测进程 cwd=/home/fly/）下的文件夹，
+    #    根因：PTrade「研究/只读」实为 JupyterHub 工作区根（回测进程 cwd=沙箱家目录/）下的文件夹，
     #    写成 /只读/ 会被当 Linux 根目录绝对路径而找不到；真正的绝对路径是 <根>/只读/industry_map.json。
     if not os.path.isabs(INDUSTRY_MAP_FILE):
         rel = INDUSTRY_MAP_FILE.lstrip("/")
@@ -5849,9 +5900,9 @@ def _load_industry_map_file():
             _roots.append(os.path.dirname(os.path.abspath(__file__)))   # 部署的 .py 同目录
         except Exception:
             pass
-        _roots.append(os.getcwd())                                       # 当前工作目录（/home/fly/）
+        _roots.append(os.getcwd())                                       # 当前工作目录（沙箱家目录/）
         _roots.append(os.path.expanduser("~"))                          # 用户家目录
-        _roots += ["/home/fly", "/home/jovyan", "/root"]                # 常见 JupyterHub 家目录
+                # 常见 JupyterHub 家目录
         for r in _roots:
             if r:
                 cands.append(os.path.join(r, rel))
@@ -5873,7 +5924,7 @@ def _load_industry_map_file():
     # 去重，保持顺序
     _seen = set(); cands = [c for c in cands if not (c in _seen or _seen.add(c))]
     for p in cands:
-        if os.path.isfile(p):
+        if _safe_isfile(p):
             try:
                 with open(p, encoding='utf-8') as f:
                     d = json.load(f)
@@ -6240,26 +6291,44 @@ def _pass_pullback(cur, o, h, lo):
 
 
 def _intraday_ranges(codes):
-    """聚合当日分钟线，返回 {code: (open, high, low)} 的当日值。
+    """聚合当日分钟线，返回 {code: (open, high, low, vwap)} 的当日值。
 
     回测里 1m 可得当日数据（已实测），取多根聚合出「当日开盘/最高/最低」。
+    v5.1 新增 vwap = 当日累计成交额/累计成交量（分时均价/黄线），锚定 10:30（取末 VWAP_1030_BARS 根）；
+    无 money/volume 时 vwap 退化为 close 均值；取不到返回 vwap=None，调用方降级不过滤。
     取不到（接口不支持/无分钟线）返回空 dict，调用方退化为「不过滤」。
     """
     out = {}
     if not codes:
         return out
     try:
-        m = _fetch_panel(list(codes), 330, ["open", "high", "low", "close"],
+        m = _fetch_panel(list(codes), 330,
+                         ["open", "high", "low", "close", "volume", "money"],
                          "分时区间", quiet=True, freq="1m")
         for c in codes:
             d = m.get(c) or {}
             o = d.get("open") or []
             h = d.get("high") or []
             l = d.get("low") or []
+            cl = d.get("close") or []
+            vols = d.get("volume") or []
+            moneys = d.get("money") or []
             if not h:
                 continue
+            # v5.1：分时均价 VWAP（锚定 10:30 时点）
+            vwap = None
+            if VWAP_1030_FILTER:
+                nb = VWAP_1030_BARS
+                vv = vols[-nb:] if len(vols) >= nb else vols
+                mm = moneys[-nb:] if len(moneys) >= nb else moneys
+                if mm and vv and sum(vv) > 0:
+                    vwap = sum(mm) / sum(vv)
+                elif cl:
+                    cln = cl[-nb:] if len(cl) >= nb else cl
+                    vwap = sum(cln) / len(cln) if cln else None
             out[c] = (float(o[0]) if o else None,
-                      float(max(h)), float(min(l)) if l else None)
+                      float(max(h)), float(min(l)) if l else None,
+                      vwap)
     except Exception:
         pass
     return out
@@ -6300,6 +6369,17 @@ def _assess(code, v, snap, intraday=None):
         log.info("[回踩] {} 跳过（cur={:.2f} open={}：跌破开盘价，动量转弱）".format(
             code, cur, _of))
         return None
+
+    # ---- v5.1 新增：10:30 分时均线(VWAP/成交均价)下方剔除 ----
+    # 弱于均价线 = 当日累计成交均价在现价之上，说明抛压重、日内偏弱；与「回踩不破开盘价」互补
+    if VWAP_1030_FILTER:
+        vw = (intraday or (None, None, None, None))[3] if intraday else None
+        # 单位异常保护：vwap 与现价偏离超 3 倍视为取数量纲错（如 volume 单位为手/股差异），
+        # 此时降级为不过滤，绝不因单位问题误杀整池（与 lhb888「取不到→降级」哲学一致）
+        if vw and cur and 0.3 * cur <= vw <= 3.0 * cur and cur < vw:
+            log.info("[VWAP] {} 跳过（cur={:.2f} < 分时均价{:.2f}，弱于均价线）".format(
+                code, cur, vw))
+            return None
 
     # ---- 可买性：涨停判定用昨收基准 + 当日价（保险，区间上限已低于涨停）----
     lim = _limit_pct(code, name)
@@ -6365,6 +6445,16 @@ def _assess(code, v, snap, intraday=None):
             pass
         elif ind not in SECTOR_STRONG:
             log.info("[板块] {} 跳过（行业『{}』非强势板块，不共振）".format(code, ind))
+            return None
+
+    # ---- 入场收紧④（v5.3）：20cm 连板加速末段防接盘 ----
+    # 创业板/科创板 连板股当日再大幅放量（量比>=ACCEL20_VR_MIN）= 情绪加速末段，接力风险高；
+    # 主板连板（如 600961 量比1.73）不受影响。依据与样本量警告见文件头 v5.3 说明。
+    if ACCEL20_FILTER:
+        _bk = _board_key(code)
+        if _bk in ("cyb", "kcb") and lb >= ACCEL20_LIANBAN_MIN and vol_ratio >= ACCEL20_VR_MIN:
+            log.info("[加速] {} 跳过（20cm 连板{} 量比{}：加速末段，接力风险高）".format(
+                code, lb, vol_ratio))
             return None
 
     score = pct + lb * 6.0 + min(vol_ratio, 3.0) * 8.0 + shape * 1.5
@@ -6768,7 +6858,7 @@ def monitor_risk(context, data=None):
         # 5) 时间止损（亏损票）：持有 >= MAX_HOLD_DAYS 天 → 清仓
         _mh = _exit_param("MAX_HOLD_DAYS", MAX_HOLD_DAYS, board, _tier, 5)
         if held_days >= 1 and rt <= 0 and _mh > 0 and held_days >= _mh:
-            if _sell_all(code, px, "时间止损 亏损持仓{}天({}档)".format(_mh, _tier)):
+            if _sell_all(code, px, "时间止损 亏损持仓{}天({}档) 浮盈{:.1%}".format(_mh, _tier, rt)):
                 _clear(code)
             continue
         # 6) +15% 清仓（盈利减半后的终点兜底）
@@ -7010,8 +7100,12 @@ def initialize(context):
             log.info("[配置] 佣金未设置: {}".format(repr(e2)))
 
     log.info("=" * 60)
-    log.info("[初始化] 热点追踪 v4.1 分层出场版启动；TIERED_EXIT={} STRONG_TIER_ON={}；TRADE_ENABLED={}".format(
-        TIERED_EXIT, STRONG_TIER_ON, TRADE_ENABLED))
+    log.info("[初始化] 热点追踪 v5 软阀关闭版启动（SECTOR_VALVE_ON={}）；TIERED_EXIT={} STRONG_TIER_ON={}；TRADE_ENABLED={}".format(
+        SECTOR_VALVE_ON, TIERED_EXIT, STRONG_TIER_ON, TRADE_ENABLED))
+    log.info("[指纹] v5.1 新增 10:30 分时均线(VWAP)下方剔除：VWAP_1030_FILTER={} BARS={}（移植自 v1.6 系列，独立于原回踩/日内回撤过滤）".format(
+        VWAP_1030_FILTER, VWAP_1030_BARS))
+    log.info("[指纹] v5.3 新增 20cm 连板加速末段过滤：ACCEL20_FILTER={} 连板>={} 量比>={}（n=2 假设级，须加窗验证）".format(
+        ACCEL20_FILTER, ACCEL20_LIANBAN_MIN, ACCEL20_VR_MIN))
     _diag_api()
     log.info("[初始化] 行情/成交量/口径自检将延迟到首个交易日执行（PTrade 初始化阶段禁止取数）")
     log.info("=" * 60)
