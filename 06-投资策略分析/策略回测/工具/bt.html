@@ -506,7 +506,11 @@ function updateState(card, s){
 function resize(){
   try{
     if(window.parent && window.parent !== window){
-      window.parent.postMessage({type:'bt-resize', height: document.documentElement.scrollHeight}, '*');
+      /* 量 .app 真实底部：scrollHeight 永远 >= iframe 自身高度，会造成越报越高的空白循环 */
+      var app = document.querySelector('.app');
+      var h = app ? Math.ceil(app.getBoundingClientRect().bottom + (window.pageYOffset || 0)) + 24
+                  : document.documentElement.scrollHeight;
+      window.parent.postMessage({type:'bt-resize', height: h}, '*');
     }
   }catch(e){}
 }
