@@ -123,6 +123,18 @@ border-radius:10px;background:#f8fafc;font-size:13px;flex-wrap:wrap}
 .filechip .fmeta b{font-size:13.5px;color:#0f172a;word-break:break-all}
 .filechip .fmeta span{font-size:11.5px;color:var(--sub)}
 .fileops{margin-top:9px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+/* 文档查看弹窗 */
+.dv{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;z-index:9999;align-items:center;justify-content:center;padding:24px}
+.dv.on{display:flex}
+.dv-box{background:#fff;border:1px solid #e2e8f0;border-radius:14px;max-width:900px;width:100%;max-height:86vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(15,23,42,.28)}
+.dv-h{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #eef2f7;background:#f8fafc}
+.dv-h b{font-size:14px;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60vw}
+.dv-h .sp{flex:1}
+.dv-b{overflow:auto;background:#fff}
+.dv-b pre{margin:0;padding:16px 18px;color:#1e293b;font:12.5px/1.75 ui-monospace,Consolas,Menlo,monospace;white-space:pre-wrap;word-break:break-word}
+.dv-link{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px}
+.dv-link:hover{color:#ea580c}
+@media(max-width:640px){.dv{padding:10px}.dv-box{max-height:92vh}}
 
 
 
@@ -164,6 +176,15 @@ border:1px dashed var(--line);border-radius:14px;grid-column:1/-1}
   <div class="foot">
     策略回测记录工具 · 数据存于本机浏览器（localStorage），清理浏览器数据会丢失，请定期「导出全部 JSON」备份<br>
     回测结果仅为历史数据统计，不代表未来收益 · 本工具不构成任何投资建议
+  </div>
+</div>
+<div class="dv" id="dv">
+  <div class="dv-box">
+    <div class="dv-h"><b id="dvName">使用文档</b><span class="sp"></span>
+      <button class="btn mini" id="dvDl">下载</button>
+      <button class="btn mini" id="dvClose">关闭</button>
+    </div>
+    <div class="dv-b"><pre id="dvBody"></pre></div>
   </div>
 </div>
 <input type="file" id="filePick" hidden accept=".py,.txt,.md,.js,.json,.csv,.html,.htm,.ipynb,.sql,.yaml,.yml,.ini,.cfg,.log,.m,.r,.cpp,.cs,.java">
@@ -353,8 +374,10 @@ function blockDoc(s){
   var d = s.doc || {};
   var h = '<div class="block"><div class="block-t"><span class="n">2</span>策略说明与使用文档</div>';
   if(d.name){
-    h += '<div class="filechip filled"><span class="fi">&#128196;</span><div class="fmeta"><b>' + esc(d.name) + '</b>';
+    var dvAttr = d.content ? ' class="dv-link" data-act="viewdoc" title="点击查看文档内容"' : '';
+    h += '<div class="filechip filled"><span class="fi">&#128196;</span><div class="fmeta"><b' + dvAttr + '>' + esc(d.name) + '</b>';
     h += '<span>' + esc(fmtSize(d.size)) + (d.lines ? ' · ' + d.lines + ' 行' : '') + (d.content ? ' · 已在本机保存文档内容' : ' · 仅记录文件信息') + '</span></div>';
+    if(d.content) h += '<button class="btn mini" data-act="viewdoc">查看文档</button>';
     h += '<button class="btn mini" data-act="dldoc">下载文档</button>';
     h += '<button class="btn mini danger" data-act="rmdoc">移除</button></div>';
   } else {
@@ -565,6 +588,7 @@ secBox.addEventListener('click', function(e){
     return;
   }
   if(act === 'dldoc'){ downloadDoc(i); return; }
+  if(act === 'viewdoc'){ openDocView(i); return; }
   if(act === 'rmdoc'){
     if(!confirm('移除已上传的使用文档？（分区其他内容不受影响）')) return;
     s.doc = {name:'', size:0, lines:0, content:''};
@@ -677,6 +701,32 @@ function downloadDoc(i){
   }
   msg('该分区尚未上传使用文档','warn');
 }
+/* 文档查看弹窗 */
+var dvIdx = -1;
+function openDocView(i){
+  var s = secs[i], d = (s && s.doc) || {};
+  if(!d.content){ msg('该文档仅记录了文件信息，未保存内容，无法查看；请重新上传以保存内容','warn'); return; }
+  dvIdx = i;
+  var nm = document.getElementById('dvName');
+  nm.textContent = d.name || '使用文档';
+  nm.title = d.name || '';
+  document.getElementById('dvBody').textContent = d.content;
+  document.getElementById('dv').classList.add('on');
+}
+function closeDocView(){
+  var el = document.getElementById('dv');
+  if(el) el.classList.remove('on');
+  dvIdx = -1;
+}
+(function(){
+  var el = document.getElementById('dv');
+  if(!el) return;
+  el.addEventListener('click', function(e){ if(e.target === el) closeDocView(); });
+  var c = document.getElementById('dvClose'); if(c) c.addEventListener('click', closeDocView);
+  var dl = document.getElementById('dvDl');
+  if(dl) dl.addEventListener('click', function(){ if(dvIdx >= 0) downloadDoc(dvIdx); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && el.classList.contains('on')) closeDocView(); });
+})();
 
 /* 工具栏 */
 document.getElementById('q').addEventListener('input', function(){ filterKw = this.value; applyFilter(); });
