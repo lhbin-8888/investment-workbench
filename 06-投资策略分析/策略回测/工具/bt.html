@@ -195,6 +195,17 @@ border:1px dashed var(--line);border-radius:14px;grid-column:1/-1}
 var KEY = 'console-strategy-sections-v1';
 var DEFAULT_N = 9;
 var MSG_UTF8 = 'utf-8';
+/* 本地文件编码自动检测：BOM → UTF-8 严格解码 → GB18030（兼容 GBK/ANSI）兜底 */
+function decodeBuf(buf){
+  var u8 = new Uint8Array(buf || new ArrayBuffer(0));
+  if(u8.length >= 2 && u8[0] === 0xFF && u8[1] === 0xFE) return new TextDecoder('utf-16le').decode(u8.subarray(2));
+  if(u8.length >= 3 && u8[0] === 0xEF && u8[1] === 0xBB && u8[2] === 0xBF) return new TextDecoder('utf-8').decode(u8.subarray(3));
+  try{ return new TextDecoder('utf-8', {fatal:true}).decode(u8); }
+  catch(e){
+    try{ return new TextDecoder('gb18030').decode(u8); }
+    catch(e2){ return new TextDecoder('utf-8').decode(u8); }
+  }
+}
 
 var METRICS = [
   {k:'period',   l:'回测区间',   ph:'2020-01-01 ~ 2025-12-31', type:'text', wide:true},
@@ -621,7 +632,7 @@ document.getElementById('filePick').addEventListener('change', function(){
   var i = pickFor;
   var rd = new FileReader();
   rd.onload = function(){
-    var txt = String(rd.result || '');
+    var txt = decodeBuf(rd.result);
     var MAX = 200 * 1024, cut = false;
     if(txt.length > MAX){ txt = txt.slice(0, MAX); cut = true; }
     secs[i].code = {name:f.name, size:f.size, lines:txt.split(/\r?\n/).length,
@@ -631,7 +642,7 @@ document.getElementById('filePick').addEventListener('change', function(){
     renderAll();
   };
   rd.onerror = function(){ msg('读取文件失败，请重试或改用「从路径载入」','err'); };
-  rd.readAsText(f, MSG_UTF8);
+  rd.readAsArrayBuffer(f);
 });
 
 document.getElementById('docPick').addEventListener('change', function(){
@@ -640,7 +651,7 @@ document.getElementById('docPick').addEventListener('change', function(){
   var i = pickDocFor;
   var rd = new FileReader();
   rd.onload = function(){
-    var txt = String(rd.result || '');
+    var txt = decodeBuf(rd.result);
     var MAX = 200 * 1024, cut = false;
     if(txt.length > MAX){ txt = txt.slice(0, MAX); cut = true; }
     secs[i].doc = {name:f.name, size:f.size, lines:txt.split(/\r?\n/).length,
@@ -650,7 +661,7 @@ document.getElementById('docPick').addEventListener('change', function(){
     renderAll();
   };
   rd.onerror = function(){ msg('读取文档失败，请重试','err'); };
-  rd.readAsText(f, MSG_UTF8);
+  rd.readAsArrayBuffer(f);
 });
 
 function applyLoaded(i, url, text){
@@ -766,7 +777,7 @@ document.getElementById('fileImport').addEventListener('change', function(){
   var rd = new FileReader();
   rd.onload = function(){
     try{
-      var d = JSON.parse(String(rd.result || ''));
+      var d = JSON.parse(decodeBuf(rd.result));
       var arr = Array.isArray(d) ? d : (d && d.sections);
       if(!Array.isArray(arr) || !arr.length) throw new Error('文件内没有可用的分区数组');
       if(!confirm('导入将覆盖当前全部 ' + secs.length + ' 个分区（共 ' + arr.length + ' 个），确认继续？')) return;
@@ -775,7 +786,7 @@ document.getElementById('fileImport').addEventListener('change', function(){
       msg('已导入 ' + secs.length + ' 个分区','ok');
     }catch(e){ msg('导入失败：' + e.message,'err'); }
   };
-  rd.readAsText(f, MSG_UTF8);
+  rd.readAsArrayBuffer(f);
 });
 window.addEventListener('resize', function(){ resize(); });
 
