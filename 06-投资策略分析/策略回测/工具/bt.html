@@ -124,12 +124,7 @@ border-radius:10px;background:#f8fafc;font-size:13px;flex-wrap:wrap}
 .filechip .fmeta span{font-size:11.5px;color:var(--sub)}
 .fileops{margin-top:9px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
-/* 风险预览 */
-.risk-preview{margin-top:10px;padding:11px 13px;border-radius:10px;background:#f8fafc;
-border:1px solid var(--line);font-size:13px}
-.risk-preview ol{margin:0;padding-left:22px}
-.risk-preview li{margin:3px 0;color:#334155}
-.risk-preview .ph{color:#94a3b8;font-size:12.5px}
+
 
 /* 尾部 */
 .sec-foot{display:flex;gap:9px;flex-wrap:wrap;align-items:center;padding:13px 16px;
@@ -153,9 +148,9 @@ border:1px dashed var(--line);border-radius:14px;grid-column:1/-1}
 <div class="app">
   <div class="app-head">
     <h1>&#128202; 策略回测工作台 <span class="badge">九宫格 · 分区管理</span></h1>
-    <div class="tip">默认 <b>9 个分区以九宫格排布</b>（3 列，可手动增加分区）——<b>点宫格即可展开编辑</b>，编辑完点「收起」回到九宫格。每格展示一种策略：<b>策略名称</b>（手动填写）· <b>策略程序文件</b> · <b>策略说明与使用文档</b> · <b>策略回测情况</b> · <b>策略风险与注意事项</b>。内容自动保存在本机浏览器，可导出 / 导入 JSON 备份。</div>
+    <div class="tip">默认 <b>9 个分区以九宫格排布</b>（3 列，可手动增加分区）——<b>点宫格即可展开编辑</b>，编辑完点「收起」回到九宫格。每格展示一种策略：<b>策略名称</b>（手动填写）· <b>策略程序文件</b> · <b>策略说明与使用文档</b> · <b>策略回测情况</b>。内容自动保存在本机浏览器，可导出 / 导入 JSON 备份。</div>
     <div class="row">
-      <input type="text" id="q" placeholder="&#128269; 搜索策略名称 / 说明 / 风险关键词">
+      <input type="text" id="q" placeholder="&#128269; 搜索策略名称 / 说明 / 回测关键词">
       <button class="btn primary" id="btnAdd">＋ 增加分区</button>
       <button class="btn on-head" id="btnExpand">展开全部</button>
       <button class="btn on-head" id="btnCollapse">收起全部</button>
@@ -172,6 +167,7 @@ border:1px dashed var(--line);border-radius:14px;grid-column:1/-1}
   </div>
 </div>
 <input type="file" id="filePick" hidden accept=".py,.txt,.md,.js,.json,.csv,.html,.htm,.ipynb,.sql,.yaml,.yml,.ini,.cfg,.log,.m,.r,.cpp,.cs,.java">
+<input type="file" id="docPick" hidden accept=".md,.txt,.html,.htm,.csv,.json,.log,.py">
 <input type="file" id="fileImport" hidden accept=".json,application/json">
 <script>
 /* ================= 常量与工具 ================= */
@@ -203,11 +199,7 @@ function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace
 function fmtSize(n){ n = Number(n)||0; if(!n) return '大小未知'; if(n<1024) return n+' B'; if(n<1048576) return (n/1024).toFixed(1)+' KB'; return (n/1048576).toFixed(2)+' MB'; }
 function safeName(s){ return String(s||'未命名策略').replace(/[^0-9A-Za-z\u4e00-\u9fa5_.\-]+/g,'_'); }
 function setPath(o,p,v){ var a = p.split('.'), i; for(i=0;i<a.length-1;i++) o = o[a[i]]; o[a[a.length-1]] = v; }
-function riskList(t){
-  return String(t||'').split(/\r?\n/).map(function(x){
-    return x.trim().replace(/^[-*\u00b7\u2022\s]+/,'');
-  }).filter(function(x){ return x; });
-}
+
 function numOf(v){
   var s = String(v==null?'':v).replace(/[%\s,，]/g,'');
   if(s === '' || !/^-?\d+(\.\d+)?$/.test(s)) return null;
@@ -224,10 +216,10 @@ function blankSec(){
   return {
     id: uid(), name: '', collapsed: true,
     code: {name:'', size:0, lines:0, content:'', url:''},
-    doc: '', docUrl: '',
+    doc: {name:'', size:0, lines:0, content:''},
     bt: {period:'', total:'', annual:'', bench:'', excess:'', mdd:'',
          sharpe:'', calmar:'', win:'', pl:'', turnover:'', trades:'', note:''},
-    risks: '', updatedAt: ''
+    updatedAt: ''
   };
 }
 function defaultSecs(){
@@ -237,8 +229,8 @@ function defaultSecs(){
   a[0].name = 'PTrade 热点追踪策略';
   a[0].code = {name:'hotspot_trader_v3_hardened.py', size:0, lines:0, content:'',
                url:'06-投资策略分析/策略回测/热点追踪lhb888/hotspot_trader_v3_hardened.py'};
-  a[0].doc  = '策略逻辑、参数设置与风控规则详见《PTrade热点追踪策略_体检报告》（2026-09-12）。\n策略程序文件位于 06-投资策略分析/策略回测/热点追踪lhb888/；回测校验脚本（harness / 成本模型）位于 06-投资策略分析/ptrade_verify/。\n可在左侧工作台「策略回测」分区下随时补充说明与回测数据。';
-  a[0].docUrl = '06-投资策略分析/PTrade热点追踪策略_体检报告_20260912.html';
+  a[0].doc  = {name:'PTrade热点追踪策略_说明.txt', size:0, lines:3,
+               content:'策略逻辑、参数设置与风控规则详见《PTrade热点追踪策略_体检报告》（2026-09-12）。\n策略程序文件位于 06-投资策略分析/策略回测/热点追踪lhb888/；回测校验脚本（harness / 成本模型）位于 06-投资策略分析/ptrade_verify/。\n可在左侧工作台「策略回测」分区下随时补充说明与回测数据。'};
   a[0].updatedAt = nowStr();
   return a;
 }
@@ -248,9 +240,11 @@ function normSec(o){
   s.id = o.id || s.id;
   s.name = o.name || '';
   s.collapsed = o.collapsed !== false;
-  s.doc = o.doc || '';
-  s.docUrl = o.docUrl || '';
-  s.risks = o.risks || '';
+  if(o.doc && typeof o.doc === 'object'){
+    s.doc = {name:o.doc.name||'', size:Number(o.doc.size)||0, lines:Number(o.doc.lines)||0, content:o.doc.content||''};
+  } else if(o.doc){
+    s.doc = {name:'旧版说明文本.txt', size:String(o.doc).length, lines:String(o.doc).split(/\r?\n/).length, content:String(o.doc)};
+  }
   s.updatedAt = o.updatedAt || '';
   var c = o.code || {};
   s.code = {name:c.name||'', size:Number(c.size)||0, lines:Number(c.lines)||0,
@@ -309,7 +303,7 @@ function saveSoon(){
 function isFilled(s){
   if(s.name) return true;
   if(s.code && (s.code.name || s.code.content)) return true;
-  if(s.doc || s.docUrl || s.risks) return true;
+  if(s.doc && (s.doc.name || s.doc.content)) return true;
   var hit = false;
   METRICS.forEach(function(m){ if(String(s.bt[m.k]||'').trim() !== '') hit = true; });
   if(String(s.bt.note||'').trim() !== '') hit = true;
@@ -319,12 +313,11 @@ function chip(t){ return '<span class="chip">' + esc(t) + '</span>'; }
 function glanceHTML(s){
   var out = [];
   out.push(chip(s.code && s.code.name ? '程序：' + s.code.name : '程序：未关联'));
-  out.push(chip('说明：' + (s.doc ? s.doc.replace(/\s+/g,'').length + ' 字' : '未填') + (s.docUrl ? ' + 链接' : '')));
+  out.push(chip('说明：' + (s.doc && (s.doc.name || s.doc.content) ? (s.doc.name || (s.doc.content||'').replace(/\s+/g,'').length + ' 字') : '未上传')));
   var cnt = 0;
   METRICS.forEach(function(m){ if(m.k !== 'period' && String(s.bt[m.k]||'').trim() !== '') cnt++; });
   out.push(chip('回测指标：' + cnt + '/' + METRIC_N + (s.bt.period ? ' · ' + s.bt.period : '')));
-  var rl = riskList(s.risks).length;
-  out.push(chip('风险提示：' + (rl ? rl + ' 条' : '未填')));
+
   return out.join('');
 }
 function metricField(s, m){
@@ -337,11 +330,7 @@ function metricField(s, m){
   h += '</div>';
   return h;
 }
-function riskPrevHTML(t){
-  var list = riskList(t);
-  if(!list.length) return '<div class="ph">尚未填写。每行一条，保存后自动生成编号列表。</div>';
-  return '<ol>' + list.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ol>';
-}
+
 function blockCode(s){
   var c = s.code || {};
   var h = '<div class="block"><div class="block-t"><span class="n">1</span>策略程序文件</div>';
@@ -361,12 +350,19 @@ function blockCode(s){
   return h;
 }
 function blockDoc(s){
+  var d = s.doc || {};
   var h = '<div class="block"><div class="block-t"><span class="n">2</span>策略说明与使用文档</div>';
-  h += '<div class="field"><label>策略说明 / 使用文档正文</label>';
-  h += '<textarea data-path="doc" style="min-height:130px" placeholder="策略逻辑、选股与择时规则、参数含义、开平仓条件、使用方法与操作步骤、适用市场环境…">' + esc(s.doc) + '</textarea></div>';
-  h += '<div class="field" style="margin-top:10px"><label>关联文档链接（可选）</label>';
-  h += '<input type="text" data-path="docUrl" value="' + esc(s.docUrl) + '" placeholder="如 06-投资策略分析/策略回测/xxx.md 或 https:// 链接"></div>';
-  h += '</div>';
+  if(d.name){
+    h += '<div class="filechip filled"><span class="fi">&#128196;</span><div class="fmeta"><b>' + esc(d.name) + '</b>';
+    h += '<span>' + esc(fmtSize(d.size)) + (d.lines ? ' · ' + d.lines + ' 行' : '') + (d.content ? ' · 已在本机保存文档内容' : ' · 仅记录文件信息') + '</span></div>';
+    h += '<button class="btn mini" data-act="dldoc">下载文档</button>';
+    h += '<button class="btn mini danger" data-act="rmdoc">移除</button></div>';
+  } else {
+    h += '<div class="filechip"><span class="fi">＋</span><div class="fmeta"><b>尚未上传使用文档</b><span>从本机选择文档文件（md / txt / html 等，自动读取文件名 / 大小 / 行数并保存内容）</span></div></div>';
+  }
+  h += '<div class="fileops">';
+  h += '<button class="btn mini" data-act="pickdoc">选择本地文档</button>';
+  h += '</div></div>';
   return h;
 }
 function blockBt(s){
@@ -377,14 +373,7 @@ function blockBt(s){
   h += '</div>';
   return h;
 }
-function blockRisk(s){
-  var h = '<div class="block"><div class="block-t"><span class="n">4</span>策略风险与注意事项</div>';
-  h += '<div class="field"><label>每行一条，保存后自动生成编号列表</label>';
-  h += '<textarea data-path="risks" style="min-height:110px" placeholder="如：&#10;回测区间未覆盖极端行情，实盘回撤可能显著大于历史&#10;存在过拟合风险，参数敏感性高，需做样本外验证&#10;小市值标的流动性不足，冲击成本可能被低估">' + esc(s.risks) + '</textarea></div>';
-  h += '<div class="risk-preview">' + riskPrevHTML(s.risks) + '</div>';
-  h += '</div>';
-  return h;
-}
+
 function cardHTML(s, i){
   var no = pad2(i + 1);
   var filled = isFilled(s);
@@ -401,7 +390,7 @@ function cardHTML(s, i){
   h += '</div></div>';
   h += '<div class="sec-glance">' + glanceHTML(s) + '</div>';
   h += '<div class="sec-body">';
-  h += blockCode(s) + blockDoc(s) + blockBt(s) + blockRisk(s);
+  h += blockCode(s) + blockDoc(s) + blockBt(s);
   h += '<div class="sec-foot">';
   h += '<button class="btn primary" data-act="export">导出本策略报告</button>';
   h += '<button class="btn" data-act="save2list">导出并归档到文档列表</button>';
@@ -419,11 +408,11 @@ function renderAll(){
   resize();
 }
 function stats(){
-  var filled = 0, code = 0, riskAll = 0, bt = 0;
+  var filled = 0, code = 0, bt = 0;
   secs.forEach(function(s){
     if(isFilled(s)) filled++;
     if(s.code && (s.code.name || s.code.content)) code++;
-    riskAll += riskList(s.risks).length;
+
     var c = 0; METRICS.forEach(function(m){ if(m.k !== 'period' && String(s.bt[m.k]||'').trim() !== '') c++; });
     if(c) bt++;
   });
@@ -433,7 +422,7 @@ function stats(){
     chip2('已填写 ' + filled),
     chip2('已关联程序文件 ' + code),
     chip2('含回测数据 ' + bt),
-    chip2('风险条目 ' + riskAll),
+
     chip2('数据存本机浏览器')
   ].join('');
 }
@@ -467,7 +456,7 @@ function applyFilter(){
     var s = secs[i];
     var hit = true;
     if(k && s){
-      var hay = [s.name, s.doc, s.docUrl, s.risks, s.bt.note, (s.code||{}).name, (s.code||{}).url].join(' ').toLowerCase();
+      var hay = [s.name, (s.doc ? ((s.doc.name||'') + ' ' + (s.doc.content||'').slice(0, 500)) : ''), s.bt.note, (s.code||{}).name, (s.code||{}).url].join(' ').toLowerCase();
       METRICS.forEach(function(m){ hay += ' ' + String(s.bt[m.k]||'').toLowerCase(); });
       hit = hay.indexOf(k) !== -1;
     }
@@ -482,6 +471,7 @@ function applyFilter(){
 
 /* ================= 交互 ================= */
 var pickFor = -1;
+var pickDocFor = -1;
 var secBox = document.getElementById('sections');
 
 secBox.addEventListener('input', function(e){
@@ -498,10 +488,7 @@ secBox.addEventListener('input', function(e){
     if(n !== null && n !== 0) el.classList.add(n > 0 ? 'pos' : 'neg');
   }
   if(p === 'name') updateState(card, secs[i]);
-  if(p === 'risks'){
-    var pv = card.querySelector('.risk-preview');
-    if(pv) pv.innerHTML = riskPrevHTML(secs[i].risks);
-  }
+
   updateGlance(card, secs[i]);
   if(filterKw.trim()) applyFilter(); else stats();
   saveSoon();
@@ -571,8 +558,21 @@ secBox.addEventListener('click', function(e){
     s.updatedAt = nowStr(); save(true); renderAll();
     return;
   }
+  if(act === 'pickdoc'){
+    pickDocFor = i;
+    var dp = document.getElementById('docPick');
+    dp.value = ''; dp.click();
+    return;
+  }
+  if(act === 'dldoc'){ downloadDoc(i); return; }
+  if(act === 'rmdoc'){
+    if(!confirm('移除已上传的使用文档？（分区其他内容不受影响）')) return;
+    s.doc = {name:'', size:0, lines:0, content:''};
+    s.updatedAt = nowStr(); save(true); renderAll();
+    return;
+  }
   if(act === 'clear'){
-    if(!confirm('清空第 ' + (i+1) + ' 个分区的全部内容？\n（策略名称、程序文件、说明、回测数据、风险提示都会清空）')) return;
+    if(!confirm('清空第 ' + (i+1) + ' 个分区的全部内容？\n（策略名称、程序文件、使用文档、回测数据都会清空）')) return;
     secs[i] = blankSec();
     secs[i].collapsed = false;
     save(true); renderAll(); msg('已清空第 ' + (i+1) + ' 个分区','ok');
@@ -607,6 +607,25 @@ document.getElementById('filePick').addEventListener('change', function(){
     renderAll();
   };
   rd.onerror = function(){ msg('读取文件失败，请重试或改用「从路径载入」','err'); };
+  rd.readAsText(f, MSG_UTF8);
+});
+
+document.getElementById('docPick').addEventListener('change', function(){
+  var f = this.files && this.files[0];
+  if(!f || pickDocFor < 0) return;
+  var i = pickDocFor;
+  var rd = new FileReader();
+  rd.onload = function(){
+    var txt = String(rd.result || '');
+    var MAX = 200 * 1024, cut = false;
+    if(txt.length > MAX){ txt = txt.slice(0, MAX); cut = true; }
+    secs[i].doc = {name:f.name, size:f.size, lines:txt.split(/\r?\n/).length,
+                   content:txt};
+    secs[i].updatedAt = nowStr();
+    if(save(true)) msg('已上传使用文档：' + f.name + '（' + fmtSize(f.size) + '，' + secs[i].doc.lines + ' 行）' + (cut ? '　文档过长，仅保留前 200KB' : ''), 'ok');
+    renderAll();
+  };
+  rd.onerror = function(){ msg('读取文档失败，请重试','err'); };
   rd.readAsText(f, MSG_UTF8);
 });
 
@@ -648,6 +667,15 @@ function downloadCode(i){
     return;
   }
   msg('该分区尚未关联程序文件','warn');
+}
+function downloadDoc(i){
+  var s = secs[i], d = s.doc || {};
+  if(d.content){
+    download((s.name ? safeName(s.name) + '-' : '') + (d.name || 'doc.txt'), d.content, 'text/plain;charset=utf-8');
+    msg('使用文档已下载','ok');
+    return;
+  }
+  msg('该分区尚未上传使用文档','warn');
 }
 
 /* 工具栏 */
@@ -760,13 +788,14 @@ function buildReport(s){
   var nm = s.name || '未命名策略';
   var gen = nowStr();
   var c = s.code || {};
+  var d = s.doc || {};
   var rows = METRICS.map(function(m){
     var v = String(s.bt[m.k] == null ? '' : s.bt[m.k]).trim();
     var cls = 'v';
     if(v && m.type === 'num'){ var n = numOf(v); if(n !== null && n !== 0) cls += (n > 0 ? ' pos' : ' neg'); }
     return '<tr><th>' + esc(m.l) + '</th><td class="' + cls + '">' + (v ? esc(v) : '—') + '</td></tr>';
   }).join('');
-  var riskItems = riskList(s.risks).map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('');
+
   var codeBlock = '';
   if(c.content){
     var arr = c.content.split(/\r?\n/);
@@ -833,8 +862,11 @@ function buildReport(s){
   h += '</section>';
 
   h += '<section><h2><span class="n">2</span>策略说明与使用文档</h2>';
-  h += s.doc ? '<div class="txt">' + esc(s.doc) + '</div>' : '<p class="meth">未填写策略说明。</p>';
-  if(s.docUrl) h += '<p class="link" style="margin-top:10px">关联文档：' + esc(s.docUrl) + '</p>';
+  if(d.name || d.content){
+    h += '<div class="fileline"><span>&#128196;</span><div><b>' + esc(d.name || '使用文档') + '</b><div class="m">'
+       + esc(fmtSize(d.size)) + (d.lines ? ' · ' + d.lines + ' 行' : '') + '</div></div></div>';
+    if(d.content) h += '<div class="txt" style="margin-top:12px">' + esc(d.content) + '</div>';
+  } else { h += '<p class="meth">未上传使用文档。</p>'; }
   h += '</section>';
 
   h += '<section><h2><span class="n">3</span>策略回测情况</h2>';
@@ -842,9 +874,7 @@ function buildReport(s){
   if(String(s.bt.note||'').trim()) h += '<div class="txt" style="margin-top:12px">' + esc(s.bt.note) + '</div>';
   h += '</section>';
 
-  h += '<section><h2><span class="n">4</span>策略风险与注意事项</h2>';
-  h += riskItems ? '<ol>' + riskItems + '</ol>' : '<p class="meth">未填写风险提示。</p>';
-  h += '</section>';
+
 
   h += '</div>';
   h += '<footer>报告生成时间：' + esc(gen) + '　|　策略回测记录 · 投研工作台<br>';
