@@ -48,7 +48,7 @@ font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:no
 box-shadow:0 1px 3px rgba(15,23,42,.06);display:flex;flex-direction:column;
 transition:box-shadow .16s ease,border-color .16s ease,transform .16s ease}
 /* 收起态 = 九宫格中的一格 */
-.sec.collapsed{cursor:pointer;min-height:198px}
+.sec.collapsed{cursor:pointer;min-height:150px}
 .sec.collapsed:hover{border-color:rgba(237,125,49,.55);box-shadow:0 8px 20px rgba(15,23,42,.10);
 transform:translateY(-2px)}
 /* 展开态 = 横跨整行，进入编辑 */
@@ -61,14 +61,14 @@ background:linear-gradient(180deg,#fff,#f8fafc)}
 .sec.collapsed::before{content:'';display:block;height:3px;flex:0 0 3px;
 background:linear-gradient(90deg,var(--accent),var(--accent-d))}
 .sec.collapsed .sec-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;
-grid-template-areas:"no name state" "ops ops ops";gap:9px 8px;align-items:center;
-padding:12px 12px 10px;background:#fff}
+grid-template-areas:"no name state" "ops ops ops";gap:7px 8px;align-items:center;
+padding:10px 12px 8px;background:#fff}
 .sec.collapsed .sec-no{grid-area:no}
 .sec.collapsed .sec-name{grid-area:name;font-size:14.5px;padding:6px 8px;background:#f8fafc}
 .sec.collapsed .sec-name:hover{background:#eef2f7}
 .sec.collapsed .sec-state{grid-area:state}
 .sec.collapsed .sec-ops{grid-area:ops;justify-content:flex-end;
-border-top:1px dashed var(--line);padding-top:9px}
+border-top:1px dashed var(--line);padding-top:7px}
 .sec-no{width:38px;height:38px;flex:0 0 38px;border-radius:10px;background:var(--head);color:#fff;
 font-weight:800;font-size:13.5px;display:flex;align-items:center;justify-content:center;letter-spacing:.4px}
 .sec-name{flex:1;min-width:0;border:1px solid transparent;background:transparent;font-size:15.5px;
@@ -83,7 +83,7 @@ white-space:nowrap;border:1px solid var(--line);font-weight:600}
 .sec-ops{display:flex;gap:5px;flex:0 0 auto}
 .sec-glance{display:flex;gap:7px;flex-wrap:wrap;padding:0 14px 11px 62px}
 /* 收起态摘要：纵向清单 + 长文本截断 + 贴卡片底部（保证九宫格等高对齐） */
-.sec.collapsed .sec-glance{flex-direction:column;gap:6px;padding:0 12px 13px;margin-top:auto}
+.sec.collapsed .sec-glance{flex-direction:column;gap:4px;padding:0 12px 10px;margin-top:auto}
 .sec.collapsed .chip{max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;
 white-space:nowrap}
 .sec:not(.collapsed) .sec-glance{display:none}
@@ -402,12 +402,10 @@ function blockCode(s){
     h += '<button class="btn mini" data-act="dlcode">下载源码</button>';
     h += '<button class="btn mini danger" data-act="rmcode">移除</button></div>';
   } else {
-    h += '<div class="filechip"><span class="fi">＋</span><div class="fmeta"><b>尚未关联程序文件</b><span>从本机选择文件（自动读取文件名 / 大小 / 行数），或填写仓库路径后「从路径载入」</span></div></div>';
+    h += '<div class="filechip"><span class="fi">＋</span><div class="fmeta"><b>尚未关联程序文件</b><span>从本机选择文件（自动读取文件名 / 大小 / 行数并保存源码）</span></div></div>';
   }
   h += '<div class="fileops">';
   h += '<button class="btn mini" data-act="pickfile">选择本地文件</button>';
-  h += '<input type="text" data-path="code.url" value="' + esc(c.url) + '" placeholder="程序文件路径 / 在线链接，如 06-投资策略分析/策略回测/热点追踪lhb888/xxx.py">';
-  h += '<button class="btn mini" data-act="loadurl">从路径载入</button>';
   h += '</div></div>';
   return h;
 }
@@ -616,7 +614,6 @@ secBox.addEventListener('click', function(e){
     fp.value = ''; fp.click();
     return;
   }
-  if(act === 'loadurl'){ loadFromUrl(i); return; }
   if(act === 'dlcode'){ downloadCode(i); return; }
   if(act === 'rmcode'){
     if(!confirm('移除已关联的程序文件？（分区其他内容不受影响）')) return;
@@ -674,7 +671,7 @@ document.getElementById('filePick').addEventListener('change', function(){
     if(save(true)) msg('已关联程序文件：' + f.name + '（' + fmtSize(f.size) + '，' + secs[i].code.lines + ' 行）' + (cut ? '　源码过长，仅保留前 200KB' : ''), 'ok');
     renderAll();
   };
-  rd.onerror = function(){ msg('读取文件失败，请重试或改用「从路径载入」','err'); };
+  rd.onerror = function(){ msg('读取文件失败，请重试','err'); };
   rd.readAsArrayBuffer(f);
 });
 
@@ -719,28 +716,6 @@ document.getElementById('docPick').addEventListener('change', function(){
   rd.readAsArrayBuffer(f);
 });
 
-function applyLoaded(i, url, text){
-  var MAX = 200 * 1024, cut = false;
-  if(text.length > MAX){ text = text.slice(0, MAX); cut = true; }
-  var base = url.split('/').pop().split('?')[0] || 'strategy.txt';
-  secs[i].code = {name: base, size: text.length, lines: text.split(/\r?\n/).length,
-                  content: text, url: url};
-  secs[i].updatedAt = nowStr();
-  save(true); renderAll();
-  msg('已从路径载入：' + base + '（' + secs[i].code.lines + ' 行）' + (cut ? '　源码过长，仅保留前 200KB' : ''), 'ok');
-}
-function loadFromUrl(i){
-  var u = ((secs[i].code && secs[i].code.url) || '').trim();
-  if(!u){ msg('请先填写程序文件路径或在线链接','warn'); return; }
-  msg('正在读取 ' + u + ' ...');
-  fetch(u, {cache:'no-store'})
-    .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
-    .then(function(t){ applyLoaded(i, u, t); })
-    .catch(function(err){
-      if(/^https?:\/\//i.test(u)) msg('读取失败：' + err.message + '（跨域限制时请改用「选择本地文件」）','err');
-      else msg('未能读取「' + u + '」：' + err.message + '。本地 file:// 打开或路径不存在时无法读取，请改用「选择本地文件」；线上版（https）可正常读取仓库内文件。','warn');
-    });
-}
 function downloadCode(i){
   var s = secs[i], c = s.code || {};
   if(c.content){
