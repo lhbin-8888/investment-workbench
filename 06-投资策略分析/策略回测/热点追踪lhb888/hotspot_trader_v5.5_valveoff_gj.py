@@ -52,6 +52,34 @@ v4.1 相对 v4.0：修日志（初始化行版本号、时间止损打印实际�
               在 _assess 中剔除「10:30 时点价 < 分时均价」的个股；并对取数量纲异常做降级保护
               （vwap 与现价偏离超 3 倍则不过滤，防单位错配误杀整池）。其余（指数闸/分层出场/分板硬止损/
               内嵌行业映射/无大市档位压仓）完全保留 v5 原版，未改动。新文件独立存在，v5 母版零改动。
+
+  v5.4 相对 v5.1（本版，仅动「资金怎么分」、不动「选哪些票」）：单票上限动态化。
+              依据：v5.1 回测（2026-08-03~09-23）累计预算 100.3 万、实际投入仅 74.2 万，整体闲置率 26.0%；
+              根因是固定单票上限 30%（n 只候选最多投 n×30%）：n>=3 投满预算，n=2 闲置约 30%，
+              n=1 闲置 53~67%。而低候选日买到的票恰是正期望组合（301282/300120/001337/300798/
+              600961 事后均为 +17~31% 级赢家）——「选股对了、钱没投够」。本版在候选少时把闲置预算
+              按候选均分额补足（上限不超过 SINGLE_CAP_HARD=50%），n>=3 的分配结构完全不变。
+              回退：DYNAMIC_SINGLE_CAP=False 即等价 v5.1。
+
+  v5.5 相对 v5.4（本版，仅动「执行层落手」，分配权重公式与选股序列一律不动）：整手取整零头回填。
+              依据：v5.4 双窗验证后剩余资金闲置 95,891 元已精确归因，其中一整块不是「上限不够」，
+              而是「钱分到了、却买不成整手」——
+                · 8-14 002353 @149.18：分到 10,952 元，一手需 14,918 元 → 整笔跳过，额度空转；
+                · 06-16 300620 @365.21 / 688603 @196.95：预算 6.58 万，两票一手成本合计 7.59 万，
+                  分配额均不足一手 → 双票全额空转（当日 0 投入）。
+              根因：分配额是「金额」，下单必须「整手」（主板 100 股 / 科创 200 股），
+              金额被向下取整到整手，余数（以及不足一手的整笔）直接蒸发。金额越小、股价越高，损耗越大。
+              做法（LOT_REFILL=True 时生效，三级处理，全部受本轮预算 budget 约束）：
+                ① 宽容档：分配额已过千但不足一手成本×LOT_MIN_FILL 的候选，允许补足到 1 手
+                   （治 8-14 / 06-16 这类「差一点买得起一手」的整笔空转；强度高的先补、缺口小的次之）；
+                ② 一手豁免：为买下这 1 手，允许单票市值略超 cap（原 30%/动态上限），
+                   但绝不超过硬顶 SINGLE_CAP_HARD（治 06-16 一手成本 36,521 > cap 36,300 的 221 元卡壳）；
+                ③ 回填档：把「已成交票的取整零头」按强度顺序迭代回填给还能再吃一手的票。
+                   刻意只回收零头、不回收「被跳过票的整笔分配额」—— 后者会把单票无端放大到 cap，
+                   混淆「整手回填」与「额度再分配」两个变量，破坏归因（首版实现踩过，已收紧）。
+              隔离性：本改动只在「有票买不成整手」时生效。n>=3 且预算投满的日子，各票本来就顶在 cap 上、
+              也无整笔落空 → 宽容无票可补、回填无票可吃，行为与 v5.4 完全一致（只多一条落手日志）。
+              回退：LOT_REFILL=False 即完全等价 v5.4（一行开关，无其他删改）。
   --------------------------------------------------
   依据：真实回测账本（2026-05-06~06-30）22 只已平仓票单票 +8.64%、胜率 68.2%，
         但 MFE(10 日内盘中最大浮盈) 均值 +21.41% -> 实现 +8.64%，捕捉率仅 40%，
@@ -184,6 +212,21 @@ BREAKEVEN_GUARD = 0.03        # 动态保本激活阈值（v3.2）：浮盈达 +
 STRENGTH_WEIGHT = True        # True=按强度分档分配；False=等权（原逻辑）
 STRENGTH_EXP = 1.6            # 强度权重指数（越大越集中于最强票）
 MAX_SINGLE_RATIO = 0.30       # 单票上限（占总资产比例），防过度集中
+# ---- v5.4 新增：候选不足时的单票上限动态放宽（治「候选少 → 资金大量闲置」）----
+# 依据：v5.1 回测（2026-08-03~09-23）累计预算 100.3 万、实际投入仅 74.2 万，整体闲置率 26.0%。
+#   根因是「固定单票上限 30%」：当日候选 n 只时最多只能投 n×30%。n>=3 投满预算（无闲置），
+#   n=2 闲置约 30%，n=1 闲置高达 53~67%。而这些低候选日买到的票恰是正期望组合
+#   （301282/300120/001337/300798/600961 事后均为 +17~31% 级赢家）——「选股对了、钱没投够」。
+#   本开关把这些闲置预算按候选均分额补足，仅在候选少（均分额超过原上限）时生效。
+DYNAMIC_SINGLE_CAP = True     # True=候选少时按均分额放宽单票上限；False=一键回退 v5.1
+SINGLE_CAP_HARD = 0.50        # 动态放宽后的单票硬顶（占总资产比例），防单票过度集中
+# ---- v5.5 新增：整手取整零头回填（治「钱分到了、买不成整手」导致的额度空转）----
+# 依据：v5.4 剩余闲置 95,891 元中，8-14（分 10,952 元 / 一手需 14,918 元）与 06-16
+#   （预算 6.58 万，两票一手成本合计 7.59 万）都是「买不成整手」而非「上限不够」。
+#   金额分配被向下取整到整手后，余数与不足一手的整笔额度直接蒸发 —— 股价越高损耗越大。
+LOT_REFILL = True             # True=开启整手取整零头回填（宽容补手 + 一手豁免 + 迭代回填）；False=一键回退 v5.4
+LOT_MIN_FILL = 0.70           # 宽容档阈值：分配额 >= 一手成本×该比例才允许补足到 1 手（设 1.01 = 关闭宽容档，只留回填）
+LOT_CAP_TOL = True            # 一手豁免：为买下 1 手允许单票市值略超 cap，但不超过硬顶 SINGLE_CAP_HARD
 # 2) 10:30 分时回踩过滤：只做「回踩不破开盘价」（cur >= 当日开盘价才买，动量未转弱）
 BUY_PULLBACK_FILTER = True    # True=开启分时回踩过滤
 PULLBACK_OPEN_BREAK = True    # True=要求 cur>=open（回踩不破开盘价）；False=关闭该条件
@@ -6951,6 +6994,13 @@ def _alloc_by_strength(picks, budget, total):
     exp = STRENGTH_EXP
     weights = [s ** exp for s in scores]
     cap = total * MAX_SINGLE_RATIO
+    # v5.4：候选不足导致「均分额 > 原单票上限」时，把上限抬到均分额（用满预算），但不超过硬顶。
+    #   候选充足（n>=3，均分额<=原上限）或预算本就偏小时，_avg_share 不超 MAX_SINGLE_RATIO，
+    #   cap 保持原值 —— 即 n>=3 的分配结构完全不变（隔离变量）。
+    if DYNAMIC_SINGLE_CAP and total > 0:
+        _avg_share = (budget / total) / float(len(picks))
+        if _avg_share > MAX_SINGLE_RATIO:
+            cap = total * min(SINGLE_CAP_HARD, _avg_share)
     n = len(picks)
     allocs = [0.0] * n
     remaining = budget
@@ -6976,6 +7026,100 @@ def _alloc_by_strength(picks, budget, total):
     return allocs
 
 
+def _plan_lots(picks, allocs, budget, total):
+    """v5.5：把「金额分配额」落成「整手股数」，并回收整手取整产生的闲置额度（纯函数，便于回归）。
+
+    返回与 picks 等长的股数列表（0 = 该票跳过、空出仓位）。
+
+    背景：分配额按金额给，但下单必须整手（主板 100 股 / 科创板 200 股）。
+      · 「分到了但买不起一手」→ 整笔跳过（06-16：预算 6.58 万，300620 需 3.65 万、688603 需 3.94 万，双双落空）；
+      · 「买完整手剩零头」→ 零头闲置（8-14：002353 分 10,952 元、一手需 14,918 元）。
+    三级处理（LOT_REFILL=False 时直接返回第一轮结果 = v5.4 行为）：
+      ① 宽容档   分配额已过千、但不足一手成本×LOT_MIN_FILL 的候选，允许补足到 1 手（强度高的先补）；
+      ② 一手豁免 为买下 1 手，允许单票市值略超 cap，但绝不突破硬顶 SINGLE_CAP_HARD；
+      ③ 回填档   把「已成交票的取整零头」按强度顺序迭代回填给还能再吃一手的票，
+                 刻意不回收「被跳过票的整笔分配额」（那属于额度再分配，会把单票无端放大到 cap）。
+    全程受本轮预算 budget 约束（不得超投），亦不动 _alloc_by_strength 的权重公式与选股序列。
+    """
+    n = len(picks)
+    if n == 0:
+        return []
+    price = [0.0] * n
+    lot = [0] * n
+    for i, a in enumerate(picks):
+        p = a.get("price")
+        price[i] = float(p) if p and p > 0 else 0.0
+        lot[i] = 200 if _is_kcb(a["code"]) else 100
+
+    # 单票市值上限（与 _alloc_by_strength 完全同口径，保证隔离）
+    cap = total * MAX_SINGLE_RATIO
+    if DYNAMIC_SINGLE_CAP and total > 0 and budget > 0:
+        _avg = (budget / total) / float(n)
+        if _avg > MAX_SINGLE_RATIO:
+            cap = total * min(SINGLE_CAP_HARD, _avg)
+
+    # ---- 第一轮：按分配额向下取整到整手（= v5.4 行为）----
+    shares = [0] * n
+    value = [0.0] * n
+    for i in range(n):
+        if price[i] <= 0 or allocs[i] < 1000:
+            continue
+        shares[i] = int(allocs[i] // (price[i] * lot[i])) * lot[i]
+        value[i] = shares[i] * price[i]
+    if not LOT_REFILL:
+        return shares
+
+    left = budget - sum(value)
+
+    # ---- ② 宽容档：分配额过千但不足一手 → 补足到 1 手 ----
+    # 排序：强度高的先补（与分配权重同取向）；同强度时缺口小的先补（更省额度、能多救一只）。
+    # 用 left（= budget - 已占）做约束：即允许动用「本批被跳过票留下的头寸」，
+    # 但每只只补到「恰好 1 手」，绝不满仓化，避免单票被无端放大。
+    if LOT_MIN_FILL <= 1.0:
+        pend = [i for i in range(n) if price[i] > 0 and allocs[i] >= 1000 and shares[i] == 0]
+        pend.sort(key=lambda i: (-float(picks[i].get("score", 0.0)),
+                                 price[i] * lot[i] - allocs[i]))
+        for i in pend:
+            need = price[i] * lot[i]
+            if allocs[i] < need * LOT_MIN_FILL:
+                continue
+            extra = need - value[i]
+            if extra > left + 1e-6:
+                continue
+            if value[i] + extra > cap + 1e-6:
+                if not LOT_CAP_TOL or value[i] + extra > total * SINGLE_CAP_HARD + 1e-6:
+                    continue
+            shares[i] = lot[i]
+            value[i] = need
+            left -= extra
+
+    # ---- ③ 回填档：把「已成交票的取整零头」按强度顺序回填给还能再吃一手的票 ----
+    # 只回收「取整零头」（Σ max(0, 分配额 - 已占)），刻意不回收「被跳过票的整笔分配额」——
+    # 后者会把单票无端放大到 cap，混淆「整手回填」与「额度再分配」两个变量，破坏归因。
+    left_round = 0.0
+    for i in range(n):
+        if shares[i] > 0:
+            left_round += max(0.0, allocs[i] - value[i])
+    order = list(range(n))
+    if STRENGTH_WEIGHT:
+        order.sort(key=lambda i: -float(picks[i].get("score", 0.0)))
+    for _ in range(50):
+        moved = False
+        for i in order:
+            step = price[i] * lot[i]
+            if shares[i] <= 0 or step > left_round + 1e-6:
+                continue
+            if value[i] + step > cap + 1e-6:
+                continue
+            shares[i] += lot[i]
+            value[i] += step
+            left_round -= step
+            moved = True
+        if not moved:
+            break
+    return shares
+
+
 def execute_buy(context, picks):
     total = _total_asset(context)
     cash = _cash(context)
@@ -6988,12 +7132,27 @@ def execute_buy(context, picks):
         return
     allocs = _alloc_by_strength(picks, budget, total)
     if STRENGTH_WEIGHT:
-        log.info("[买入] 总资产{:.0f} 可用现金{:.0f} 本轮预算{:.0f}（强度分档：{} 只）".format(
-            total, cash, budget, len(picks)))
+        _cap_log = MAX_SINGLE_RATIO
+        if DYNAMIC_SINGLE_CAP and total > 0:
+            _avg_log = (budget / total) / float(max(1, len(picks)))
+            if _avg_log > MAX_SINGLE_RATIO:
+                _cap_log = min(SINGLE_CAP_HARD, _avg_log)
+        log.info("[买入] 总资产{:.0f} 可用现金{:.0f} 本轮预算{:.0f}（强度分档：{} 只，单票上限{:.0%}）".format(
+            total, cash, budget, len(picks), _cap_log))
     else:
         per = min(total * POSITION_VALUE_RATIO, budget / max(1, len(picks)))
         log.info("[买入] 总资产{:.0f} 可用现金{:.0f} 本轮预算{:.0f} 单票{:.0f}".format(
             total, cash, budget, per))
+    # v5.5：把金额分配额落成整手股数（含宽容补手 / 一手豁免 / 零头回填）
+    plan = _plan_lots(picks, allocs, budget, total)
+    if LOT_REFILL:
+        _spent = 0.0
+        for _i, _a in enumerate(picks):
+            _p = _a.get("price")
+            if _p and _p > 0:
+                _spent += plan[_i] * _p
+        log.info("[买入] 整手落手：预算{:.0f} 占用{:.0f} 整手闲置{:.0f}（LOT_REFILL={} 宽容阈值{:.0%} 一手豁免={}）".format(
+            budget, _spent, budget - _spent, LOT_REFILL, LOT_MIN_FILL, LOT_CAP_TOL))
     entry = getattr(context, "entry_date", None)
     if entry is None:
         entry = {}
@@ -7008,7 +7167,7 @@ def execute_buy(context, picks):
         context.breakeven = breakeven
     live_held = getattr(context, "live_held", set())
     context.live_held = live_held
-    for a, per in zip(picks, allocs):
+    for a, per, max_shares in zip(picks, allocs, plan):
         code = a["code"]
         if per < 1000:
             log.error("[买入] {} 分配金额过小({:.0f})，跳过".format(code, per))
@@ -7019,7 +7178,6 @@ def execute_buy(context, picks):
             log.error("[买入] {} 无可用现价，跳过".format(code))
             continue
         lot = 200 if _is_kcb(code) else 100
-        max_shares = int(per // (price * lot)) * lot
         if max_shares < lot:
             log.info("[买入] {} 分配{:.0f}元 @现价{:.2f} 不足最小{}股，跳过（空出仓位）".format(
                 code, per, price, lot))
@@ -7081,6 +7239,10 @@ def initialize(context):
         SECTOR_VALVE_ON, TIERED_EXIT, STRONG_TIER_ON, TRADE_ENABLED))
     log.info("[指纹] v5.1 新增 10:30 分时均线(VWAP)下方剔除：VWAP_1030_FILTER={} BARS={}（移植自 v1.6 系列，独立于原回踩/日内回撤过滤）".format(
         VWAP_1030_FILTER, VWAP_1030_BARS))
+    log.info("[指纹] v5.4 新增 候选不足时单票上限动态放宽：DYNAMIC_SINGLE_CAP={} SINGLE_CAP_HARD={:.0%}（治「候选少→资金闲置」，n>=3 分配结构不变）".format(
+        DYNAMIC_SINGLE_CAP, SINGLE_CAP_HARD))
+    log.info("[指纹] v5.5 新增 整手取整零头回填：LOT_REFILL={} LOT_MIN_FILL={:.0%} LOT_CAP_TOL={}（治「钱分到了、买不成整手」的额度空转）".format(
+        LOT_REFILL, LOT_MIN_FILL, LOT_CAP_TOL))
     _diag_api()
     log.info("[初始化] 行情/成交量/口径自检将延迟到首个交易日执行（PTrade 初始化阶段禁止取数）")
     log.info("=" * 60)

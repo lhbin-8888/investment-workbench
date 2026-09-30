@@ -52,14 +52,14 @@ v4.1 相对 v4.0：修日志（初始化行版本号、时间止损打印实际�
               在 _assess 中剔除「10:30 时点价 < 分时均价」的个股；并对取数量纲异常做降级保护
               （vwap 与现价偏离超 3 倍则不过滤，防单位错配误杀整池）。其余（指数闸/分层出场/分板硬止损/
               内嵌行业映射/无大市档位压仓）完全保留 v5 原版，未改动。新文件独立存在，v5 母版零改动。
-  v5.2 相对 v5.1（独立分支）：strong 档止盈封顶放宽到 +50% —— 已被 092801 A/B 证弃用（跑输约 2.5~3pp），仅存档。
-  v5.3 相对 v5.1（本版分支，基于 v5.1）：仅动一个变量 —— 新增「20cm 连板加速末段防接盘」入场过滤
-              ACCEL20_FILTER：创业板/科创板 且 连板>=1 且 量比>=2.6 的候选剔除。
-              依据：08-03~09-23 全部 15 笔逐特征检验（强度/涨幅/量比/连板/市场宽度均无法单独区分输赢），
-              唯一不伤赢家的组合特征：300363(连板1 量比2.68 -> -0.7%) 与 301080(连板2 量比3.36 -> -3.2%)
-              两笔 weak 碎亏被剔除；6 笔大赢家全部不受影响（唯一连板赢家 600961 为主板低量比 1.73）。
-              ⚠️ 样本仅 n=2，假设级改动：逻辑=20cm 连板股再大幅放量=加速末段接力风险高；
-              上线前须加跑 05-06~06-30 窗口验证不误杀。回退：ACCEL20_FILTER=False。
+
+  v5.4 相对 v5.1（本版，仅动「资金怎么分」、不动「选哪些票」）：单票上限动态化。
+              依据：v5.1 回测（2026-08-03~09-23）累计预算 100.3 万、实际投入仅 74.2 万，整体闲置率 26.0%；
+              根因是固定单票上限 30%（n 只候选最多投 n×30%）：n>=3 投满预算，n=2 闲置约 30%，
+              n=1 闲置 53~67%。而低候选日买到的票恰是正期望组合（301282/300120/001337/300798/
+              600961 事后均为 +17~31% 级赢家）——「选股对了、钱没投够」。本版在候选少时把闲置预算
+              按候选均分额补足（上限不超过 SINGLE_CAP_HARD=50%），n>=3 的分配结构完全不变。
+              回退：DYNAMIC_SINGLE_CAP=False 即等价 v5.1。
   --------------------------------------------------
   依据：真实回测账本（2026-05-06~06-30）22 只已平仓票单票 +8.64%、胜率 68.2%，
         但 MFE(10 日内盘中最大浮盈) 均值 +21.41% -> 实现 +8.64%，捕捉率仅 40%，
@@ -112,11 +112,6 @@ MA20_ENTRY_BUFFER = 0.02       # 入场 MA20 缓冲：须站上 MA20 至少 2% �
 REQUIRE_ABOVE_MA60 = True     # 必须站上 60 日线（中期趋势确认，过滤弱势反弹/一日游）
 MA_SHAPE_MIN = 2              # 均线多头形态门槛：shape>=2 即站上 MA10+MA20（设 3=全多头更严）
 INTRADAY_PULLBACK_MAX = 0.04  # 日内回撤上限：当前价距日内最高回撤 >4% 视为冲高回落，剔除（避免追尖顶）
-# 4) v5.3 新增：20cm 连板加速末段防接盘（创业板/科创板 连板>=1 且 量比>=2.6 剔除）
-#    依据 08-03~09-23 逐笔检验：恰好剔掉 300363/301080 两笔 weak 碎亏、6 笔大赢家零误伤（n=2，假设级，须加窗验证）
-ACCEL20_FILTER = True         # True=开启 20cm 加速末段过滤；False=回退 v5.1 行为
-ACCEL20_LIANBAN_MIN = 1       # 连板数下限（>=1 视为连板股）
-ACCEL20_VR_MIN = 2.6          # 量比下限（>=2.6 视为大幅放量；300798 赢家 2.56 恰在其下，请勿随意下调）
 
 # ---- 板块共振（提胜率：个股须属当日强势行业才入选；v3.1 新增，针对回测 17.86% 低胜率）----
 SECTOR_CONFIRM = True          # True=开启板块共振（个股所属申万一级行业当日须为强势板块才入选；平台无 get_industry 自动降级关闭）
@@ -197,6 +192,14 @@ BREAKEVEN_GUARD = 0.03        # 动态保本激活阈值（v3.2）：浮盈达 +
 STRENGTH_WEIGHT = True        # True=按强度分档分配；False=等权（原逻辑）
 STRENGTH_EXP = 1.6            # 强度权重指数（越大越集中于最强票）
 MAX_SINGLE_RATIO = 0.30       # 单票上限（占总资产比例），防过度集中
+# ---- v5.4 新增：候选不足时的单票上限动态放宽（治「候选少 → 资金大量闲置」）----
+# 依据：v5.1 回测（2026-08-03~09-23）累计预算 100.3 万、实际投入仅 74.2 万，整体闲置率 26.0%。
+#   根因是「固定单票上限 30%」：当日候选 n 只时最多只能投 n×30%。n>=3 投满预算（无闲置），
+#   n=2 闲置约 30%，n=1 闲置高达 53~67%。而这些低候选日买到的票恰是正期望组合
+#   （301282/300120/001337/300798/600961 事后均为 +17~31% 级赢家）——「选股对了、钱没投够」。
+#   本开关把这些闲置预算按候选均分额补足，仅在候选少（均分额超过原上限）时生效。
+DYNAMIC_SINGLE_CAP = True     # True=候选少时按均分额放宽单票上限；False=一键回退 v5.1
+SINGLE_CAP_HARD = 0.50        # 动态放宽后的单票硬顶（占总资产比例），防单票过度集中
 # 2) 10:30 分时回踩过滤：只做「回踩不破开盘价」（cur >= 当日开盘价才买，动量未转弱）
 BUY_PULLBACK_FILTER = True    # True=开启分时回踩过滤
 PULLBACK_OPEN_BREAK = True    # True=要求 cur>=open（回踩不破开盘价）；False=关闭该条件
@@ -6447,16 +6450,6 @@ def _assess(code, v, snap, intraday=None):
             log.info("[板块] {} 跳过（行业『{}』非强势板块，不共振）".format(code, ind))
             return None
 
-    # ---- 入场收紧④（v5.3）：20cm 连板加速末段防接盘 ----
-    # 创业板/科创板 连板股当日再大幅放量（量比>=ACCEL20_VR_MIN）= 情绪加速末段，接力风险高；
-    # 主板连板（如 600961 量比1.73）不受影响。依据与样本量警告见文件头 v5.3 说明。
-    if ACCEL20_FILTER:
-        _bk = _board_key(code)
-        if _bk in ("cyb", "kcb") and lb >= ACCEL20_LIANBAN_MIN and vol_ratio >= ACCEL20_VR_MIN:
-            log.info("[加速] {} 跳过（20cm 连板{} 量比{}：加速末段，接力风险高）".format(
-                code, lb, vol_ratio))
-            return None
-
     score = pct + lb * 6.0 + min(vol_ratio, 3.0) * 8.0 + shape * 1.5
     return {"code": code, "name": name, "pct": round(pct, 2), "lianban": lb,
             "vol_ratio": round(vol_ratio, 2), "above20": above20,
@@ -6974,6 +6967,13 @@ def _alloc_by_strength(picks, budget, total):
     exp = STRENGTH_EXP
     weights = [s ** exp for s in scores]
     cap = total * MAX_SINGLE_RATIO
+    # v5.4：候选不足导致「均分额 > 原单票上限」时，把上限抬到均分额（用满预算），但不超过硬顶。
+    #   候选充足（n>=3，均分额<=原上限）或预算本就偏小时，_avg_share 不超 MAX_SINGLE_RATIO，
+    #   cap 保持原值 —— 即 n>=3 的分配结构完全不变（隔离变量）。
+    if DYNAMIC_SINGLE_CAP and total > 0:
+        _avg_share = (budget / total) / float(len(picks))
+        if _avg_share > MAX_SINGLE_RATIO:
+            cap = total * min(SINGLE_CAP_HARD, _avg_share)
     n = len(picks)
     allocs = [0.0] * n
     remaining = budget
@@ -7011,8 +7011,13 @@ def execute_buy(context, picks):
         return
     allocs = _alloc_by_strength(picks, budget, total)
     if STRENGTH_WEIGHT:
-        log.info("[买入] 总资产{:.0f} 可用现金{:.0f} 本轮预算{:.0f}（强度分档：{} 只）".format(
-            total, cash, budget, len(picks)))
+        _cap_log = MAX_SINGLE_RATIO
+        if DYNAMIC_SINGLE_CAP and total > 0:
+            _avg_log = (budget / total) / float(max(1, len(picks)))
+            if _avg_log > MAX_SINGLE_RATIO:
+                _cap_log = min(SINGLE_CAP_HARD, _avg_log)
+        log.info("[买入] 总资产{:.0f} 可用现金{:.0f} 本轮预算{:.0f}（强度分档：{} 只，单票上限{:.0%}）".format(
+            total, cash, budget, len(picks), _cap_log))
     else:
         per = min(total * POSITION_VALUE_RATIO, budget / max(1, len(picks)))
         log.info("[买入] 总资产{:.0f} 可用现金{:.0f} 本轮预算{:.0f} 单票{:.0f}".format(
@@ -7104,8 +7109,8 @@ def initialize(context):
         SECTOR_VALVE_ON, TIERED_EXIT, STRONG_TIER_ON, TRADE_ENABLED))
     log.info("[指纹] v5.1 新增 10:30 分时均线(VWAP)下方剔除：VWAP_1030_FILTER={} BARS={}（移植自 v1.6 系列，独立于原回踩/日内回撤过滤）".format(
         VWAP_1030_FILTER, VWAP_1030_BARS))
-    log.info("[指纹] v5.3 新增 20cm 连板加速末段过滤：ACCEL20_FILTER={} 连板>={} 量比>={}（n=2 假设级，须加窗验证）".format(
-        ACCEL20_FILTER, ACCEL20_LIANBAN_MIN, ACCEL20_VR_MIN))
+    log.info("[指纹] v5.4 新增 候选不足时单票上限动态放宽：DYNAMIC_SINGLE_CAP={} SINGLE_CAP_HARD={:.0%}（治「候选少→资金闲置」，n>=3 分配结构不变）".format(
+        DYNAMIC_SINGLE_CAP, SINGLE_CAP_HARD))
     _diag_api()
     log.info("[初始化] 行情/成交量/口径自检将延迟到首个交易日执行（PTrade 初始化阶段禁止取数）")
     log.info("=" * 60)
