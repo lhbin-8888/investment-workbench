@@ -288,6 +288,9 @@ function normSec(o){
   s.collapsed = o.collapsed !== false;
   if(o.doc && typeof o.doc === 'object'){
     s.doc = {name:o.doc.name||'', size:Number(o.doc.size)||0, lines:Number(o.doc.lines)||0, content:o.doc.content||'', kind:o.doc.kind||'', data:o.doc.data||''};
+    /* 旧版把 PDF 按文本存成了乱码：自动清坏内容，保留文件名，查看时提示重新上传 */
+    if(/\.pdf$/i.test(s.doc.name) && s.doc.kind !== 'pdf' && (s.doc.content || s.doc.data)){ s.doc.content = ''; s.doc.data = ''; s.doc.lines = 0; }
+    else if(s.doc.content && s.doc.content.slice(0, 1024).indexOf('%PDF-') >= 0){ s.doc.content = ''; s.doc.lines = 0; }
   } else if(o.doc){
     s.doc = {name:'旧版说明文本.txt', size:String(o.doc).length, lines:String(o.doc).split(/\r?\n/).length, content:String(o.doc)};
   }
@@ -628,7 +631,7 @@ secBox.addEventListener('click', function(e){
   if(act === 'viewdoc'){ openDocView(i); return; }
   if(act === 'rmdoc'){
     if(!confirm('移除已上传的使用文档？（分区其他内容不受影响）')) return;
-    s.doc = {name:'', size:0, lines:0, content:''};
+    s.doc = {name:'', size:0, lines:0, content:'', kind:'', data:''};
     s.updatedAt = nowStr(); save(true); renderAll();
     return;
   }
@@ -691,6 +694,14 @@ document.getElementById('docPick').addEventListener('change', function(){
   }
   var rd = new FileReader();
   rd.onload = function(){
+    var u8 = new Uint8Array(rd.result || []);
+    if(u8.length > 4 && u8[0] === 0x25 && u8[1] === 0x50 && u8[2] === 0x44 && u8[3] === 0x46){
+      /* 字节嗅探：实为 PDF（扩展名/MIME 不可靠时兜底），走二进制通道 */
+      secs[i].doc = {name:f.name, size:f.size, lines:0, content:'', kind:'pdf', data:bufToB64(rd.result)};
+      secs[i].updatedAt = nowStr();
+      if(save(true)) msg('检测到 PDF 文件，已按二进制保存：' + f.name,'ok');
+      renderAll(); return;
+    }
     var txt = decodeBuf(rd.result);
     var MAX = 200 * 1024, cut = false;
     if(txt.length > MAX){ txt = txt.slice(0, MAX); cut = true; }
@@ -778,6 +789,8 @@ function openDocView(i){
     dvUrl = URL.createObjectURL(b64ToBlob(d.data, 'application/pdf'));
     fr.src = dvUrl; fr.style.display = 'block';
     pre.style.display = 'none'; pre.textContent = '';
+  } else if(d.content && d.content.slice(0, 2048).indexOf('%PDF-') >= 0){
+    msg('检测到旧版 PDF 乱码记录，请先「移除」该文档再重新上传','err'); return;
   } else {
     fr.style.display = 'none'; fr.removeAttribute('src');
     pre.style.display = 'block'; pre.textContent = d.content;
