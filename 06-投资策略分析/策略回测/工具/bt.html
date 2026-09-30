@@ -132,6 +132,7 @@ border-radius:10px;background:#f8fafc;font-size:13px;flex-wrap:wrap}
 .dv-h .sp{flex:1}
 .dv-b{overflow:auto;background:#fff}
 .dv-b pre{margin:0;padding:16px 18px;color:#1e293b;font:12.5px/1.75 ui-monospace,Consolas,Menlo,monospace;white-space:pre-wrap;word-break:break-word}
+.dv-b iframe{width:100%;height:74vh;border:0;display:block;background:#525659}
 .dv-link{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px}
 .dv-link:hover{color:#ea580c}
 @media(max-width:640px){.dv{padding:10px}.dv-box{max-height:92vh}}
@@ -184,11 +185,11 @@ border:1px dashed var(--line);border-radius:14px;grid-column:1/-1}
       <button class="btn mini" id="dvDl">下载</button>
       <button class="btn mini" id="dvClose">关闭</button>
     </div>
-    <div class="dv-b"><pre id="dvBody"></pre></div>
+    <div class="dv-b"><pre id="dvBody"></pre><iframe id="dvFrame" title="PDF 预览" style="display:none"></iframe></div>
   </div>
 </div>
 <input type="file" id="filePick" hidden accept=".py,.txt,.md,.js,.json,.csv,.html,.htm,.ipynb,.sql,.yaml,.yml,.ini,.cfg,.log,.m,.r,.cpp,.cs,.java">
-<input type="file" id="docPick" hidden accept=".md,.txt,.html,.htm,.csv,.json,.log,.py">
+<input type="file" id="docPick" hidden accept=".md,.txt,.html,.htm,.csv,.json,.log,.py,.pdf">
 <input type="file" id="fileImport" hidden accept=".json,application/json">
 <script>
 /* ================= 常量与工具 ================= */
@@ -206,6 +207,19 @@ function decodeBuf(buf){
     catch(e2){ return new TextDecoder('utf-8').decode(u8); }
   }
 }
+/* 二进制 ⇄ base64（PDF 等二进制文档） */
+function bufToB64(buf){
+  var u8 = new Uint8Array(buf || new ArrayBuffer(0)), s = '', CH = 0x8000, i;
+  for(i = 0; i < u8.length; i += CH){ s += String.fromCharCode.apply(null, u8.subarray(i, i + CH)); }
+  return btoa(s);
+}
+function b64ToBlob(b64, mime){
+  var bin = atob(b64 || ''), u8 = new Uint8Array(bin.length), i;
+  for(i = 0; i < bin.length; i++){ u8[i] = bin.charCodeAt(i); }
+  return new Blob([u8], {type: mime || 'application/octet-stream'});
+}
+/* 该分区文档是否保存了可查看的正文（文本内容 或 PDF 二进制） */
+function hasDocBody(d){ return !!(d && (d.content || (d.kind === 'pdf' && d.data))); }
 
 var METRICS = [
   {k:'period',   l:'回测区间',   ph:'2020-01-01 ~ 2025-12-31', type:'text', wide:true},
@@ -248,7 +262,7 @@ function blankSec(){
   return {
     id: uid(), name: '', collapsed: true,
     code: {name:'', size:0, lines:0, content:'', url:''},
-    doc: {name:'', size:0, lines:0, content:''},
+    doc: {name:'', size:0, lines:0, content:'', kind:'', data:''},
     bt: {period:'', total:'', annual:'', bench:'', excess:'', mdd:'',
          sharpe:'', calmar:'', win:'', pl:'', turnover:'', trades:'', note:''},
     updatedAt: ''
@@ -273,7 +287,7 @@ function normSec(o){
   s.name = o.name || '';
   s.collapsed = o.collapsed !== false;
   if(o.doc && typeof o.doc === 'object'){
-    s.doc = {name:o.doc.name||'', size:Number(o.doc.size)||0, lines:Number(o.doc.lines)||0, content:o.doc.content||''};
+    s.doc = {name:o.doc.name||'', size:Number(o.doc.size)||0, lines:Number(o.doc.lines)||0, content:o.doc.content||'', kind:o.doc.kind||'', data:o.doc.data||''};
   } else if(o.doc){
     s.doc = {name:'旧版说明文本.txt', size:String(o.doc).length, lines:String(o.doc).split(/\r?\n/).length, content:String(o.doc)};
   }
@@ -312,6 +326,17 @@ function save(silent){
         renderAll();
         return true;
       }catch(e2){}
+    }
+    /* 仍不足：剥离 PDF 二进制后重试（保留文件名与其余配置） */
+    var strippedPdf = false;
+    secs.forEach(function(s){ if(s.doc && s.doc.data){ s.doc.data = ''; strippedPdf = true; } });
+    if(strippedPdf){
+      try{
+        localStorage.setItem(KEY, JSON.stringify({v:1, updated:nowStr(), sections:secs}));
+        if(!silent) msg('浏览器本地存储将满：已自动改为「仅记录 PDF 文件名、不再保存 PDF 内容」。建议先「导出全部 JSON」备份，或压缩 PDF 体积后重传。','warn');
+        renderAll();
+        return true;
+      }catch(e3){}
     }
     if(!silent) msg('保存失败：浏览器本地存储空间不足。请「导出全部 JSON」备份后清理部分分区。','err');
     return false;
@@ -385,14 +410,15 @@ function blockDoc(s){
   var d = s.doc || {};
   var h = '<div class="block"><div class="block-t"><span class="n">2</span>策略说明与使用文档</div>';
   if(d.name){
-    var dvAttr = d.content ? ' class="dv-link" data-act="viewdoc" title="点击查看文档内容"' : '';
+    var hasBody = hasDocBody(d);
+    var dvAttr = hasBody ? ' class="dv-link" data-act="viewdoc" title="点击查看文档内容"' : '';
     h += '<div class="filechip filled"><span class="fi">&#128196;</span><div class="fmeta"><b' + dvAttr + '>' + esc(d.name) + '</b>';
-    h += '<span>' + esc(fmtSize(d.size)) + (d.lines ? ' · ' + d.lines + ' 行' : '') + (d.content ? ' · 已在本机保存文档内容' : ' · 仅记录文件信息') + '</span></div>';
-    if(d.content) h += '<button class="btn mini" data-act="viewdoc">查看文档</button>';
+    h += '<span>' + esc(fmtSize(d.size)) + (d.kind === 'pdf' ? ' · PDF 文档' : (d.lines ? ' · ' + d.lines + ' 行' : '')) + (hasBody ? ' · 已在本机保存，可点击查看' : ' · 仅记录文件信息') + '</span></div>';
+    if(hasBody) h += '<button class="btn mini" data-act="viewdoc">查看文档</button>';
     h += '<button class="btn mini" data-act="dldoc">下载文档</button>';
     h += '<button class="btn mini danger" data-act="rmdoc">移除</button></div>';
   } else {
-    h += '<div class="filechip"><span class="fi">＋</span><div class="fmeta"><b>尚未上传使用文档</b><span>从本机选择文档文件（md / txt / html 等，自动读取文件名 / 大小 / 行数并保存内容）</span></div></div>';
+    h += '<div class="filechip"><span class="fi">＋</span><div class="fmeta"><b>尚未上传使用文档</b><span>从本机选择文档文件（pdf / md / txt / html 等，自动读取文件名 / 大小并保存内容，支持点击查看）</span></div></div>';
   }
   h += '<div class="fileops">';
   h += '<button class="btn mini" data-act="pickdoc">选择本地文档</button>';
@@ -649,6 +675,20 @@ document.getElementById('docPick').addEventListener('change', function(){
   var f = this.files && this.files[0];
   if(!f || pickDocFor < 0) return;
   var i = pickDocFor;
+  /* PDF 为二进制：单独存 base64，用弹窗 iframe 直接渲染 */
+  if(/\.pdf$/i.test(f.name) || f.type === 'application/pdf'){
+    if(f.size > 4 * 1024 * 1024){ msg('PDF 体积过大（' + fmtSize(f.size) + '）：超过 4MB 很可能无法保存在本机浏览器。建议压缩后再上传，或改用文本说明。','err'); return; }
+    var rp = new FileReader();
+    rp.onload = function(){
+      secs[i].doc = {name:f.name, size:f.size, lines:0, content:'', kind:'pdf', data:bufToB64(rp.result)};
+      secs[i].updatedAt = nowStr();
+      if(save(true)) msg('已上传 PDF 文档：' + f.name + '（' + fmtSize(f.size) + '）','ok');
+      renderAll();
+    };
+    rp.onerror = function(){ msg('读取 PDF 失败，请重试','err'); };
+    rp.readAsArrayBuffer(f);
+    return;
+  }
   var rd = new FileReader();
   rd.onload = function(){
     var txt = decodeBuf(rd.result);
@@ -705,6 +745,17 @@ function downloadCode(i){
 }
 function downloadDoc(i){
   var s = secs[i], d = s.doc || {};
+  if(d.kind === 'pdf' && d.data){
+    try{
+      var u = URL.createObjectURL(b64ToBlob(d.data, 'application/pdf'));
+      var a = document.createElement('a');
+      a.href = u; a.download = (s.name ? safeName(s.name) + '-' : '') + (d.name || 'doc.pdf');
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(u); }, 1500);
+      msg('使用文档已下载','ok');
+    }catch(e){ msg('下载失败（浏览器限制）：可在弹窗内用 PDF 阅读器另存','err'); }
+    return;
+  }
   if(d.content){
     download((s.name ? safeName(s.name) + '-' : '') + (d.name || 'doc.txt'), d.content, 'text/plain;charset=utf-8');
     msg('使用文档已下载','ok');
@@ -713,20 +764,32 @@ function downloadDoc(i){
   msg('该分区尚未上传使用文档','warn');
 }
 /* 文档查看弹窗 */
-var dvIdx = -1;
+var dvIdx = -1, dvUrl = '';
 function openDocView(i){
   var s = secs[i], d = (s && s.doc) || {};
-  if(!d.content){ msg('该文档仅记录了文件信息，未保存内容，无法查看；请重新上传以保存内容','warn'); return; }
+  if(!hasDocBody(d)){ msg('该文档仅记录了文件信息，未保存内容，无法查看；请重新上传以保存内容','warn'); return; }
   dvIdx = i;
   var nm = document.getElementById('dvName');
   nm.textContent = d.name || '使用文档';
   nm.title = d.name || '';
-  document.getElementById('dvBody').textContent = d.content;
+  var pre = document.getElementById('dvBody'), fr = document.getElementById('dvFrame');
+  if(dvUrl){ try{ URL.revokeObjectURL(dvUrl); }catch(e){} dvUrl = ''; }
+  if(d.kind === 'pdf'){
+    dvUrl = URL.createObjectURL(b64ToBlob(d.data, 'application/pdf'));
+    fr.src = dvUrl; fr.style.display = 'block';
+    pre.style.display = 'none'; pre.textContent = '';
+  } else {
+    fr.style.display = 'none'; fr.removeAttribute('src');
+    pre.style.display = 'block'; pre.textContent = d.content;
+  }
   document.getElementById('dv').classList.add('on');
 }
 function closeDocView(){
   var el = document.getElementById('dv');
   if(el) el.classList.remove('on');
+  var fr = document.getElementById('dvFrame');
+  if(fr){ fr.style.display = 'none'; fr.removeAttribute('src'); }
+  if(dvUrl){ try{ URL.revokeObjectURL(dvUrl); }catch(e){} dvUrl = ''; }
   dvIdx = -1;
 }
 (function(){
@@ -923,10 +986,11 @@ function buildReport(s){
   h += '</section>';
 
   h += '<section><h2><span class="n">2</span>策略说明与使用文档</h2>';
-  if(d.name || d.content){
+  if(d.name || hasDocBody(d)){
     h += '<div class="fileline"><span>&#128196;</span><div><b>' + esc(d.name || '使用文档') + '</b><div class="m">'
-       + esc(fmtSize(d.size)) + (d.lines ? ' · ' + d.lines + ' 行' : '') + '</div></div></div>';
-    if(d.content) h += '<div class="txt" style="margin-top:12px">' + esc(d.content) + '</div>';
+       + esc(fmtSize(d.size)) + (d.kind === 'pdf' ? ' · PDF 文档' : (d.lines ? ' · ' + d.lines + ' 行' : '')) + '</div></div></div>';
+    if(d.kind === 'pdf') h += '<p class="meth">该分区关联的是 PDF 文档，请在「策略回测」工具内点击文档名查看（报告不内嵌 PDF 正文）。</p>';
+    else if(d.content) h += '<div class="txt" style="margin-top:12px">' + esc(d.content) + '</div>';
   } else { h += '<p class="meth">未上传使用文档。</p>'; }
   h += '</section>';
 
