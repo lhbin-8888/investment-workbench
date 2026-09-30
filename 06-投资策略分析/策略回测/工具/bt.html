@@ -118,6 +118,8 @@ input.num.neg{color:var(--down);font-weight:700}
 .filechip{display:flex;align-items:center;gap:11px;padding:11px 13px;border:1px dashed #cbd5e1;
 border-radius:10px;background:#f8fafc;font-size:13px;flex-wrap:wrap}
 .filechip.filled{border-style:solid;border-color:rgba(237,125,49,.4);background:#fff7ed}
+.filechip.legacy{border-color:#f0b429;background:#fffbeb}
+.filechip.legacy .fmeta span{color:#b45309}
 .filechip .fi{font-size:17px;flex:0 0 auto}
 .filechip .fmeta{flex:1;min-width:150px;display:flex;flex-direction:column;line-height:1.45}
 .filechip .fmeta b{font-size:13.5px;color:#0f172a;word-break:break-all}
@@ -414,11 +416,13 @@ function blockDoc(s){
   var h = '<div class="block"><div class="block-t"><span class="n">2</span>策略说明与使用文档</div>';
   if(d.name){
     var hasBody = hasDocBody(d);
+    var legacy = !hasBody;   /* 有文件名但未保存内容：旧版乱码记录已被自动清除 */
     var dvAttr = hasBody ? ' class="dv-link" data-act="viewdoc" title="点击查看文档内容"' : '';
-    h += '<div class="filechip filled"><span class="fi">&#128196;</span><div class="fmeta"><b' + dvAttr + '>' + esc(d.name) + '</b>';
-    h += '<span>' + esc(fmtSize(d.size)) + (d.kind === 'pdf' ? ' · PDF 文档' : (d.lines ? ' · ' + d.lines + ' 行' : '')) + (hasBody ? ' · 已在本机保存，可点击查看' : ' · 仅记录文件信息') + '</span></div>';
+    h += '<div class="filechip filled' + (legacy ? ' legacy' : '') + '"><span class="fi">' + (legacy ? '&#9888;' : '&#128196;') + '</span><div class="fmeta"><b' + dvAttr + '>' + esc(d.name) + '</b>';
+    h += '<span>' + esc(fmtSize(d.size)) + (d.kind === 'pdf' ? ' · PDF 文档' : (d.lines ? ' · ' + d.lines + ' 行' : '')) + (hasBody ? ' · 已在本机保存，可点击查看' : ' · 内容未保存：旧版乱码记录已自动清除，请重新上传该文档') + '</span></div>';
     if(hasBody) h += '<button class="btn mini" data-act="viewdoc">查看文档</button>';
-    h += '<button class="btn mini" data-act="dldoc">下载文档</button>';
+    if(hasBody) h += '<button class="btn mini" data-act="dldoc">下载文档</button>';
+    else h += '<button class="btn mini" data-act="pickdoc">重新上传</button>';
     h += '<button class="btn mini danger" data-act="rmdoc">移除</button></div>';
   } else {
     h += '<div class="filechip"><span class="fi">＋</span><div class="fmeta"><b>尚未上传使用文档</b><span>从本机选择文档文件（pdf / md / txt / html 等，自动读取文件名 / 大小并保存内容，支持点击查看）</span></div></div>';
