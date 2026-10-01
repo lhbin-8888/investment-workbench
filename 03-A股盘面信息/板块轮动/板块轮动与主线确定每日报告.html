@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>板块轮动与主线确定每日报告 · 2026-09-30</title>
+<title>板块轮动与主线确定每日报告 · 2026-10-01</title>
 <style>
 :root{--bg:#f6f7fb;--card:#ffffff;--ink:#1e293b;--sub:#64748b;--line:#e2e8f0;--red:#dc2626;--grn:#059669;--org:#ea580c;--blue:#2563eb;--ind:#4f46e5;--gold:#d97706;}
 *{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei","PingFang SC",sans-serif;}
@@ -14,6 +14,7 @@ body{background:var(--bg);color:var(--ink);padding:16px;}
 .header .meta{font-size:13px;opacity:.92;display:flex;flex-wrap:wrap;gap:14px;}
 .banner{border-radius:10px;padding:12px 16px;font-size:13.5px;line-height:1.7;margin-bottom:14px;}
 .banner.closed{background:#ecfdf5;border:1px solid #6ee7b7;color:#065f46;}
+.banner.holiday{background:#eff6ff;border:1px solid #93c5fd;color:#1e40af;}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px;}
 .kpi{background:var(--card);border-radius:10px;padding:14px 12px;border:1px solid var(--line);text-align:center;}
 .kpi .v{font-size:24px;font-weight:700;color:var(--ind);}
@@ -22,6 +23,8 @@ body{background:var(--bg);color:var(--ink);padding:16px;}
 .card{background:var(--card);border-radius:12px;border:1px solid var(--line);padding:18px 20px;margin-bottom:14px;}
 .card h2{font-size:16px;margin-bottom:12px;color:#1e3a8a;}
 .card h2 .tag{font-size:11px;color:#fff;background:#3b82f6;border-radius:4px;padding:2px 7px;margin-left:8px;vertical-align:2px;}
+.overseas{border-left:4px solid #6366f1;}
+.calendar{border-left:4px solid #a855f7;}
 .idxline{font-size:13px;color:var(--sub);line-height:2;}
 .idxline b{color:var(--ink);font-size:14px;}
 .up{color:var(--red);font-weight:600;}.dn{color:var(--grn);font-weight:600;}
@@ -53,20 +56,55 @@ select{padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size
   <div class="header">
     <h1>📊 板块轮动与主线确定每日报告</h1>
     <div class="meta">
-      <span>📅 报告日期：2026-09-30（周三）</span>
-      <span>🕐 数据口径：当日收盘（节前最后一个交易日）</span>
-      <span>📈 状态：正常收盘触发 16:00</span>
+      <span>📅 报告日期：2026-10-01（周四 · 国庆节）</span>
+      <span>🕐 数据口径：2026-09-30（周三）收盘 · 最近交易日快照</span>
+      <span>📈 状态：国庆节休市（非交易日）</span>
       <span>🤖 自动化生成 · 仅供参考，不构成投资建议</span>
     </div>
   </div>
 
-  <div class="banner closed">✅ <b>收盘口径正式报告（2026-09-30 收盘）</b>：国庆节前最后一个交易日。9 月收官日指数分化——沪指 +0.31%、科创50 -2.51%；<b>医药全链（创新药/CRO/疫苗）成建制领涨</b>，白酒、种植、地产政策链跟涨；半导体/元件节前被集中兑现（半导体主力净流出 101.9 亿、澳弘电子 9天7板 终结跌停）。<b>9 月收官：沪指月跌 3.62%、深成指 -8.04%、创业板指 -8.82%</b>。10/1–10/7 国庆休市，节后首个交易日 10-08（周四）。</div>
+  <div class="banner holiday">📅 <b>今日休市（非交易日 · 国庆假期第 1 日）</b>：A 股 10/1–10/7 国庆休市，节后首个交易日 <b>10-08（周四）</b>；港股 10-01 国庆日休市一日、10-02（周五）恢复交易（港交所假期表）。<b>表内全部 A 股指标均为 2026-09-30 收盘口径真实快照，非 10-01 当日数据，请勿据此交易。</b>本报告保留 09-30 收盘版全部结论，并新增「假期外围市场实况」与「假期要闻与事件日历」两个休市增强区块。</div>
 
-  <div class="warn">🧪 <b>宏观注脚</b>：9 月制造业 PMI 50.1%（+0.3pct）<b>重回扩张区间</b>，非制造业 50.2%（+1.2pct）；统计局明示「农副食品加工、医药等行业生产指数和新订单指数均高于 55.0%」——与今日医药、种植链领涨互为印证。政策端：9-29 财政部/央行/金融监管总局发文，<b>10-01 起实施居民购房贷款贴息</b>（重点支持普通家庭新购中小套型）；白酒批发价格指数止跌微涨（106.23，环比 +0.08%）。</div>
+  <div class="warn">🧪 <b>宏观注脚（09-30 收盘口径 · 休市日引用）</b>：9 月制造业 PMI 50.1%（+0.3pct）<b>重回扩张区间</b>，非制造业 50.2%（+1.2pct）；统计局明示「农副食品加工、医药等行业生产指数和新订单指数均高于 55.0%」。政策端：9-29 财政部/央行/金融监管总局发文，<b>10-01 起实施居民购房贷款贴息</b>（重点支持普通家庭新购中小套型）；白酒批发价格指数止跌微涨（106.23，环比 +0.08%）。</div>
+
+  <div class="card">
+    <h2>指数与市场概览<span class="tag">2026-09-30 收盘 · 休市日引用</span></h2>
+    <div class="idxline">
+      上证 <b>3842.19</b> <span class="up">+0.31%</span> ｜ 深证 <b>12887.62</b> <span class="dn">-0.11%</span> ｜ 创业板 <b>3135.28</b> <span class="dn">-0.23%</span> ｜ 科创50 <b>1530.01</b> <span class="dn">-2.51%</span> ｜ 沪深300 <b>4357.62</b> <span class="up">+0.29%</span> ｜ 北证50 <b>1039.61</b> <span class="up">+0.70%</span><br>
+      两市成交 <b>14380 亿</b>（较上日放量约 288 亿）｜ 全市场涨停 <b>56 家</b>、跌停 <b>12 家</b>（媒体口径；东财池口径 52/9）｜ 超 2500 只上涨<br>
+      <span style="color:#1e40af;">📅 休市提示：以上为 09-30（节前最后交易日）收盘数据，9 月收官沪指月跌 3.62%、深成指 -8.04%、创业板指 -8.82%。</span>
+    </div>
+  </div>
+
+  <div class="card overseas">
+    <h2>🌍 假期外围市场实况<span class="tag">美股 09-30（美东周三）收盘 · 北京时间 10-01 凌晨</span></h2>
+    <div class="idxline">
+      道指 <b>50906.05</b> <span class="dn">-0.86%</span>（重挫逾 400 点）｜ 标普500 <b>7651.54</b> <span class="dn">-0.25%</span> ｜ 纳指 <b>26861.06</b> <span class="up">+0.24%</span><br>
+      月度收官：道指 9 月累跌约 4%（两口径 4.06%~4.29%）、标普 -0.20%~-0.45%、纳指累涨 +1.86%~2.45% ｜ 三季度：道指 -2.68%、标普 +2.25%、纳指 +3.15%
+    </div>
+    <p class="note" style="margin-top:10px;color:var(--ink);line-height:2;">
+    ① <b>科技与 AI 外围强势</b>：微软三季度累涨超 37%（市值增超 1 万亿美元）、Meta 9 月累涨 26.70%（当日 -1.84%）、苹果 +1.10%、英伟达 +0.51%、英特尔 +3%——AI 主线在美股延续强势，<b>对节后 A 股 09-30 被兑现的科技链（半导体/元件）构成潜在情绪修复条件</b>。<br>
+    ② <b>半导体分化</b>：SK海力士、ARM、阿斯麦跌超 1%；美光收平（季度业绩超预期、盘后小涨）。<br>
+    ③ <b>加息预期显著降温</b>：美国 8 月核心 PCE 同比 +3.0% 低于预期（前值 3.3%），10 月加息 25bp 概率由约 51% 降至 <b>35%</b>，高盛将加息预期从 10 月推迟至 12 月——外部流动性压制边际缓和。<br>
+    ④ <b>利率仍处高位</b>：美债 10Y 收 5.298%（盘中一度破 5.3%）、30Y 收 5.642%（2002 年 6 月以来最高区域）——压制仍在，美股金融 9 月跌超 6%。<br>
+    ⑤ <b>商品</b>：WTI 90.42 美元 +1.16%（三季度累涨超 31%）、布伦特 103.53 美元 +0.92%（Q3 +33%）；COMEX 黄金 4189.1 美元 +0.22%（<b>9 月累跌近 7%</b>，贵金属板块节后或承压）、白银 60.76 美元 -0.65%。<br>
+    ⑥ <b>中概回暖</b>：纳斯达克金龙中国指数 <b>+0.60%</b>（新东方 +1.85%、B站 +1.21%、理想汽车 +1.16%、京东 +1.14%）——节后中概/港股链情绪偏正面（港股 10-02 恢复交易）。</p>
+    <p class="note" style="margin-top:8px;">来源：新浪财经（10-01 稿）、每日经济新闻/21 财经（10-01）、财联社、中新经纬（09-30/10-01 稿）。以上为实况引用与条件性判断，<b>不构成对 10-08 走势的预测</b>。</p>
+  </div>
+
+  <div class="card calendar">
+    <h2>📰 假期要闻与事件日历<span class="tag">10-01 ～ 10-07</span></h2>
+    <p class="note" style="color:var(--ink);line-height:2;">
+    ① <b>10-01 起居民购房贷款贴息正式实施</b>（财政部/央行/金融监管总局 9-29 发文，重点支持普通家庭新购中小套型）——房地产开发链节后首观察项（09-30 板块主力仍净流出 3.37 亿，资金面待确认）。<br>
+    ② <b>10-02（周五）美国 9 月非农</b>：预期新增约 8.4 万（约为 8 月的一半）——假期外围第一个关键数据，直接影响美联储 12 月加息定价与全球风险偏好。<br>
+    ③ <b>国庆黄金周消费/出行/票房数据</b>将陆续发布——白酒低位启动（09-30 批价止跌微涨 + 低位启动）与消费链是否存在「二催化」的核心观察项。<br>
+    ④ <b>10 月中 ESMO 大会临近</b>——医药三链（医疗服务/化学制药/生物制品）事件催化延续性的关键窗口。<br>
+    ⑤ <b>10 月 PMI 与三季报窗口</b>：中信证券提示三季报前后是年内最后一波进攻窗口；节后首日 10-08 需消化假期累积信息。</p>
+  </div>
 
   <div class="kpis">
-    <div class="kpi"><div class="v">52</div><div class="l">涨停家数（东财池）</div></div>
-    <div class="kpi"><div class="v">9</div><div class="l">跌停家数（东财池）</div></div>
+    <div class="kpi"><div class="v">52</div><div class="l">涨停家数（东财池 · 09-30）</div></div>
+    <div class="kpi"><div class="v">9</div><div class="l">跌停家数（东财池 · 09-30）</div></div>
     <div class="kpi"><div class="v o">7 板</div><div class="l">最高连板 · 新华传媒</div></div>
     <div class="kpi"><div class="v">1.44 万亿</div><div class="l">两市成交 · 放量 288 亿</div></div>
     <div class="kpi"><div class="v g">2567 : 2824</div><div class="l">上涨 : 下跌（媒体口径）</div></div>
@@ -76,15 +114,7 @@ select{padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size
   </div>
 
   <div class="card">
-    <h2>指数与市场概览<span class="tag">2026-09-30 收盘</span></h2>
-    <div class="idxline">
-      上证 <b>3842.19</b> <span class="up">+0.31%</span> ｜ 深证 <b>12887.62</b> <span class="dn">-0.11%</span> ｜ 创业板 <b>3135.28</b> <span class="dn">-0.23%</span> ｜ 科创50 <b>1530.01</b> <span class="dn">-2.51%</span> ｜ 沪深300 <b>4357.62</b> <span class="up">+0.29%</span> ｜ 北证50 <b>1039.61</b> <span class="up">+0.70%</span><br>
-      两市成交 <b>14380 亿</b>（较上日放量约 288 亿）｜ 全市场涨停 <b>56 家</b>、跌停 <b>12 家</b>（媒体口径；东财池口径 52/9）｜ 超 2500 只上涨
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>候选主线五维打分<span class="tag">0–5 分 · 均分降序</span></h2>
+    <h2>候选主线五维打分<span class="tag">2026-09-30 收盘快照 · 均分降序 · 休市日引用</span></h2>
     <select id="filterSel" onchange="render()">
       <option value="all">全部 10 个候选板块</option>
       <option value="main">仅真主线（均分 ≥ 3.5）</option>
@@ -100,11 +130,12 @@ select{padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size
     </table>
     </div>
     <p class="note" style="margin-top:10px;">* 量比 = 当日板块成交额 ÷ 前 5 个交易日（|净占比|≥1% 的可信日）均额；由东财 datacenter 报表反推。<br>
-    五维 = [时间持续性, 资金质量, 广度扩散, 位置过热, 催化环境]；均分 ≥3.5 真主线 / 2.5–3.49 待验证 / &lt;2.5 轮动。</p>
+    五维 = [时间持续性, 资金质量, 广度扩散, 位置过热, 催化环境]；均分 ≥3.5 真主线 / 2.5–3.49 待验证 / &lt;2.5 轮动。<br>
+    📅 休市提示：表内为 09-30 收盘快照，非 10-01 当日数据，请勿据此交易。</p>
   </div>
 
   <div class="card">
-    <h2>情绪结构 · 连板梯队与涨停分布</h2>
+    <h2>情绪结构 · 连板梯队与涨停分布<span class="tag">09-30 · 休市日引用</span></h2>
     <div class="ladder">
       <div class="chip"><b>7板</b> ×1 新华传媒（出版）</div>
       <div class="chip"><b>4板</b> ×1 襄阳轴承（汽车零部件）</div>
@@ -116,7 +147,7 @@ select{padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size
   </div>
 
   <div class="card">
-    <h2>当日轮动叙事与主线判定</h2>
+    <h2>当日轮动叙事与主线判定<span class="tag">09-30 收盘口径 · 休市日引用</span></h2>
     <p class="note" style="color:var(--ink);line-height:2;">
     ① <b>唯一成建制主线＝医药全链（创新药/CRO/化学制药/疫苗）</b>：医疗服务主力净流入 26.0 亿居 128 行业第一（CRO 概念 +27.3 亿、创新药 +41.5 亿居概念第一），化学制药 +19.5 亿第二，生物制品 +4.53% 涨幅第一且 3 涨停（康希诺、泰诺麦博-U、康辰药业）。催化四重叠加：9-29 <b>恒瑞医药将 GLP-1/GIP 双抗授权诺和诺德（首付 3 亿 + 里程碑最高 23 亿美元，潜在总额 26 亿美元）</b>、9-29 <b>阿斯利康 20 亿美元战略投资 Summit</b>（依沃西联合疗法）、9-18 十部门《医药工业发展"十五五"规划》（创新药年均增速 ≥20%、首次将 CRO/CDMO 列为重点产业链环节）、10 月中 ESMO 大会临近（兴业/中信证券：中国创新药进入全球价值兑现阶段；2026 上半年 License-out 总额约 1100 亿美元创纪录）。三条链均自 09-24～09-28 连续流出后<b>低位放量反转</b>（医疗服务 4 日流出约 59 亿后单日回流 26 亿），医疗服务/化学制药连续 2 日上榜。<br>
     ② <b>第二主线＝固态电池（政策延续）</b>：09-28 七部门《新型电池"十五五"规划》后连续第 2 日上榜，电池板块 +0.94%、净流入 9.98 亿，涨停梯队完整（时代万恒 3 板、紫竹高科 2 板、龙蟠科技）。<br>
@@ -127,23 +158,25 @@ select{padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size
   </div>
 
   <div class="card">
-    <h2>结论与节后观察清单</h2>
+    <h2>结论与节后观察清单<span class="tag">节后首日 10-08（周四）</span></h2>
     <p class="note" style="color:var(--ink);line-height:2;">
     <b>主线判定：5 条真主线（医药三链 + 固态电池 + 汽车零部件），医药为当日绝对主线。</b>体系信号：节前收官日主线由「零主线（09-28）→ 三主线（09-29）→ 医药主线日（09-30）」逐日修复，但均发生在缩量环境下（1.44 万亿），且全市场主力仍净流出 136 亿——主线质量为「存量资金再平衡」，非增量行情。医药链位置优势显著（低位启动 + 低位放量反转 + 事件催化密集），是 09-22 五维体系启用以来少见的「资金 + 广度 + 催化」三要素齐备主线。<br>
-    <b>节后（10-08）观察清单：</b>① 医疗服务/化学制药能否连续第 3 日上榜（days 3+ 主线加固）；② 电池涨停梯队是否延续（3 板时代万恒能否晋级）；③ 汽车零部件 4 连板襄阳轴承的接力与机器人零部件扩散（宁波东力、龙溪股份今日涨停）；④ 白酒低位启动是否被国庆消费数据二次催化；⑤ 科技链（半导体/元件）节中外围表现——若外围半导体走强，09-30 被兑现的科技链存在回流反抽可能；⑥ 房地产贴息政策的节后落地量与资金回流确认；⑦ 注意 10 月 PMI 与三季报窗口（中信证券：三季报前后是年内最后一波进攻窗口）。</p>
+    <b>节后（10-08）观察清单：</b>① 医疗服务/化学制药能否连续第 3 日上榜（days 3+ 主线加固）；② 电池涨停梯队是否延续（3 板时代万恒能否晋级）；③ 汽车零部件 4 连板襄阳轴承的接力与机器人零部件扩散（宁波东力、龙溪股份 09-30 涨停）；④ 白酒低位启动是否被国庆消费数据二次催化（关注假期消费/出行/票房数据）；⑤ 科技链（半导体/元件）假期外围表现——<b>假期实况：微软 Q3 +37%、Meta 9 月 +26.7%、AI 硬件外围强势 + 加息预期降温</b>，09-30 被兑现的科技链存在回流反抽的外部条件；⑥ 房地产贴息政策（10-01 已实施）的节后落地量与资金回流确认；⑦ 注意 10 月 PMI 与三季报窗口（中信证券：三季报前后是年内最后一波进攻窗口）。<br>
+    📅 <b>休市提示</b>：本报告生成于 10-01（国庆假期第 1 日），表内与结论均为 09-30 收盘口径，非当日数据，请勿据此交易。</p>
   </div>
 
   <div class="card">
     <h2>数据来源与口径声明</h2>
     <p class="note">
-    数据源：东方财富数据中心报表 RPT_INDUSTRY_FUNDFLOW（128 个申万二级行业，回溯 2026-08-28～09-30 共 23 个交易日）、RPT_CONCEPT_FUNDFLOW（约 400 个概念）、push2ex 涨停/跌停池（date=20260930，涨停归属前缀匹配校验 52/52、跌停 9/9 零未匹配）、新浪财经指数快照（含北证50）、国家统计局 9 月 PMI 解读、证券时报/证券时报e公司/网易财经/腾讯新闻 09-30 收评与医药催化报道。<br>
-    口径说明：① 涨停/跌停家数为东财池口径（52/9），媒体口径 56/12 含北交所与统计规则差异；② 板块样本为东财 128 个申万二级行业；③ 量比由「净流入÷|净占比|」反推成交额计算（|净占比|≥1% 可信日取前 5 日均额）；④ 涨跌家数与成交额取媒体/新浪口径交叉核对（14380 亿 vs 媒体 1.4–1.45 万亿一致）；⑤ 连续上榜天数（days）为全量 128 板块真实计算的「连续处于涨幅 TOP20 ∪ 主力净流入 TOP20 的交易日数」。<br>
-    任务设计原定使用通达信（tdx-connector），本环境该 MCP 未连接，以上为等价真实收盘数据源替代，未使用任何估计值填充缺失数据。</p>
-    <button class="btn" onclick="exportJSON()">⬇️ 导出 sector-rotation-data.json</button>
+    A 股数据（09-30 收盘快照，本期未重新取数）：东方财富数据中心报表 RPT_INDUSTRY_FUNDFLOW（128 个申万二级行业，回溯 2026-08-28～09-30 共 23 个交易日）、RPT_CONCEPT_FUNDFLOW（约 400 个概念）、push2ex 涨停/跌停池（date=20260930，涨停归属前缀匹配校验 52/52、跌停 9/9 零未匹配）、新浪财经指数快照（含北证50）、国家统计局 9 月 PMI 解读、证券时报/网易财经/腾讯新闻 09-30 收评与医药催化报道。<br>
+    外围数据（本期新增，WebSearch 核验）：新浪财经 10-01 稿（美股 09-30 美东收盘：道指 50906.05 / 标普 7651.54 / 纳指 26861.06）、每日经济新闻与 21 财经 10-01 稿（核心 PCE +3.0%、10 月加息概率降至 35%、高盛推迟至 12 月）、财联社、中新经纬、港交所 2026 年假期表（10-01 国庆日休市、10-02 恢复）。<br>
+    口径说明：① 涨停/跌停家数为东财池口径（52/9），媒体口径 56/12 含北交所与统计规则差异；② 板块样本为东财 128 个申万二级行业；③ 量比由「净流入÷|净占比|」反推成交额计算；④ 涨跌家数与成交额取媒体/新浪口径交叉核对（14380 亿）；⑤ 连续上榜天数（days）为全量 128 板块真实计算的「连续处于涨幅 TOP20 ∪ 主力净流入 TOP20 的交易日数」；⑥ 美股月度累计两口径略有差异（道指 -4.06%/-4.29%），已在正文标注。<br>
+    任务设计原定使用通达信（tdx-connector），本环境该 MCP 未连接，以上为等价真实数据源替代；本期为国庆休市日，未进行任何 A 股新取数，未使用任何估计值填充缺失数据。</p>
+    <button class="btn" onclick="exportJSON()">⬇️ 导出 sector-rotation-data.json（休市参考 09-30）</button>
   </div>
 
   <div class="foot">
-    本报告由投研工作台自动化任务于 2026-09-30 16:00 收盘后生成 ｜ 所有结论不构成投资建议 ｜ 实时主线以当日通达信监测为准<br>
+    本报告由投研工作台自动化任务于 2026-10-01（国庆休市日）生成 ｜ A 股数据口径：2026-09-30 收盘（最近交易日） ｜ 所有结论不构成投资建议 ｜ 实时主线以当日通达信监测为准<br>
     板块轮动 · 03-A股盘面信息 · 投研工作台 v1.1.0
   </div>
 </div>
@@ -196,7 +229,7 @@ function exportJSON(){
   var blob=new Blob([payload],{type:"application/json;charset=utf-8"});
   var a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
-  a.download="sector-rotation-data_2026-09-30_收盘.json";
+  a.download="sector-rotation-data_休市参考09-30.json";
   document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
 render();
