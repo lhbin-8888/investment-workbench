@@ -1,0 +1,46 @@
+Traceback (most recent call last):
+  File "D:\投研工作台\quant\hotspot\gen_sector_map_v3.py", line 477, in <module>
+    main()
+    ~~~~^^
+  File "D:\投研工作台\quant\hotspot\gen_sector_map_v3.py", line 472, in main
+    run(args.src, args.out, delay=args.delay, max_boards=args.max_boards,
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        sw_level=args.sw_level)
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\投研工作台\quant\hotspot\gen_sector_map_v3.py", line 343, in run
+    concept = fetch_boards("concept", delay=delay)
+  File "D:\投研工作台\quant\hotspot\gen_sector_map_v3.py", line 179, in fetch_boards
+    txt = _http_get(_boardlist_url(kind, pz=pz, pn=pn), delay=delay,
+                    referer=EM_REFERER)
+  File "D:\投研工作台\quant\hotspot\gen_sector_map_v3.py", line 132, in _http_get
+    raise last
+  File "D:\投研工作台\quant\hotspot\gen_sector_map_v3.py", line 126, in _http_get
+    with urllib.request.urlopen(req, timeout=timeout, context=CTX) as r:
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\73873\.workbuddy\binaries\python\versions\3.13.12\Lib\urllib\request.py", line 189, in urlopen
+    return opener.open(url, data, timeout)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\73873\.workbuddy\binaries\python\versions\3.13.12\Lib\urllib\request.py", line 489, in open
+    response = self._open(req, data)
+  File "C:\Users\73873\.workbuddy\binaries\python\versions\3.13.12\Lib\urllib\request.py", line 506, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+                              '_open', req)
+  File "C:\Users\73873\.workbuddy\binaries\python\versions\3.13.12\Lib\urllib\request.py", line 466, in _call_chain
+    result = func(*args)
+  File "C:\Users\73873\.workbuddy\binaries\python\versions\3.13.12\Lib\urllib\request.py", line 1367, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        context=self._context)
+                        ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\73873\.workbuddy\binaries\python\versions\3.13.12\Lib\urllib\request.py", line 1323, in do_open
+    r = h.getresponse()
+  File "C:\Users\73873\.workbuddy\binaries\python\versions\3.13.12\Lib\http\client.py", line 1459, in getresponse
+    response.begin()
+    ~~~~~~~~~~~~~~^^
+  File "C:\Users\73873\.workbuddy\binaries\python\versions\3.13.12\Lib\http\client.py", line 336, in begin
+    version, status, reason = self._read_status()
+                              ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\73873\.workbuddy\binaries\python\versions\3.13.12\Lib\http\client.py", line 305, in _read_status
+    raise RemoteDisconnected("Remote end closed connection without"
+                             " response")
+http.client.RemoteDisconnected: Remote end closed connection without response
