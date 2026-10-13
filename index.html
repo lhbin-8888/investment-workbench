@@ -613,7 +613,7 @@ text-decoration:none;border-bottom:1px solid var(--accent)}
         </span>
       </label>
       <label>文档链接 / 相对路径
-        <input id="docFile" placeholder="如 03-A股盘面信息/每日盘面/xxx.md 或 https://..." />
+        <input id="docFile" placeholder="如 01-投研信息收集/宏观研究/2026-10-13-全球要闻.pdf 或 https://..." />
       </label>
       <label>描述（可选）
         <textarea id="docDesc" placeholder="一句话说明文档内容"></textarea>
@@ -1477,10 +1477,7 @@ function buildFinancialSectionShell(){
   h +=     '<span class="meta">数据源：东方财富三大报表 + 腾讯行情估值 ｜ 支持导出 PDF（含封面/水印/页眉）</span>';
   h +=   '</div>';
   h +=   '<div class="sector-body"><iframe id="faFrame" src="05-行业与个股分析/财务分析/工具/fa.html?v=5" title="个股财务分析" style="width:100%;height:1040px;border:0;display:block;background:#fff;"></iframe></div>';
-  h +=   '<div class="doc-links">模块说明与模板：';
-  h +=     '<a href="05-行业与个股分析/财务分析/财务分析.md" target="_blank" rel="noopener">财务分析功能模板</a>';
-  h +=     '<a href="05-行业与个股分析/财务分析/README.md" target="_blank" rel="noopener">模块说明 / 命名规范</a>';
-  h +=   '</div>';
+  h +=   '<div class="doc-links">模块说明与模板：仅本地保存，不随线上发布</div>';
   h += '</div>';
   h += '</div>';
   // 文档列表（上传的财务分析报告：登记在本板块，可点开查看/再打印）
@@ -1505,9 +1502,7 @@ function buildValuationSectionShell(){
   h +=   '</div>';
   // 估值模型已改为纯前端（浏览器直连东方财富+腾讯行情），本地版与线上版 GitHub Pages 均可直接运行
   h +=   '<div class="sector-body"><iframe id="vmFrame" src="05-行业与个股分析/估值模型/工具/vm.html?v=10" title="个股估值模型" style="width:100%;height:620px;border:0;display:block;background:#fff;"></iframe></div>';
-  h +=   '<div class="doc-links">使用说明：';
-  h +=     '<a href="05-行业与个股分析/估值模型/工具/README.md" target="_blank" rel="noopener">估值模型模块说明</a>';
-  h +=   '</div>';
+  h +=   '<div class="doc-links">使用说明：仅本地保存，不随线上发布</div>';
   h += '</div>';
   h += '</div>';
   // 文档列表（保存的估值报告：HTML + PDF 自动注册到这里）
@@ -1524,10 +1519,7 @@ function buildBacktestSectionShell(){
   h +=     '<span class="meta">默认 9 个分区，可手动增加 ｜ 记录策略名称 / 程序文件 / 说明文档 / 回测情况 / 风险提示 ｜ 数据存本机浏览器</span>';
   h +=   '</div>';
   h +=   '<div class="sector-body"><iframe id="btFrame" src="06-投资策略分析/策略回测/工具/bt.html?v=11" title="策略回测工作台" style="width:100%;height:760px;border:0;display:block;background:#fff;"></iframe></div>';
-  h +=   '<div class="doc-links">模块说明与模板：';
-  h +=     '<a href="06-投资策略分析/策略回测/策略回测.md" target="_blank" rel="noopener">策略回测功能模板</a>';
-  h +=     '<a href="06-投资策略分析/策略回测/README.md" target="_blank" rel="noopener">模块说明 / 命名规范</a>';
-  h +=   '</div>';
+  h +=   '<div class="doc-links">模块说明与模板：仅本地保存，不随线上发布</div>';
   h += '</div>';
   h += '</div>';
   // 文档列表（导出的策略回测报告：归档在本板块，可点开查看/再打印）
