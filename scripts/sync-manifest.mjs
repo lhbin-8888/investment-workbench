@@ -95,6 +95,28 @@ function collectDocs() {
       return t !== 0 ? t : a.file.localeCompare(b.file);
     });
   }
+  // 命名规范自检（2026-10-13 彬哥哥确认口径）：时间流板块的报告/记录类条目必须带日期，
+  // 否则会掉到列表末尾。只提示、不改动生成结果。工具/脚本/配置/代码类不在此列。
+  // 豁免：日报型的「当期固定入口」（供页面 iframe 实时引用）不带日期属预期，
+  // 日期由同目录下同名的带日期归档副本承载。
+  const UNDATED_OK = new Set([
+    '03-A股盘面信息/板块轮动/板块轮动与主线确定每日报告.html'
+  ]);
+  const undated = [];
+  for (const section of DATE_SORTED) {
+    if (!manifest[section]) continue;
+    for (const doc of manifest[section]) {
+      if (!dateKey(doc.file) && !UNDATED_OK.has(doc.file)) {
+        undated.push(`${section} / ${doc.file}`);
+      }
+    }
+  }
+  if (undated.length) {
+    console.warn(`⚠️ 命名规范自检：${undated.length} 个条目文件名不含日期，请按「YYYY-MM-DD-主题」补日期`);
+    for (const item of undated) console.warn(`   - ${item}`);
+  } else {
+    console.log('命名规范自检通过：时间流板块条目均带日期');
+  }
   return manifest;
 }
 
