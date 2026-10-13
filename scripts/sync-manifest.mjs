@@ -17,6 +17,15 @@ function relativePosix(file) {
   return path.relative(root, file).split(path.sep).join('/');
 }
 
+// 从文件名提取日期键（YYYYMMDD）：优先 YYYY-MM-DD，其次连续 8 位数字
+function dateKey(file) {
+  const base = path.basename(file, path.extname(file));
+  let m = base.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return m[1] + m[2] + m[3];
+  m = base.match(/(\d{8})/);
+  return m ? m[1] : '';
+}
+
 function detectType(file) {
   const ext = path.extname(file).toLowerCase();
   if (ext === '.pdf') return 'pdf';
@@ -73,6 +82,15 @@ function collectDocs() {
 
   for (const section of Object.keys(manifest)) {
     manifest[section].sort((a, b) => b.title.localeCompare(a.title, 'zh-CN'));
+  }
+  // 「行业研究」按报告日期倒序排列（不看产业链名称）；同日期再按标题、文件名兜底，保证顺序稳定
+  if (manifest['行业研究']) {
+    manifest['行业研究'].sort((a, b) => {
+      const da = dateKey(a.file), db = dateKey(b.file);
+      if (da !== db) return db.localeCompare(da);
+      const t = a.title.localeCompare(b.title, 'zh-CN');
+      return t !== 0 ? t : a.file.localeCompare(b.file);
+    });
   }
   return manifest;
 }
