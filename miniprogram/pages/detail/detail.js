@@ -8,6 +8,7 @@ Page({
     desc: '',
     isTemplate: false,
     isBriefing: false,
+    briefingHasText: false,
     briefingDate: '',
     briefingNote: '',
     html: ''
@@ -19,11 +20,12 @@ Page({
     const sub = g.subModules[name] || {};
     const tpl = g.templates[name];
 
-    // 每日晨报：渲染内嵌的文本快照（小程序沙箱无法读取本地 PDF）
+    // 每日晨报：小程序端不内嵌正文（正文不随前端代码分发），只展示日期与去向提示
     const isBriefing = name === '每日晨报' && !!g.briefing;
+    const briefingHasText = !!(isBriefing && g.briefing.content);
     let html = '';
     if (isBriefing) {
-      html = this.markdownToHtml(g.briefing.content);
+      if (briefingHasText) html = this.markdownToHtml(g.briefing.content);
     } else if (tpl) {
       html = this.markdownToHtml(tpl);
     }
@@ -34,6 +36,7 @@ Page({
       desc: sub.desc || '',
       isTemplate: !!tpl,
       isBriefing,
+      briefingHasText,
       briefingDate: isBriefing ? g.briefing.date : '',
       briefingNote: isBriefing ? g.briefing.note : '',
       html

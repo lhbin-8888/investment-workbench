@@ -99,7 +99,7 @@ const navGroups = NAV.map(group => ({
   }))
 }));
 
-/* ---------------- 5. 读取最新晨报正文（小程序无法 fetch 本地 PDF，故内嵌文本快照） ---------------- */
+/* ---------------- 5. 读取最新晨报元信息（只取日期/文件名，正文一律不内嵌） ---------------- */
 
 function loadLatestBriefing() {
   // 晨报可能落在 data/ 或 01-投研信息收集/每日晨报/，两处都要扫，取日期最新的一份
@@ -120,18 +120,14 @@ function loadLatestBriefing() {
 
   // 取日期最大的一份（文件名即日期，字典序等于时间序）
   found.sort((a, b) => a.file < b.file ? -1 : a.file > b.file ? 1 : 0);
-  const { dir, file: latest } = found[found.length - 1];
+  const { file: latest } = found[found.length - 1];
   const date = latest.replace('-晨报.md', '');
-  const relDir = path.relative(ROOT, dir).replace(/\\/g, '/');
-  const content = fs.readFileSync(path.join(dir, latest), 'utf8')
-    .replace(/\r\n/g, '\n')
-    .trim();
 
+  // 只回传元信息：晨报正文（.md）仅本地留档，不随小程序代码分发
   return {
     date,
     file: latest,
-    content,
-    note: '本页为晨报文本快照，同步自 ' + relDir + '/' + latest + '。完整 PDF 版请在网页端工作台查看（小程序沙箱无法读取本地 PDF 文件）。'
+    note: '小程序端不内嵌晨报正文；完整内容请在网页端工作台查看 PDF 版。'
   };
 }
 
@@ -233,4 +229,4 @@ console.log('✔ 已生成 ' + path.relative(ROOT, OUT_PATH));
 console.log('  子模块数量：' + Object.keys(subModules).length);
 console.log('  导航分组  ：' + navGroups.map(g => g.label + '(' + g.items.length + ')').join(' / '));
 console.log('  模板数量  ：' + Object.keys(TM).length);
-console.log('  晨报快照  ：' + (briefing ? briefing.date + '（' + briefing.content.length + ' 字符）' : '无'));
+console.log('  晨报元信息：' + (briefing ? briefing.date + '（正文不内嵌）' : '无'));

@@ -14,9 +14,14 @@
     <view class="briefing-note-text">{{briefingNote}}</view>
   </view>
 
-  <view class="tpl-card" wx:if="{{isBriefing}}">
+  <view class="tpl-card" wx:if="{{isBriefing && briefingHasText}}">
     <view class="tpl-label">晨报全文</view>
     <rich-text nodes="{{html}}"></rich-text>
+  </view>
+
+  <view class="empty-state" wx:if="{{isBriefing && !briefingHasText}}">
+    <view class="empty-icon">📰</view>
+    <view class="empty-text">小程序端不内嵌晨报正文，请在网页端工作台查看 PDF 全文</view>
   </view>
 
   <view class="tpl-card" wx:if="{{isTemplate}}">

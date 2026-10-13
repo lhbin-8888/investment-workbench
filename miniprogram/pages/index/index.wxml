@@ -10,7 +10,7 @@
       <view class="briefing-tag">每日晨报</view>
       <view class="briefing-date">{{briefing.date}}</view>
     </view>
-    <view class="briefing-tip">点击查看全文（文本快照，PDF 版见网页端）</view>
+    <view class="briefing-tip">点击查看晨报日期与去向（正文请见网页端 PDF）</view>
   </view>
 
   <view class="group-label">功能模块</view>
