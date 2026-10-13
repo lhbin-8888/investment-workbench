@@ -83,9 +83,12 @@ function collectDocs() {
   for (const section of Object.keys(manifest)) {
     manifest[section].sort((a, b) => b.title.localeCompare(a.title, 'zh-CN'));
   }
-  // 「行业研究」按报告日期倒序排列（不看产业链名称）；同日期再按标题、文件名兜底，保证顺序稳定
-  if (manifest['行业研究']) {
-    manifest['行业研究'].sort((a, b) => {
+  // 时间流板块统一按报告日期倒序（不看名称归类，避免被产业链名/前缀打乱）；
+  // 同日期内按标题、文件名兜底，保证顺序稳定。其余板块维持标题排序。
+  const DATE_SORTED = ['行业研究', '每日晨报', '宏观研究', '行业板块龙头股分析', '板块轮动'];
+  for (const section of DATE_SORTED) {
+    if (!manifest[section]) continue;
+    manifest[section].sort((a, b) => {
       const da = dateKey(a.file), db = dateKey(b.file);
       if (da !== db) return db.localeCompare(da);
       const t = a.title.localeCompare(b.title, 'zh-CN');
