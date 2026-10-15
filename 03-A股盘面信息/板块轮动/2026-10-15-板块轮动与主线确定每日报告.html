@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>板块轮动与主线确定每日报告 · 2026-10-15（收盘口径）</title>
+<style>
+:root{--bg:#f6f7fb;--card:#ffffff;--ink:#1e293b;--sub:#64748b;--line:#e2e8f0;--red:#dc2626;--grn:#059669;--org:#ea580c;--blue:#2563eb;--ind:#4f46e5;--gold:#d97706;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei","PingFang SC",sans-serif;}
+body{background:var(--bg);color:var(--ink);padding:16px;}
+.wrap{max-width:1180px;margin:0 auto;}
+.header{background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff;border-radius:14px;padding:22px 26px;margin-bottom:14px;}
+.header h1{font-size:22px;margin-bottom:8px;}
+.header .meta{font-size:13px;opacity:.92;display:flex;flex-wrap:wrap;gap:14px;}
+.banner{border-radius:10px;padding:12px 16px;font-size:13.5px;line-height:1.7;margin-bottom:14px;}
+.banner.closed{background:#ecfdf5;border:1px solid #6ee7b7;color:#065f46;}
+.banner.zeromain{background:#fef2f2;border:1px solid #fca5a5;color:#7f1d1d;}
+.banner.holiday{background:#eff6ff;border:1px solid #93c5fd;color:#1e40af;}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px;}
+.kpi{background:var(--card);border-radius:10px;padding:14px 12px;border:1px solid var(--line);text-align:center;}
+.kpi .v{font-size:24px;font-weight:700;color:var(--ind);}
+.kpi .v.r{color:var(--red);}.kpi .v.g{color:var(--grn);}.kpi .v.o{color:var(--org);}
+.kpi .l{font-size:12px;color:var(--sub);margin-top:4px;}
+.card{background:var(--card);border-radius:12px;border:1px solid var(--line);padding:18px 20px;margin-bottom:14px;}
+.card h2{font-size:16px;margin-bottom:12px;color:#1e3a8a;}
+.card h2 .tag{font-size:11px;color:#fff;background:#3b82f6;border-radius:4px;padding:2px 7px;margin-left:8px;vertical-align:2px;}
+.verify{border-left:4px solid #a855f7;}
+.idxline{font-size:13px;color:var(--sub);line-height:2;}
+.idxline b{color:var(--ink);font-size:14px;}
+.up{color:var(--red);font-weight:600;}.dn{color:var(--grn);font-weight:600;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:#f1f5f9;color:#334155;padding:9px 6px;text-align:center;border-bottom:2px solid var(--line);white-space:nowrap;}
+td{padding:9px 6px;text-align:center;border-bottom:1px solid #f1f5f9;white-space:nowrap;}
+tr:hover td{background:#f8fafc;}
+.score{display:inline-flex;gap:2px;}
+.score i{width:9px;height:12px;border-radius:2px;background:#e2e8f0;display:inline-block;}
+.score i.on{background:#3b82f6;}
+.avg{font-weight:700;font-size:14px;}
+.tagline{border-radius:20px;padding:2px 10px;font-size:11.5px;font-weight:600;display:inline-block;}
+.tagline.main{background:#fee2e2;color:#b91c1c;}
+.tagline.watch{background:#fef3c7;color:#b45309;}
+.tagline.rot{background:#dcfce7;color:#15803d;}
+.tagline.ebb{background:#991b1b;color:#fff;}
+.tagline.cold{background:#e2e8f0;color:#475569;}
+.gateok{color:#059669;font-weight:700;}
+.gatebad{color:#dc2626;font-weight:700;}
+.ebbcard{background:#fef2f2;border:1px solid #fca5a5;border-left:4px solid #dc2626;border-radius:10px;padding:12px 16px;font-size:13px;line-height:1.9;margin-bottom:10px;color:#7f1d1d;}
+.ebbcard b{color:#991b1b;}
+.note{font-size:12.5px;color:var(--sub);line-height:1.9;}
+.ladder{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+.ladder .chip{background:#f1f5f9;border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:12.5px;}
+.ladder .chip b{color:#1e3a8a;}
+select{padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;margin-bottom:12px;background:#fff;}
+.btn{display:inline-block;background:#2563eb;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:13px;cursor:pointer;margin-top:4px;}
+.btn:hover{background:#1d4ed8;}
+.foot{font-size:12px;color:var(--sub);text-align:center;padding:14px 0;line-height:1.8;}
+.warn{background:#fffbeb;border:1px solid #fcd34d;color:#92400e;border-radius:10px;padding:12px 16px;font-size:13px;line-height:1.8;margin-bottom:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>📊 板块轮动与主线确定每日报告</h1>
+    <div class="meta">
+      <span>📅 报告日期：2026-10-15（周四）</span>
+      <span>🕐 数据口径：2026-10-15 收盘</span>
+      <span>📈 状态：收盘口径正式报告</span>
+      <span>🤖 自动化生成 · 仅供参考，不构成投资建议</span>
+    </div>
+  </div>
+
+  <div class="banner zeromain">🚫 <b>恐慌出清日 · 零真主线日（2026-10-15 收盘口径）</b>：普跌加深——上证 <b>-1.59%</b>、深证 <b>-2.43%</b>、创业板 <b>-2.92%</b>、北证50 <b>-3.44%</b>，涨跌 <b>399 : 4790</b>（近 1:12），两市成交 <b>1.63 万亿放量 2186 亿</b>＝放量下跌（恐慌出清），128 板块主力净流出扩大至 <b>-637.35 亿</b>（前日 -367.58 亿，放大 73%）、板块涨跌比仅 <b>3 : 125</b>；概念端通信技术 <b>-181.99 亿</b>、5G -162.27 亿、半导体 -134.21 亿、华为 -126.85 亿、CPO -124.83 亿、人工智能 -120.67 亿、国产芯片 -117.99 亿、算力 -107.75 亿全线百亿级失血。<b>本期无板块均分 ≥3.5</b>：出版 3.40 为唯一全过硬门槛板块（+0.68% / 3 涨停 / 新华文轩 2 板 / 连涨 3 天），差 0.10 分暂列真热点首位；白酒Ⅱ 3.00 防御（+1.03% / +7.77 亿净流入第一）；上期 weak 组真热点群（数字媒体/游戏Ⅱ/广告营销）单日 -2%~-3% 全线崩塌；煤炭/油气防御轮动一日游破 20 日线。体系信号＝<b>恐慌防守 · 空仓等待 · 出版单线轻仓 · 20 日线纪律</b>。</div>
+
+  <div class="card verify">
+    <h2>🔍 上期报告准确性复盘验证（v3 步骤 0）<span class="tag">10-14 期核销 · 第 4 期</span></h2>
+    <p class="note" style="color:var(--ink);line-height:2;">
+    <b>【观察清单 7 条核销：✓ 2 / ◐ 2 / ✗ 3，完全兑现率 28.6%】</b>（上期 28.6% → 持平；✓2 ①② / ◐2 ⑤⑦ / ✗3 ③④⑥）① <b>传媒线成色总检验（最高优先级）→ ✓ 兑现（反向信号如期触发）</b>：新经典断板（今日未封板，gtimg 快照无行情返回疑似停牌）、龙版传媒 -9.45%；数字媒体 -2.74%/-7.05 亿、掌阅科技 -3.04%、芒果超媒 -4.41%、引力传媒 -6.71%、富春股份 -7.27% 断板、三大板块 days 全部归 0——「传媒高位股全线降档」分支完全兑现，正向解锁分支（days=5 + 梯队重建）未触发。② <b>元件 20 日线收复检验 → ✓ 兑现（预测分支命中）</b>：-0.73% 滞涨、20 日线偏离 -7.19%→-7.73% 反而扩大，主力净流入 -23.15 亿（前两日 +13.67/+12.77 亿单日回吐）——「再滞涨则资金逻辑证伪」如期发生；但元件 5 涨停（金禄电子 20cm/崇达技术/天津普林/骏亚科技/澳弘电子）个股活跃度未死，观察级别保留。③ <b>煤炭/油气防御轮动持续性 → ✗ 证伪</b>：煤炭 -4.51%、油气 -4.60%（中国海油 -2.71%、兖矿能源 -5.54%），days=1→0 一日游、双双跌破 20 日线转退潮——防御轮动在普跌加深日并未守住。④ <b>游戏Ⅱ 均分 3.5 解锁观察 → ✗ 证伪</b>：板块 -2.08%/-6.63 亿、富春股份 -7.27% 断板、三七互娱 -0.06%/昆仑万维 +0.05% 中军未转强（电魂网络 +4.09% 独木难支），均分降至 1.80。⑤ <b>电池/科技硬件止跌信号 → ◐ 部分兑现</b>：宁德时代 -0.58% 微跌企稳、电池板块跌幅收窄（-3.08%→-1.71%）；但 CPO -124.83 亿、国产芯片 -117.99 亿、半导体 -134.21 亿、算力 -107.75 亿流出不收敛反扩大——止跌未确认。⑥ <b>2 板层 11 家晋级率 ≥30% → ✗ 证伪</b>：2/11 = 18%（冰山冷热、阳光乳业晋级 3 板），超声电子 +5.38% 未封板、万里股份 -8.88%、航发科技 -5.30% 全灭——情绪修复中断。⑦ <b>量能 1.41 万亿方向 → ◐ 部分兑现</b>：放量回 1.63 万亿（+2186 亿）达标，但上证 3707.48 未收复 3800 且为放量下跌（恐慌出清而非防守解除）。<br>
+    <b>【真热点延续性（上期 6 真热点 + 2 待验证 + 2 退潮）】</b>数字媒体 3.40 → <b>✗ 崩塌</b>（-2.74%/-7.05 亿/days 归 0）；游戏Ⅱ 3.40 → <b>✗ 崩塌</b>（-2.08%/-6.63 亿）；广告营销 3.20 → <b>✗ 崩塌</b>（-3.08%/-8.18 亿）——weak 组 days=3~4 热点群单日全灭，普跌日 weak 组真热点可信度最低再获实证；出版 2.80 → <b>✓ 强势</b>（+0.68%/3 涨停/唯一全过硬门槛、新华文轩晋级 2 板）；煤炭开采/油气开采Ⅱ 2.80 → <b>✗ 转退潮</b>（一日游破 20 日线）；影视院线 2.40 → <b>◐ 孤龙头缩圈</b>（慈文传媒 5 板全场最高但板块 -1.83%/-3.06 亿）；焦炭Ⅱ 2.40 → <b>✗ 崩塌</b>（-6.46% 破位）；元件/电池 退潮延续。<br>
+    <b>【口径抽查】</b>10-14 存档 JSON 全部 10 条的涨幅、主力净流入字段与东财 datacenter 回溯值<b>逐一比对全部一致（10/10，偏差 0.00pp，连续 2 期全量零漂移）</b>。<br>
+    <b>【方法论修正注记】</b>① 「days=1 上限 2 分」规则再命中（煤炭/油气 days=1→0 一日游、白酒Ⅱ days=1 按上限 2 分执行）；② 新增观察：<b>普跌日 weak 组真热点群（days≥3）同样集体崩塌</b>——防守期所有真热点按「一日游预期」处理，仓位纪律优先于均分；③ 「涨停独苗 + 板块净流出 = 龙头分歧」规则命中影视院线（慈文传媒 5 板 vs 板块 -3.06 亿流出），已在叙事中给出「热点将尽」提示；④ 证券Ⅱ MA20 贴线案例（-0.18%）按「宁可就低」判退潮、gateMsg 标注「近似贴线」，收复 20 日线即可解除——边界处理规则执行记录。</p>
+  </div>
+
+  <div class="card">
+    <h2>指数与市场概览<span class="tag">10-15 收盘</span></h2>
+    <div class="idxline">
+      上证 <b>3707.48</b> <span class="dn">-1.59%</span> ｜ 深证 <b>11816.79</b> <span class="dn">-2.43%</span> ｜ 创业板 <b>2783.17</b> <span class="dn">-2.92%</span> ｜ 科创50 <b>1359.52</b> <span class="dn">-1.50%</span> ｜ 沪深300 <b>4166.01</b> <span class="dn">-1.23%</span> ｜ 北证50 <b>967.51</b> <span class="dn">-3.44%</span><br>
+      两市成交 <b>16330 亿</b>（沪 7744 + 深 8586；较昨日 14144 亿<b>放量 2186 亿</b>）｜ 全市场涨停 <b>36 家</b>、跌停 <b>26 家</b>（东财池口径，涨停 36/36、跌停 26/26 前缀匹配零未匹配；乐咕含 ST 口径涨停 36/跌停 28）｜ 涨跌 <b>399 : 4790</b>（乐咕含 ST 口径）｜ 128 板块仅 <b>3 家</b>收涨（白酒Ⅱ/出版/证券Ⅱ）｜ 情绪周期：<b>恐慌出清（放量下跌）</b><br>
+      <span style="color:#7f1d1d;">当日定性：<b>「恐慌出清 + 白酒防御 + 传媒退潮」普跌加深日</b>：128 板块主力净流出扩大至 <b>-637.35 亿</b>（前日 -367.58 亿，放大 73%），板块涨跌比 3 : 125；通信技术/5G/半导体/华为/CPO/人工智能/国产芯片/算力概念单日失血均超百亿级；资金避风港仅白酒（+7.77 亿第一）、出版（+2.72 亿）与医疗服务（+4.76 亿逆势承接）、CRO 概念（+10.85 亿居概念流入第一）。</span>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="v">36</div><div class="l">涨停家数（东财池 · 乐咕 36）</div></div>
+    <div class="kpi"><div class="v r">26</div><div class="l">跌停家数（东财池 · 乐咕 28）</div></div>
+    <div class="kpi"><div class="v o">5 板 ×2</div><div class="l">最高连板 · 慈文传媒/百洋股份</div></div>
+    <div class="kpi"><div class="v">1.63 万亿</div><div class="l">两市成交 · 放量 2186 亿</div></div>
+    <div class="kpi"><div class="v r">399 : 4790</div><div class="l">上涨 : 下跌（乐咕口径）</div></div>
+    <div class="kpi"><div class="v r">-637.35 亿</div><div class="l">128 板块主力净额 · 流出扩大 73%</div></div>
+    <div class="kpi"><div class="v o">2 条</div><div class="l">真热点 · 出版 3.40 / 白酒Ⅱ 3.00</div></div>
+    <div class="kpi"><div class="v">✓2/◐2/✗3</div><div class="l">上期观察清单核销命中率</div></div>
+  </div>
+
+  <div class="card">
+    <h2>候选主线五维打分<span class="tag">10-15 收盘 · 均分降序 · 零真主线日</span></h2>
+    <select id="filterSel" onchange="render()">
+      <option value="all">全部候选板块</option>
+      <option value="main">仅真主线（均分 ≥ 3.5 且过硬门槛）</option>
+      <option value="watch">仅真热点（2.5 – 3.49）</option>
+      <option value="rot">仅待验证（&lt; 2.5）</option>
+      <option value="ebb">仅退潮观察（跌破 20 日线 · 一票否决）</option>
+    </select>
+    <div style="overflow-x:auto;">
+    <table>
+      <thead><tr>
+        <th>板块</th><th>涨幅%</th><th>主力净流入(亿)</th><th>涨停</th><th>连板高度</th><th>量比*</th><th>领涨中军</th><th>位置</th><th>连续上榜</th><th>催化</th><th>硬门槛</th><th>五维评分</th><th>均分</th><th>结论</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    </div>
+    <p class="note" style="margin-top:10px;">* 量比 = 当日板块成交额 ÷ 前 5 个交易日（|净占比|≥1% 的可信日）均额；由东财 datacenter 报表反推。<br>
+    五维 = [时间持续性, 资金质量, 广度扩散, 位置过热, 催化环境]；分级：<b>真主线</b>（过硬门槛 + 均分 ≥3.5）/ <b>真热点</b>（2.5–3.49）/ <b>待验证</b>（&lt;2.5）。<br>
+    <b>硬门槛（热点真假判定，优先于均分）</b>：① 板块指数跌破 20 日线 → <span style="color:#991b1b;font-weight:700;">退潮观察</span>，一票否决、不参与计分；② 未站上 10 日线或未连涨 3 天 → 弱启动，最高只判「真热点」；③ 涨停 &lt;2 且主力净流出 → 未入围。<br>
+    days（连续上榜天数）截至 10-15 真算（回溯窗口 09-01～10-15 共 27 个交易日，口径＝连续「收涨且主力净流入为正」的交易日数）。硬门槛 MA 判定采用<b>合成相对指数法</b>（由东财板块日涨跌幅复合重建，判定对指数基数常数不敏感；本期候选池中证券Ⅱ MA20 偏差 -0.18% 落入 |&lt;0.3%| 边界带，按「宁可就低」判退潮并在硬门槛列标注「近似贴线」）。出版主线成色提示：均分 3.40 差 0.10 分解锁真主线，相对指数 25 日累计 +22.5% 处高位加速区间，若 10-16 梯队再扩散（新华文轩 3 板 + 首板层晋级）即可升级；白酒Ⅱ days=1 按「上限 2 分」规则执行，持续性待验。</p>
+    <div id="ebbZone"></div>
+  </div>
+
+  <div class="card">
+    <h2>情绪结构 · 连板梯队与涨停分布<span class="tag">10-15 收盘</span></h2>
+    <div class="ladder">
+      <div class="chip"><b>5板</b> ×2 慈文传媒（影视院线）、百洋股份（饲料）</div>
+      <div class="chip"><b>3板</b> ×2 冰山冷热（通用设备）、阳光乳业（饮料乳品）</div>
+      <div class="chip"><b>2板</b> ×2 富春染织（纺织制造）、新华文轩（出版）</div>
+      <div class="chip"><b>首板</b> ×30</div>
+    </div>
+    <p class="note" style="margin-top:10px;"><b>连板高度 4 板 → 5 板抬升</b>（慈文传媒/百洋股份双双晋级 5 板，4 板层晋级率 2/3 = 67%），但广度断崖：3 板层（醋化股份）断板、2 板层 11 家仅 2 家晋级（18%）、2 板层存量收缩至 2 家（昨日 11 家）、首板 30 家占涨停总数 83%。涨停 36 家与昨日持平、跌停 26 家较昨日 11 家<b>翻倍</b>、涨跌 399:4790（近 1:12）——恐慌出清日。涨停板块分布：元件 5（金禄电子 20cm/崇达技术/天津普林/骏亚科技/澳弘电子——板块资金却净流出 23.15 亿，个股潮 ≠ 板块热点）、物流 4、出版 3（新华文轩 2 板/读者传媒/内蒙新华为）、化学制药 2、影视院线 1（慈文传媒 5 板）、白酒Ⅱ 1（皇台酒业）、饮料乳品 1（阳光乳业 3 板）、证券Ⅱ 1（华林证券）等 26 个板块。梯队结构：<b>高度微升 + 广度坍塌 + 接棒层断裂</b>——高度情绪靠两只 5 板独撑，2 板层急剧收缩（11→2）意味着明日高度情绪大概率断档，防守期典型末段形态。</p>
+  </div>
+
+  <div class="card">
+    <h2>当日轮动叙事与主线判定<span class="tag">10-15 收盘口径</span></h2>
+    <p class="note" style="color:var(--ink);line-height:2;">
+    ① <b>零真主线日：出版 3.40 唯一全过硬门槛</b>：+0.68%（128 板块仅 3 家收涨之一）/+2.72 亿连续 2 日净流入/days=2/3 涨停（新华文轩晋级 2 板、读者传媒、内蒙新华为首板）/gate=pass（MA20 +12.06%、10 日线上方、连涨 3 天全确认），五维 [4,4,4,2,3] 均分 3.40——差 0.10 分解锁真主线。相对指数 25 日累计 +22.5% 处<b>高位加速</b>区间，且高位标杆新经典断板提示风险，按「宁可就低」暂列真热点首位；若 10-16 梯队再扩散（新华文轩 3 板 + 读者/内蒙新华至少 1 家晋级 2 板）即可升级。<br>
+    ② <b>白酒Ⅱ 3.00：恐慌日唯一大额流入的防御方向</b>：+1.03% 涨幅第一/+7.77 亿净流入第一/皇台酒业涨停/贵州茅台 +2.10%、山西汾酒 +2.56% 中军转强/量比 1.79。days=1 按规则时间分上限 2，相对指数 97.3 低位启动、up3 未过 → gate=weak 最高真热点；防御轮动持续性待验（煤炭/油气一日游殷鉴不远），概念端超级品牌 +8.10 亿、酿酒 +5.75 亿、白酒 +5.06 亿同步流入。<br>
+    ③ <b>传媒线总崩塌（上期反向信号应验）</b>：新经典断板、龙版传媒 -9.45%；数字媒体 -2.74%/-7.05 亿、游戏Ⅱ -2.08%/-6.63 亿、广告营销 -3.08%/-8.18 亿全线 days 归 0；掌阅科技 -3.04%、芒果超媒 -4.41%、引力传媒 -6.71%、富春股份 -7.27% 高位股集体回撤——上期「主线资格回退」的传媒群一日内从「降档」跌成「待验证」，weak 组真热点群普跌日单日全灭为体系启用以来首例。⚠️ <b>慈文传媒 5 板（全场最高连板）但影视院线板块 -1.83%/-3.06 亿</b>、光线传媒 +0.08%——「龙头涨停但中军不涨」的孤龙头形态触发「热点将尽」附加条款：<b>5 板断板日即板块总回撤日</b>。<br>
+    ④ <b>科技硬件资金证伪：元件 5 涨停掩盖不了板块失血</b>：元件 -0.73%/<b>-23.15 亿</b>——前两日 13.67+12.77 亿流入被单日回吐，20 日线偏离 -7.19%→-7.73% 反而扩大；5 涨停个股潮（金禄电子 20cm、崇达技术、天津普林、骏亚科技、澳弘电子）与板块资金大失血背离，「个股涨停 ≠ 板块热点」第三例。概念端 CPO -124.83 亿、国产芯片 -117.99 亿、半导体 -134.21 亿、算力 -107.75 亿、通信技术 -181.99 亿、5G -162.27 亿——科技硬件出清仍未到尾声，元件复活候选降级（资金逻辑证伪）。<br>
+    ⑤ <b>防御轮动一日游 + 证券贴线</b>：煤炭 -4.51%/-3.36 亿、油气 -4.60%/-1.36 亿、焦炭 -6.46% 双双跌破 20 日线转退潮（10-14 避险资金当日撤离）；证券Ⅱ +0.32%/+2.33 亿/连涨 3 天（+0.02/+0.03/+0.32）/华林证券涨停，但相对指数距 MA20 仅差 -0.18%——按「宁可就低」判退潮观察并标注「近似贴线」，若 10-16 收复 20 日线即可解除标签，为低位复活观察点。<br>
+    ⑥ <b>情绪：恐慌出清</b>：放量 2186 亿下跌（1.63 万亿）＝承接与出清并存、跌停 26 家翻倍、涨跌 399:4790（近 1:12）、128 板块净流出 -637.35 亿创跟踪以来单日新高、板块涨跌比 3:125——亏钱效应极值区。唯一积极信号：4 板层晋级率 67%（慈文/百洋 5 板）与元件 5 涨停显示局部做多动能未完全熄灭，但接棒层（2 板层 11→2 家）断裂，修复需先见恐慌收敛（跌停收敛至 15 家以内）。</p>
+  </div>
+
+  <div class="card">
+    <h2>结论与下一交易日观察清单<span class="tag">下一交易日 10-16（周五）</span></h2>
+    <p class="note" style="color:var(--ink);line-height:2;">
+    <b>主线判定：0 条真主线，2 条真热点（出版 3.40 / 白酒Ⅱ 3.00），4 条待验证（游戏Ⅱ 1.80 / 数字媒体 1.60 / 广告营销 1.60 / 影视院线 1.60），4 条退潮观察（证券Ⅱ 2.60 / 元件 2.20 / 煤炭开采 2.00 / 油气开采Ⅱ 1.60），0 条未入围。</b>体系信号＝<b>恐慌防守日 · 零主线 · 出版单线轻仓 · 空仓等待恐慌收敛</b>。质量评估：出版 3.40 差 0.10 分、唯一全过硬门槛，为唯一值得跟踪的进攻方向；白酒Ⅱ 为防御侧支；普跌日所有真热点按「一日游预期」管理仓位。<br>
+    <b>下一交易日（10-16 周五）观察清单：</b>① <b>出版主线成色检验（最高优先级）</b>——均分 3.40 差 0.10 解锁主线：需 days=3 + 梯队再扩散（新华文轩 3 板、读者传媒/内蒙新华至少 1 家晋级 2 板）+ 中军皖新传媒/中文传媒转强；反向＝新华文轩断板或板块缩量滞涨 → 出版降级一日游；② 白酒防御轮动持续性——days=1→2 验证、皇台酒业二波、茅台/汾酒中军续涨；市场若反弹白酒通常退坡；③ <b>证券Ⅱ 贴线复活</b>——收复 20 日线（差 -0.18%）且华林证券连板 → 解除退潮标签，低位复活观察点；④ 科技硬件出清进度——通信技术/半导体/CPO 流出能否从百亿级收敛至 50 亿以下、元件 5 涨停次日接力（金禄电子 20cm 次日）、20 日线偏离 -7.73% 是否收敛；⑤ <b>慈文传媒 5 板孤龙头风险</b>——5 板断板即影视/传媒高位股二次回撤，观察封单质量与板块中军（上海电影）能否回补；⑥ 恐慌收敛检验——跌停能否从 26 收敛至 15 以内、涨停扩至 50+、2 板层从 2 家重新扩容（情绪修复前提）；⑦ 量能与指数——1.63 万亿放量下跌次日：继续放量下杀＝出清加速；缩量企稳 3700 上方＝修复启动；跌破 3650＝二次恐慌。</p>
+  </div>
+
+  <div class="card">
+    <h2>数据来源与口径声明</h2>
+    <p class="note">
+    A 股数据（10-15 收盘）：东方财富数据中心报表 RPT_INDUSTRY_FUNDFLOW（128 个申万二级行业，回溯 2026-09-01～10-15 共 27 个交易日 / 3456 行）、RPT_CONCEPT_FUNDFLOW（概念端当日 400 概念净流入/流出）、push2ex 涨停池（date=20261015，涨停 36/36、跌停 26/26 前缀匹配零未匹配；另回溯 10-14/10-13 涨停池用于核销。⚠️ 本期新坑：跌停池 sort 参数须用 fund:asc，用 fbt:asc 会返回空 pool）、腾讯 qt 指数快照（上证/深证/创业板/科创50/沪深300/北证50；新浪 hq 未带 Referer 返回 403，补 Referer 后核验上证一致）、乐咕乐股涨跌家数（399:4790，涨停 36/跌停 28 含 ST）、腾讯 gtimg 个股快照（慈文传媒/新华文轩/读者传媒/皇台酒业/金禄电子/宁德时代/贵州茅台等 46 只；新经典 sh605096 快照无行情返回疑似停牌，断板以未入涨停池为准）。<br>
+    上期核验（v3 步骤 0 第 4 期）：10-14 期观察清单 7 条核销 ✓2/◐2/✗3（完全兑现率 28.6%）；真热点延续性：出版✓强势/数字媒体·游戏Ⅱ·广告营销✗崩塌/煤炭·油气·焦炭✗转退潮/影视院线◐孤龙头；口径抽查 10/10 零漂移（偏差 0.00pp，连续 2 期全量核验）。<br>
+    口径说明：① 涨停家数为东财池口径（36），乐咕含 ST 口径涨停一致（36）、跌停 26 vs 28（2 家 ST 差异）；② 量比 = 当日成交额（净流入÷|净占比| 反推）÷ 前 5 个可信日（|净占比|≥1%）均额；③ days 为全量 128 板块真实计算的「连续收涨且主力净流入为正」的交易日数（回溯窗口 09-01 起）；④ 硬门槛 MA 判定采用合成相对指数法（详见打分表注），本期证券Ⅱ 为边界板块（-0.18%）已标注「近似贴线」。<br>
+    任务设计原定使用通达信（tdx-connector），本环境该 MCP 未连接，以上为等价真实数据源替代；所有数据为真实收盘数据，未使用任何估计值填充。</p>
+    <button class="btn" onclick="exportJSON()">⬇️ 导出 sector-rotation-data.json（2026-10-15 收盘）</button>
+  </div>
+
+  <div class="foot">
+    本报告由投研工作台自动化任务于 2026-10-15（周四 · 收盘口径）生成 ｜ A 股数据口径：2026-10-15 收盘 ｜ 上期核销：10-14 期 ✓2/◐2/✗3 ｜ 所有结论不构成投资建议 ｜ 实时主线以当日监测为准<br>
+    板块轮动 · 03-A股盘面信息 · 投研工作台 v1.1.0
+  </div>
+</div>
+
+<script>
+var SEED = [
+ {"n": "出版", "z": 0.68, "f": 2.72, "zt": 3, "lb": 2, "vb": 1.61, "mr": "新华文轩、读者传媒、内蒙新华", "pos": "高位加速", "days": 2, "cat": "政策密集", "s": [4, 4, 4, 2, 3], "gate": "pass", "ma20": true, "ma10": true, "up3": true, "gateMsg": "全部通过"},
+ {"n": "白酒Ⅱ", "z": 1.03, "f": 7.77, "zt": 1, "lb": 1, "vb": 1.79, "mr": "皇台酒业、贵州茅台、山西汾酒", "pos": "低位启动", "days": 1, "cat": "业绩窗口", "s": [2, 3, 3, 4, 3], "gate": "weak", "ma20": true, "ma10": true, "up3": false, "gateMsg": "未过10日线或连涨3天"},
+ {"n": "游戏Ⅱ", "z": -2.08, "f": -6.63, "zt": 0, "lb": 0, "vb": 1.88, "mr": "电魂网络、三七互娱、昆仑万维", "pos": "趋势中段", "days": 0, "cat": "事件驱动", "s": [1, 1, 2, 3, 2], "gate": "weak", "ma20": true, "ma10": true, "up3": false, "gateMsg": "未过10日线或连涨3天"},
+ {"n": "数字媒体", "z": -2.74, "f": -7.05, "zt": 0, "lb": 0, "vb": 1.38, "mr": "芒果超媒、掌阅科技、浙数文化", "pos": "趋势中段", "days": 0, "cat": "事件驱动", "s": [1, 1, 1, 3, 2], "gate": "weak", "ma20": true, "ma10": true, "up3": false, "gateMsg": "未过10日线或连涨3天"},
+ {"n": "广告营销", "z": -3.08, "f": -8.18, "zt": 0, "lb": 0, "vb": 1.07, "mr": "引力传媒、元隆雅图、蓝色光标", "pos": "趋势中段", "days": 0, "cat": "事件驱动", "s": [1, 1, 1, 3, 2], "gate": "weak", "ma20": true, "ma10": true, "up3": false, "gateMsg": "未过10日线或连涨3天"},
+ {"n": "影视院线", "z": -1.83, "f": -3.06, "zt": 1, "lb": 5, "vb": 1.23, "mr": "慈文传媒、上海电影、光线传媒", "pos": "高位加速", "days": 0, "cat": "事件驱动", "s": [1, 1, 2, 2, 2], "gate": "weak", "ma20": true, "ma10": true, "up3": false, "gateMsg": "未过10日线或连涨3天"},
+ {"n": "证券Ⅱ", "z": 0.32, "f": 2.33, "zt": 1, "lb": 1, "vb": 1.57, "mr": "华林证券、中信证券", "pos": "低位启动", "days": 1, "cat": "无", "s": [2, 3, 2, 4, 2], "gate": "ebb", "ma20": false, "ma10": true, "up3": true, "gateMsg": "跌破20日线(-0.18%·近似贴线)"},
+ {"n": "元件", "z": -0.73, "f": -23.15, "zt": 5, "lb": 1, "vb": 1.07, "mr": "金禄电子、崇达技术、超声电子", "pos": "低位启动", "days": 0, "cat": "业绩窗口", "s": [1, 0, 3, 4, 3], "gate": "ebb", "ma20": false, "ma10": false, "up3": false, "gateMsg": "跌破20日线(-7.73%)"},
+ {"n": "煤炭开采", "z": -4.51, "f": -3.36, "zt": 0, "lb": 0, "vb": 1.1, "mr": "中国神华、郑州煤电、兖矿能源", "pos": "低位启动", "days": 0, "cat": "业绩窗口", "s": [1, 1, 1, 4, 3], "gate": "ebb", "ma20": false, "ma10": false, "up3": false, "gateMsg": "跌破20日线(-2.81%)"},
+ {"n": "油气开采Ⅱ", "z": -4.6, "f": -1.36, "zt": 0, "lb": 0, "vb": 1.34, "mr": "中国海油、中国石油", "pos": "趋势中段", "days": 0, "cat": "事件驱动", "s": [1, 1, 1, 3, 2], "gate": "ebb", "ma20": false, "ma10": false, "up3": false, "gateMsg": "跌破20日线(-1.68%)"}
+];
+function avg(s){var t=0;for(var i=0;i<s.length;i++)t+=s[i];return t/s.length;}
+function gateInfo(d){
+  if(!d.gate)return{t:"—",c:"",k:"pass"};
+  if(d.gate==="ebb")return{t:"✗ 20日线下",c:"gatebad",k:"ebb"};
+  if(d.gate==="cold")return{t:"✗ 未入围",c:"gatebad",k:"cold"};
+  if(d.gate==="unknown")return{t:"数据缺",c:"",k:"unknown"};
+  var p=[];
+  if(d.ma20!==undefined&&d.ma20!==null)p.push(d.ma20?"20日✓":"20日✗");
+  if(d.ma10!==undefined&&d.ma10!==null)p.push(d.ma10?"10日✓":"10日✗");
+  if(d.up3!==undefined&&d.up3!==null)p.push(d.up3?"连涨3✓":"连涨3✗");
+  var bad=p.join("").indexOf("✗")>=0;
+  return{t:p.length?p.join(" "):"✓ 通过",c:bad?"gatebad":"gateok",k:d.gate};
+}
+function cls(d,a){var g=gateInfo(d).k;if(g==="ebb")return"ebb";if(g==="cold")return"cold";if(g==="weak")return a>=2.5?"watch":"rot";return a>=3.5?"main":(a>=2.5?"watch":"rot");}
+function label(d,a){var g=gateInfo(d).k;if(g==="ebb")return"退潮观察";if(g==="cold")return"未入围";if(g==="weak")return a>=2.5?"真热点":"待验证";if(g==="unknown")return a>=3.5?"待验证(门槛缺)":(a>=2.5?"待验证(门槛缺)":"待验证");return a>=3.5?"真主线":(a>=2.5?"真热点":"待验证");}
+function fmt(v,unit){if(v===null||v===undefined)return "—";return v+unit;}
+function render(){
+  var f=document.getElementById("filterSel").value;
+  var tb=document.getElementById("tbody");
+  var rows=[];
+  var arr=SEED.slice().sort(function(x,y){
+    var gx=gateInfo(x).k,gy=gateInfo(y).k;
+    var bx=(gx==="ebb"||gx==="cold")?1:0,by=(gy==="ebb"||gy==="cold")?1:0;
+    if(bx!==by)return bx-by;
+    return avg(y.s)-avg(x.s);
+  });
+  var ebbs=[];
+  for(var i=0;i<arr.length;i++){
+    var d=arr[i],a=avg(d.s),g=gateInfo(d),lab=label(d,a);
+    if(g.k==="ebb")ebbs.push(d);
+    if(f==="main"&&lab!=="真主线")continue;
+    if(f==="watch"&&lab!=="真热点")continue;
+    if(f==="rot"&&lab.indexOf("待验证")!==0)continue;
+    if(f==="ebb"&&g.k!=="ebb")continue;
+    var bars="";
+    for(var j=0;j<5;j++){bars=bars+('<i class="'+(j<Math.round(d.s[j])?"on":"")+'"></i>');}
+    var zc=d.z>0?"up":(d.z<0?"dn":"");
+    var fc=d.f>0?"up":(d.f<0?"dn":"");
+    rows.push("<tr>"+
+      "<td><b>"+d.n+"</b></td>"+
+      '<td class="'+zc+'">'+d.z.toFixed(2)+"</td>"+
+      '<td class="'+fc+'">'+d.f.toFixed(2)+"</td>"+
+      "<td>"+d.zt+"</td><td>"+fmt(d.lb,"板")+"</td><td>"+d.vb.toFixed(2)+"</td>"+
+      "<td>"+d.mr+"</td><td>"+d.pos+"</td><td>"+d.days+" 天</td><td>"+d.cat+"</td>"+
+      '<td class="'+g.c+'">'+g.t+"</td>"+
+      '<td><span class="score">'+bars+"</span></td>"+
+      '<td class="avg">'+a.toFixed(2)+"</td>"+
+      '<td><span class="tagline '+cls(d,a)+'">'+label(d,a)+"</span></td>"+
+      "</tr>");
+  }
+  tb.innerHTML=rows.join("");
+  var ez=document.getElementById("ebbZone");
+  if(ebbs.length){
+    var h='<div style="margin-top:12px;">';
+    for(var k=0;k<ebbs.length;k++){
+      var e=ebbs[k],m=avg(e.s);
+      h+='<div class="ebbcard">🚫 <b>'+e.n+"</b>｜涨幅 "+e.z.toFixed(2)+"%｜主力净流入 "+e.f.toFixed(2)+" 亿｜涨停 "+e.zt+" 家｜均分 "+m.toFixed(2)+
+         "——"+(e.gateMsg||"板块指数跌破 20 日均线，按《热点板块追踪方法》一票否决：政策、资金、梯队再好看，20 日线收复前一律视为退潮，反弹不算热点复活。")+"</div>";
+    }
+    h+="</div>";
+    ez.innerHTML=h;
+  }else{ez.innerHTML="";}
+}
+function exportJSON(){
+  var payload=JSON.stringify(SEED,null,1);
+  var blob=new Blob([payload],{type:"application/json;charset=utf-8"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="sector-rotation-data_2026-10-15收盘.json";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+render();
+</script>
+</body>
+</html>
