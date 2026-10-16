@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>板块轮动与主线确定每日报告 · 2026-10-16（收盘口径）</title>
+<style>
+:root{--bg:#f6f7fb;--card:#ffffff;--ink:#1e293b;--sub:#64748b;--line:#e2e8f0;--red:#dc2626;--grn:#059669;--org:#ea580c;--blue:#2563eb;--ind:#4f46e5;--gold:#d97706;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei","PingFang SC",sans-serif;}
+body{background:var(--bg);color:var(--ink);padding:16px;}
+.wrap{max-width:1180px;margin:0 auto;}
+.header{background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff;border-radius:14px;padding:22px 26px;margin-bottom:14px;}
+.header h1{font-size:22px;margin-bottom:8px;}
+.header .meta{font-size:13px;opacity:.92;display:flex;flex-wrap:wrap;gap:14px;}
+.banner{border-radius:10px;padding:12px 16px;font-size:13.5px;line-height:1.7;margin-bottom:14px;}
+.banner.closed{background:#ecfdf5;border:1px solid #6ee7b7;color:#065f46;}
+.banner.zeromain{background:#fef2f2;border:1px solid #fca5a5;color:#7f1d1d;}
+.banner.holiday{background:#eff6ff;border:1px solid #93c5fd;color:#1e40af;}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px;}
+.kpi{background:var(--card);border-radius:10px;padding:14px 12px;border:1px solid var(--line);text-align:center;}
+.kpi .v{font-size:24px;font-weight:700;color:var(--ind);}
+.kpi .v.r{color:var(--red);}.kpi .v.g{color:var(--grn);}.kpi .v.o{color:var(--org);}
+.kpi .l{font-size:12px;color:var(--sub);margin-top:4px;}
+.card{background:var(--card);border-radius:12px;border:1px solid var(--line);padding:18px 20px;margin-bottom:14px;}
+.card h2{font-size:16px;margin-bottom:12px;color:#1e3a8a;}
+.card h2 .tag{font-size:11px;color:#fff;background:#3b82f6;border-radius:4px;padding:2px 7px;margin-left:8px;vertical-align:2px;}
+.verify{border-left:4px solid #a855f7;}
+.idxline{font-size:13px;color:var(--sub);line-height:2;}
+.idxline b{color:var(--ink);font-size:14px;}
+.up{color:var(--red);font-weight:600;}.dn{color:var(--grn);font-weight:600;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:#f1f5f9;color:#334155;padding:9px 6px;text-align:center;border-bottom:2px solid var(--line);white-space:nowrap;}
+td{padding:9px 6px;text-align:center;border-bottom:1px solid #f1f5f9;white-space:nowrap;}
+tr:hover td{background:#f8fafc;}
+.score{display:inline-flex;gap:2px;}
+.score i{width:9px;height:12px;border-radius:2px;background:#e2e8f0;display:inline-block;}
+.score i.on{background:#3b82f6;}
+.avg{font-weight:700;font-size:14px;}
+.tagline{border-radius:20px;padding:2px 10px;font-size:11.5px;font-weight:600;display:inline-block;}
+.tagline.main{background:#fee2e2;color:#b91c1c;}
+.tagline.watch{background:#fef3c7;color:#b45309;}
+.tagline.rot{background:#dcfce7;color:#15803d;}
+.tagline.ebb{background:#991b1b;color:#fff;}
+.tagline.cold{background:#e2e8f0;color:#475569;}
+.gateok{color:#059669;font-weight:700;}
+.gatebad{color:#dc2626;font-weight:700;}
+.ebbcard{background:#fef2f2;border:1px solid #fca5a5;border-left:4px solid #dc2626;border-radius:10px;padding:12px 16px;font-size:13px;line-height:1.9;margin-bottom:10px;color:#7f1d1d;}
+.ebbcard b{color:#991b1b;}
+.note{font-size:12.5px;color:var(--sub);line-height:1.9;}
+.ladder{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+.ladder .chip{background:#f1f5f9;border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:12.5px;}
+.ladder .chip b{color:#1e3a8a;}
+select{padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;margin-bottom:12px;background:#fff;}
+.btn{display:inline-block;background:#2563eb;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:13px;cursor:pointer;margin-top:4px;}
+.btn:hover{background:#1d4ed8;}
+.foot{font-size:12px;color:var(--sub);text-align:center;padding:14px 0;line-height:1.8;}
+.warn{background:#fffbeb;border:1px solid #fcd34d;color:#92400e;border-radius:10px;padding:12px 16px;font-size:13px;line-height:1.8;margin-bottom:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>📊 板块轮动与主线确定每日报告</h1>
+    <div class="meta">
+      <span>📅 报告日期：2026-10-16（周五）</span>
+      <span>🕐 数据口径：2026-10-16 收盘</span>
+      <span>📈 状态：收盘口径正式报告</span>
+      <span>🤖 自动化生成 · 仅供参考，不构成投资建议</span>
+    </div>
+  </div>
+
+  <div class="banner zeromain">🚫 <b>零主线日 · 修复初段（2026-10-16 收盘口径 · 连续第 2 期零真主线）</b>：恐慌显著收敛——上证 <b>+0.24%</b> 站稳 3700 上方、涨跌 <b>3061 : 2023</b>（前日 399:4790）、涨停 <b>61</b>（前日 36）、跌停 <b>10</b>（前日 26），128 板块主力净流出收窄至 <b>-49.53 亿</b>（前日 -637.35 亿，收窄 92%）；两市 <b>1.56 万亿缩量 776 亿</b>＝缩量修复。军工全线大爆发（航空装备 <b>+5.98%</b>/+17.55 亿、地面兵装 +5.97%、航海装备 +4.72%、航天装备 +4.58%、军工电子 +2.87%；概念端军工 <b>+37.23 亿</b>、低空经济 +33.09 亿、无人机 +28.87 亿、军民融合 +24.59 亿）——但候选军工板块相对指数<b>全部压在 20 日线下方（-0.12% ~ -5.93%）</b>，低位大阳线 ≠ 热点复活，按《热点板块追踪方法》一票否决全部列退潮观察；汽车零部件 <b>14 涨停</b>（全场广度第一）+19.90 亿流入同被 20 日线（-4.84%）否决。仅<b>白酒Ⅱ 3.40</b>（连续 2 日走强）与<b>水泥 3.00</b> 站上 20 日线，gate=weak 封顶真热点。体系信号＝<b>修复初段 · 军工低位反押观察 · 20 日线收复是唯一升级门票</b>。</div>
+
+  <div class="card verify">
+    <h2>🔍 上期报告准确性复盘验证（v3 步骤 0）<span class="tag">10-15 期核销 · 第 5 期</span></h2>
+    <p class="note" style="color:var(--ink);line-height:2;">
+    <b>【观察清单 7 条核销：✓ 4 / ◐ 1 / ✗ 2，完全兑现率 57.1%】</b>（上期 28.6% → 回升；✓4 ②⑤⑥⑦ / ◐1 ④ / ✗2 ①③）① <b>出版主线成色检验（最高优先级）→ ✗ 证伪</b>：板块 +0.10% 缩量滞涨、主力净流出 -1.30 亿（前日 +2.72 亿转流出），days=2→0 归零，均分 3.40 解锁真主线失败；但新华传媒 <b>11 板</b>全场最高、新华文轩 3 板、读者传媒 2 板、出版传媒首板——板块内个股梯队完好，「板块动能与个股行情背离」，观察级别保留。② <b>白酒防御持续性 days=1→2 → ✓ 兑现</b>：+1.90%（连续 2 日收涨）/+4.78 亿（连续 2 日净流入）、days=2、金种子酒 +4.77%/迎驾贡酒 +3.63% 跟涨扩散——防御轮动未如煤炭/油气般一日游。③ <b>证券Ⅱ 贴线复活 → ✗ 证伪</b>：-1.23%/-14.76 亿大幅流出，未收复 20 日线反而退潮加深。④ <b>科技硬件出清进度 → ◐ 部分兑现</b>：半导体板块 <b>+34.22 亿转全市场净流入第一</b>（前日概念端 -134.21 亿）、存储芯片 +36.36 亿/国产芯片 +28.21 亿/半导体概念 +39.81 亿全线转正；但板块价 -0.76% 未止跌、元件 -3.52%/-11.56 亿续跌、AI 应用端（AI应用 -31.76 亿/AIGC -31.52 亿）仍流出——资金先行、价格滞后。⑤ <b>慈文传媒 5 板孤龙头断板风险 → ✓ 兑现</b>：未入今日涨停池（断板），影视院线 -2.38%/-10.35 亿二次回撤，「5 板断板日即板块总回撤日」警示应验。⑥ <b>恐慌收敛检验 → ✓ 兑现</b>：跌停 26→10（收敛 62%）、涨停 36→61、涨跌 3061:2023、2 板层从 2 家重新扩容至 4 家。⑦ <b>量能与指数方向 → ✓ 兑现</b>：缩量企稳 3700 上方（3716.28 +0.24%），「修复启动」分支命中（1.56 万亿缩量 776 亿）。<br>
+    <b>【真热点/退潮延续性】</b>出版 3.40 → <b>✗ 降级</b>（days 归 0、板块缩量滞涨，个股梯队未散）；白酒Ⅱ 3.00 → <b>✓ 升级</b>（3.40、days=2、唯一 weak 组头名）；weak 组游戏Ⅱ/数字媒体/广告营销/影视院线 → <b>✗ 连续第三日走弱</b>（-1.89%~-2.70%）；ebb 组：证券Ⅱ ✗ 加深、元件 ✗ 加深（-3.52%/-11.56 亿）、煤炭 +1.06%/油气 +1.32% <b>反弹但资金仍流出（-4.66/-0.22 亿）→ 反弹不算复活、纪律执行</b>。<br>
+    <b>【口径抽查】</b>10-15 存档 JSON 全部 10 条的涨幅、主力净流入字段与东财 datacenter 回溯值<b>逐一比对全部一致（10/10，偏差 0.00pp，连续 3 期全量零漂移）</b>。<br>
+    <b>【方法论修正注记】</b>① 「days=1 上限 2 分」规则继续执行（本期 8 个 days=1/0 候选全部 time≤2）；② 新增观察：<b>「个股潮 ≠ 板块热点」第四例（最强广度案例）</b>——汽车零部件 14 涨停+19.90 亿流入仍被 20 日线一票否决，板块位置纪律优先于一切广度/资金信号，规则四连验证；③ <b>低位大阳线 ≠ 热点复活</b>在军工群整体应验——修复日的普涨反抽最易诱导追高，20 日线收复前一律按退潮处理；④ 出版「板块-个股背离」为新形态：个股梯队完好但板块 days 归 0，升级前提改为「板块量能回补」而非仅梯队扩散。</p>
+  </div>
+
+  <div class="card">
+    <h2>指数与市场概览<span class="tag">10-16 收盘</span></h2>
+    <div class="idxline">
+      上证 <b>3716.28</b> <span class="up">+0.24%</span> ｜ 深证 <b>11802.46</b> <span class="dn">-0.12%</span> ｜ 创业板 <b>2772.38</b> <span class="dn">-0.39%</span> ｜ 科创50 <b>1358.65</b> <span class="dn">-0.06%</span> ｜ 沪深300 <b>4170.61</b> <span class="up">+0.11%</span> ｜ 北证50 <b>950.00</b> <span class="dn">-1.81%</span><br>
+      两市成交 <b>15554 亿</b>（沪 7325 + 深 8229；较昨日 16330 亿<b>缩量 776 亿</b>）｜ 全市场涨停 <b>61 家</b>、跌停 <b>10 家</b>（东财池口径，涨停 61/61、跌停 10/10 前缀匹配零未匹配；乐咕含 ST 口径涨停 61/跌停 11）｜ 涨跌 <b>3061 : 2023</b>（乐咕含 ST 口径）｜ 128 板块 <b>89 家</b>收涨 ｜ 情绪周期：<b>恐慌修复（缩量企稳）</b><br>
+      <span style="color:#065f46;">当日定性：<b>「恐慌修复 + 军工低位反抽 + 白酒水泥续强」修复初段日</b>：板块净流出收窄 92% 至 -49.53 亿，跌停收敛 62%；资金主攻军工与汽车零部件（华为汽车 +21.36 亿、低空经济 +33.09 亿、eVTOL +20.43 亿），半导体资金面大逆转（+34.22 亿全市场第一）；但修复为缩量性质，且最强方向全部位于 20 日线下方——反抽与复活待分辨。</span>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="v">61</div><div class="l">涨停家数（前日 36）</div></div>
+    <div class="kpi"><div class="v g">10</div><div class="l">跌停家数（前日 26 · 收敛 62%）</div></div>
+    <div class="kpi"><div class="v o">11 板</div><div class="l">最高连板 · 新华传媒（出版）</div></div>
+    <div class="kpi"><div class="v">1.56 万亿</div><div class="l">两市成交 · 缩量 776 亿</div></div>
+    <div class="kpi"><div class="v">3061 : 2023</div><div class="l">上涨 : 下跌（乐咕口径）</div></div>
+    <div class="kpi"><div class="v o">-49.53 亿</div><div class="l">128 板块主力净额 · 收窄 92%</div></div>
+    <div class="kpi"><div class="v">2 条</div><div class="l">真热点 · 白酒Ⅱ 3.40 / 水泥 3.00</div></div>
+    <div class="kpi"><div class="v">✓4/◐1/✗2</div><div class="l">上期观察清单核销命中率</div></div>
+  </div>
+
+  <div class="card">
+    <h2>候选主线五维打分<span class="tag">10-16 收盘 · 均分降序 · 零真主线日</span></h2>
+    <select id="filterSel" onchange="render()">
+      <option value="all">全部候选板块</option>
+      <option value="main">仅真主线（均分 ≥ 3.5 且过硬门槛）</option>
+      <option value="watch">仅真热点（2.5 – 3.49）</option>
+      <option value="rot">仅待验证（&lt; 2.5）</option>
+      <option value="ebb">仅退潮观察（跌破 20 日线 · 一票否决）</option>
+    </select>
+    <div style="overflow-x:auto;">
+    <table>
+      <thead><tr>
+        <th>板块</th><th>涨幅%</th><th>主力净流入(亿)</th><th>涨停</th><th>连板高度</th><th>量比*</th><th>领涨中军</th><th>位置</th><th>连续上榜</th><th>催化</th><th>硬门槛</th><th>五维评分</th><th>均分</th><th>结论</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    </div>
+    <p class="note" style="margin-top:10px;">* 量比 = 当日板块成交额 ÷ 前 5 个交易日（|净占比|≥1% 的可信日）均额；由东财 datacenter 报表反推。<br>
+    五维 = [时间持续性, 资金质量, 广度扩散, 位置过热, 催化环境]；分级：<b>真主线</b>（过硬门槛 + 均分 ≥3.5）/ <b>真热点</b>（2.5–3.49）/ <b>待验证</b>（&lt;2.5）。<br>
+    <b>硬门槛（热点真假判定，优先于均分）</b>：① 板块指数跌破 20 日线 → <span style="color:#991b1b;font-weight:700;">退潮观察</span>，一票否决、不参与计分；② 未站上 10 日线或未连涨 3 天 → 弱启动，最高只判「真热点」；③ 涨停 &lt;2 且主力净流出 → 未入围。<br>
+    days（连续上榜天数）截至 10-16 真算（回溯窗口 09-01～10-16 共 28 个交易日，口径＝连续「收涨且主力净流入为正」的交易日数）。硬门槛 MA 判定采用<b>合成相对指数法</b>（由东财板块日涨跌幅复合重建，判定对指数基数常数不敏感；本期候选池中水泥 dev20 +0.21%、航空装备Ⅱ dev20 -0.12% 落入 |&lt;0.3%| 边界带，前者在线上按过线、后者在线下按「宁可就低」判退潮并标注「近似贴线」）。本期要点：军工群与汽车零部件集体触发 20 日线一票否决——修复日的低位大阳线按体系一律先判反抽；半导体 dev20 -14.50% 深度低位、资金面已先行转正，属「资金先行、价格滞后」的观察型退潮。</p>
+    <div id="ebbZone"></div>
+  </div>
+
+  <div class="card">
+    <h2>情绪结构 · 连板梯队与涨停分布<span class="tag">10-16 收盘</span></h2>
+    <div class="ladder">
+      <div class="chip"><b>11板</b> 新华传媒（出版）</div>
+      <div class="chip"><b>4板</b> 冰山冷热（通用设备）</div>
+      <div class="chip"><b>3板</b> 新华文轩（出版）</div>
+      <div class="chip"><b>2板</b> ×4 读者传媒（出版）、尖峰集团（水泥）、东方嘉盛（物流）、吉大正元（软件开发）</div>
+      <div class="chip"><b>首板</b> ×54</div>
+    </div>
+    <p class="note" style="margin-top:10px;"><b>高度层剧变：5 板全灭、11 板独苗</b>——昨日 5 板×2（慈文传媒/百洋股份）双双断板，新华传媒续封 11 板独撑全场高度；2 板层晋级率 1/2 = 50%（新华文轩晋级 3 板 ✓、富春染织断板），2 板层存量 2→4 家重新扩容。涨停 61 家（前日 36）大幅扩容、跌停收敛至 10、涨跌 3061:2023——修复日广度先行。涨停板块分布：汽车零部件 <b>14</b>（捷众科技 30cm/英搏尔 20cm/均胜电子/铭科精技/天汽模/文灿股份/东安动力/旭升集团/保隆科技/万丰奥威/中鼎股份/亚普股份/浙江仙通/长春一东——板块资金 +19.90 亿全市场第二，但仍深陷 20 日线下）、通用设备 5（冰山冷热 4 板）、专用设备 5、出版 4（新华传媒 11 板/新华文轩 3 板/读者传媒 2 板/出版传媒）、航空装备 4（晟楠科技 30cm/晨曦航空 20cm/佳力奇 20cm/新兴装备）、化学制品 3（广东宏大/金奥博/兴欣新材）、水泥 2（尖峰集团 2 板/福建水泥）、地面兵装 2、照明设备 2 等 29 个板块。梯队结构：<b>高度独苗 + 首板大扩容（54 家占 89%）+ 军工/汽车双广度群</b>——修复初段典型形态，升级需 2 板层继续扩容与 20 日线收复共振。</p>
+  </div>
+
+  <div class="card">
+    <h2>当日轮动叙事与主线判定<span class="tag">10-16 收盘口径</span></h2>
+    <p class="note" style="color:var(--ink);line-height:2;">
+    ① <b>零主线日延续：白酒Ⅱ 3.40 唯一 weak 组头名</b>：+1.90%（连续 2 日收涨）/+4.78 亿（连续 2 日净流入）/days=2/皇台酒业 +6.81%、金种子酒 +4.77%、迎驾贡酒 +3.63% 跟涨扩散/相对指数 20 日线上方 +2.92%；但板块 0 涨停（广度分 2）+ up3 未过 → gate=weak 封顶真热点。防御轮动第二日存活（煤炭/油气一日游殷鉴未远），三季报业绩窗口支撑。<br>
+    ② <b>水泥 3.00：低位贴线上的顺周期修复</b>：+2.81%/+2.79 亿/2 涨停（尖峰集团 2 板、福建水泥 10cm）/海螺水泥 +6.45% 中军放量/相对指数 dev20 <b>+0.21% 近似贴线上方</b>、dev10 -0.09% 未过 → gate=weak。days=1 时间分按上限 2 执行，持续性待验。<br>
+    ③ <b>军工低位反抽群（本期最重要结构）</b>：航空装备 +5.98%/+17.55 亿/4 涨停、地面兵装 +5.97%/+7.72 亿（净占比 11.15% 全场最高之一）、航海装备 +4.72%、航天装备 +4.58%、军工电子 +2.87%/华力创通 20cm——概念端军工 +37.23 亿、低空经济 +33.09 亿、无人机 +28.87 亿、军民融合 +24.59 亿全线大额流入。但五板块相对指数<b>全部在 20 日线下方</b>（航空 -0.12% 近似贴线、地面 -0.37%、航海 -2.23%、军工电子 -5.84%、航天 -5.93%），按纪律一票否决全部列退潮观察：<b>低位大阳线 ≠ 热点复活，反弹不算复活</b>。航空装备距 20 日线仅 0.12%，为最接近复活者——10-19 放量收复即解除标签。<br>
+    ④ <b>汽车零部件 14 涨停 vs 20 日线 -4.84%：「个股潮 ≠ 板块热点」第四例（最强广度案例）</b>：捷众科技 30cm、英搏尔 20cm、均胜电子 +10.03%、14 家涨停全场最多 + 19.90 亿净流入全市场第二、华为汽车概念 +21.36 亿——广度与资金双满分仍被板块位置一票否决。深陷 20 日线下 4.84%，复活需先收复均线；次 日 14 涨停的接力率是关键观察。<br>
+    ⑤ <b>出版主线解锁失败但个股梯队未散</b>：板块 +0.10% 缩量滞涨、净流出 -1.30 亿、days 归 0 → 10-15 观察清单①「梯队再扩散即升级」分支证伪；但新华传媒 11 板（全场最高）、新华文轩 3 板、读者传媒 2 板、出版传媒首板——板块内梯队完好，属「板块-个股背离」新形态，升级前提改为板块量能回补，观察级别保留。<br>
+    ⑥ <b>恐慌修复确认 + 半导体资金面大逆转</b>：跌停 26→10、涨停 36→61、涨跌 399:4790→3061:2023、板块净流出 -637→-49.5 亿收窄 92%——上期观察清单⑥⑦双双兑现。半导体板块 +34.22 亿转全市场净流入第一（前日概念端 -134.21 亿），存储芯片 +36.36 亿/国产芯片 +28.21 亿转正；但板块价 -0.76% 未止跌、元件 -3.52% 续跌、AI 应用端仍流出 30 亿级——「资金先行、价格滞后」修复初段特征，持续性需验证。缩量 776 亿修复（非放量反攻），1.6 万亿上方放量确认前按修复初段管理仓位。</p>
+  </div>
+
+  <div class="card">
+    <h2>结论与下一交易日观察清单<span class="tag">下一交易日 10-19（周一）</span></h2>
+    <p class="note" style="color:var(--ink);line-height:2;">
+    <b>主线判定：0 条真主线，2 条真热点（白酒Ⅱ 3.40 / 水泥 3.00），0 条待验证，8 条退潮观察（汽车零部件 3.60 / 航空装备Ⅱ 3.40 / 地面兵装Ⅱ 3.20 / 半导体 2.80 / 军工电子Ⅱ 2.80 / 商用车 2.80 / 房地产开发 2.80 / 航海装备Ⅱ 2.40），0 条未入围。</b>体系信号＝<b>修复初段 · 零主线延续 · 军工低位反押等 20 日线 · 白酒/水泥为仅存可跟踪方向</b>。质量评估：本期退潮观察区集中了全市场最强方向（军工群+汽车零部件+半导体资金修复），是体系启用以来「均值分最高的退潮区」——一旦 20 日线收复，升级弹性极大；反之冲高回落即确认反抽。判定纪律：拿不准一律就低，收复 20 日线前不给复活标签。<br>
+    <b>下一交易日（10-19 周一）观察清单：</b>① <b>军工低位反抽定性检验（最高优先级）</b>——航空装备 dev20 -0.12%、地面兵装 -0.37% 距 20 日线一步之遥：放量收复即解除退潮标签（升级主线候选观察）；冲高回落缩量 = 一日游确认；② 白酒Ⅱ days=2→3 检验——连续 3 日收涨+流入则均分冲 3.5（weak 仍封顶），皇台酒业二波、金种子酒续强；市场若全面转强白酒通常退坡；③ 水泥贴线确认——dev20 +0.21% 需放量站稳 + 尖峰集团 3 板；④ 汽车零部件 20 日线修复检验（差 -4.84%）——14 涨停次日接力率 ≥30%、华为汽车概念续流、板块翻红；⑤ 半导体资金修复持续性——+34.22 亿次日能否续流入且板块翻红（资金→价格传导验证）；⑥ <b>新华传媒 11 板断板风险</b>——断板日=出版板块总回撤警示（10-15 已给），出版板块动能与个股梯队背离待解；⑦ 量能 1.56 万亿——缩量修复转放量确认（1.6 万亿上方）或缩量滞涨回落（3650 二次探底）。</p>
+  </div>
+
+  <div class="card">
+    <h2>数据来源与口径声明</h2>
+    <p class="note">
+    A 股数据（10-16 收盘）：东方财富数据中心报表 RPT_INDUSTRY_FUNDFLOW（128 个申万二级行业，回溯 2026-09-01～10-16 共 28 个交易日 / 3584 行）、RPT_CONCEPT_FUNDFLOW（概念端当日 400 概念净流入/流出）、RPT_BOARD_CONSTITUENT（10 个候选板块成分股 758 只，BOARD_CODE 数字码口径）、push2ex 涨停池（date=20261016，涨停 61/61、跌停 10/10 前缀匹配零未匹配；另回溯 10-15 涨停池用于核销）、腾讯 qt 指数快照（上证/深证/创业板/科创50/沪深300/北证50，时间戳 20261016161500 确认收盘口径）、乐咕乐股涨跌家数（3061:2023，涨停 61/跌停 11 含 ST）、腾讯 gtimg 个股快照（候选板块成分股批量拉取，用于领涨中军排序）。<br>
+    上期核验（v3 步骤 0 第 5 期）：10-15 期观察清单 7 条核销 ✓4/◐1/✗2（完全兑现率 57.1%）；真热点延续性：出版✗降级（个股梯队未散）/白酒Ⅱ✓升级/weak 组全线✗第三日/证券Ⅱ·元件✗加深/煤炭·油气反弹但资金流出✗纪律执行；口径抽查 10/10 零漂移（偏差 0.00pp，连续 3 期全量核验）。<br>
+    口径说明：① 涨停家数为东财池口径（61），乐咕含 ST 口径涨停一致（61）、跌停 10 vs 11（1 家 ST 差异）；② 量比 = 当日成交额（净流入÷|净占比| 反推）÷ 前 5 个可信日（|净占比|≥1%）均额；③ days 为全量 128 板块真实计算的「连续收涨且主力净流入为正」的交易日数（回溯窗口 09-01 起）；④ 硬门槛 MA 判定采用合成相对指数法（详见打分表注），本期水泥（+0.21% 线上）与航空装备Ⅱ（-0.12% 线下）为边界板块，分别按过线与「宁可就低」处理并标注。<br>
+    任务设计原定使用通达信（tdx-connector），本环境该 MCP 未连接，以上为等价真实数据源替代；所有数据为真实收盘数据，未使用任何估计值填充。</p>
+    <button class="btn" onclick="exportJSON()">⬇️ 导出 sector-rotation-data.json（2026-10-16 收盘）</button>
+  </div>
+
+  <div class="foot">
+    本报告由投研工作台自动化任务于 2026-10-16（周五 · 收盘口径）生成 ｜ A 股数据口径：2026-10-16 收盘 ｜ 上期核销：10-15 期 ✓4/◐1/✗2 ｜ 所有结论不构成投资建议 ｜ 实时主线以当日监测为准<br>
+    板块轮动 · 03-A股盘面信息 · 投研工作台 v1.1.0
+  </div>
+</div>
+
+<script>
+var SEED = [
+{"n": "白酒Ⅱ", "z": 1.9, "f": 4.78, "zt": 0, "lb": 0, "vb": 1.29, "mr": "皇台酒业、金种子酒、迎驾贡酒", "pos": "低位启动", "days": 2, "cat": "业绩窗口", "s": [4, 4, 2, 4, 3], "gate": "weak", "ma20": true, "ma10": true, "up3": false, "gateMsg": "未过10日线或连涨3天"},
+{"n": "水泥", "z": 2.81, "f": 2.79, "zt": 2, "lb": 2, "vb": 1.67, "mr": "福建水泥、尖峰集团、海螺水泥", "pos": "低位启动", "days": 1, "cat": "无", "s": [2, 3, 4, 4, 2], "gate": "weak", "ma20": true, "ma10": false, "up3": false, "gateMsg": "未过10日线或连涨3天"},
+{"n": "汽车零部件", "z": 2.37, "f": 19.9, "zt": 14, "lb": 1, "vb": 1.12, "mr": "捷众科技、英搏尔、均胜电子", "pos": "低位启动", "days": 1, "cat": "事件驱动", "s": [2, 4, 5, 4, 3], "gate": "ebb", "ma20": false, "ma10": false, "up3": false, "gateMsg": "跌破20日线(-4.84%)"},
+{"n": "航空装备Ⅱ", "z": 5.98, "f": 17.55, "zt": 4, "lb": 1, "vb": 1.72, "mr": "晟楠科技、晨曦航空、中简科技", "pos": "低位启动", "days": 1, "cat": "事件驱动", "s": [2, 4, 4, 4, 3], "gate": "ebb", "ma20": false, "ma10": true, "up3": false, "gateMsg": "跌破20日线(-0.12%·近似贴线)"},
+{"n": "地面兵装Ⅱ", "z": 5.97, "f": 7.72, "zt": 2, "lb": 1, "vb": 2.01, "mr": "北方长龙、甘化科工、长城军工", "pos": "低位启动", "days": 1, "cat": "事件驱动", "s": [2, 4, 3, 4, 3], "gate": "ebb", "ma20": false, "ma10": true, "up3": false, "gateMsg": "跌破20日线(-0.37%)"},
+{"n": "半导体", "z": -0.76, "f": 34.22, "zt": 0, "lb": 0, "vb": 0.96, "mr": "复旦微电、聚辰股份、灿瑞科技", "pos": "低位启动", "days": 0, "cat": "业绩窗口", "s": [1, 3, 2, 5, 3], "gate": "ebb", "ma20": false, "ma10": false, "up3": false, "gateMsg": "跌破20日线(-14.50%)"},
+{"n": "军工电子Ⅱ", "z": 2.87, "f": 4.22, "zt": 1, "lb": 1, "vb": 1.23, "mr": "华力创通、国科天成、华如科技", "pos": "低位启动", "days": 1, "cat": "事件驱动", "s": [2, 3, 2, 4, 3], "gate": "ebb", "ma20": false, "ma10": false, "up3": false, "gateMsg": "跌破20日线(-5.84%)"},
+{"n": "商用车", "z": 1.81, "f": 7.09, "zt": 1, "lb": 1, "vb": 0.5, "mr": "江淮汽车、安凯客车、中国重汽", "pos": "低位启动", "days": 1, "cat": "业绩窗口", "s": [2, 3, 2, 4, 3], "gate": "ebb", "ma20": false, "ma10": false, "up3": false, "gateMsg": "跌破20日线(-1.68%)"},
+{"n": "房地产开发", "z": 1.72, "f": 6.51, "zt": 1, "lb": 1, "vb": 1.07, "mr": "粤宏远Ａ、新城控股、天健集团", "pos": "低位启动", "days": 1, "cat": "政策密集", "s": [2, 3, 2, 4, 3], "gate": "ebb", "ma20": false, "ma10": false, "up3": false, "gateMsg": "跌破20日线(-2.89%)"},
+{"n": "航海装备Ⅱ", "z": 4.72, "f": -0.94, "zt": 0, "lb": 0, "vb": 0.91, "mr": "中科海讯、国瑞科技、中国海防", "pos": "低位启动", "days": 0, "cat": "事件驱动", "s": [1, 2, 2, 4, 3], "gate": "ebb", "ma20": false, "ma10": false, "up3": false, "gateMsg": "跌破20日线(-2.23%)"}
+];
+function avg(s){var t=0;for(var i=0;i<s.length;i++)t+=s[i];return t/s.length;}
+function gateInfo(d){
+  if(!d.gate)return{t:"—",c:"",k:"pass"};
+  if(d.gate==="ebb")return{t:"✗ 20日线下",c:"gatebad",k:"ebb"};
+  if(d.gate==="cold")return{t:"✗ 未入围",c:"gatebad",k:"cold"};
+  if(d.gate==="unknown")return{t:"数据缺",c:"",k:"unknown"};
+  var p=[];
+  if(d.ma20!==undefined&&d.ma20!==null)p.push(d.ma20?"20日✓":"20日✗");
+  if(d.ma10!==undefined&&d.ma10!==null)p.push(d.ma10?"10日✓":"10日✗");
+  if(d.up3!==undefined&&d.up3!==null)p.push(d.up3?"连涨3✓":"连涨3✗");
+  var bad=p.join("").indexOf("✗")>=0;
+  return{t:p.length?p.join(" "):"✓ 通过",c:bad?"gatebad":"gateok",k:d.gate};
+}
+function cls(d,a){var g=gateInfo(d).k;if(g==="ebb")return"ebb";if(g==="cold")return"cold";if(g==="weak")return a>=2.5?"watch":"rot";return a>=3.5?"main":(a>=2.5?"watch":"rot");}
+function label(d,a){var g=gateInfo(d).k;if(g==="ebb")return"退潮观察";if(g==="cold")return"未入围";if(g==="weak")return a>=2.5?"真热点":"待验证";if(g==="unknown")return a>=3.5?"待验证(门槛缺)":(a>=2.5?"待验证(门槛缺)":"待验证");return a>=3.5?"真主线":(a>=2.5?"真热点":"待验证");}
+function fmt(v,unit){if(v===null||v===undefined)return "—";return v+unit;}
+function render(){
+  var f=document.getElementById("filterSel").value;
+  var tb=document.getElementById("tbody");
+  var rows=[];
+  var arr=SEED.slice().sort(function(x,y){
+    var gx=gateInfo(x).k,gy=gateInfo(y).k;
+    var bx=(gx==="ebb"||gx==="cold")?1:0,by=(gy==="ebb"||gy==="cold")?1:0;
+    if(bx!==by)return bx-by;
+    return avg(y.s)-avg(x.s);
+  });
+  var ebbs=[];
+  for(var i=0;i<arr.length;i++){
+    var d=arr[i],a=avg(d.s),g=gateInfo(d),lab=label(d,a);
+    if(g.k==="ebb")ebbs.push(d);
+    if(f==="main"&&lab!=="真主线")continue;
+    if(f==="watch"&&lab!=="真热点")continue;
+    if(f==="rot"&&lab.indexOf("待验证")!==0)continue;
+    if(f==="ebb"&&g.k!=="ebb")continue;
+    var bars="";
+    for(var j=0;j<5;j++){bars=bars+('<i class="'+(j<Math.round(d.s[j])?"on":"")+'"></i>');}
+    var zc=d.z>0?"up":(d.z<0?"dn":"");
+    var fc=d.f>0?"up":(d.f<0?"dn":"");
+    rows.push("<tr>"+
+      "<td><b>"+d.n+"</b></td>"+
+      '<td class="'+zc+'">'+d.z.toFixed(2)+"</td>"+
+      '<td class="'+fc+'">'+d.f.toFixed(2)+"</td>"+
+      "<td>"+d.zt+"</td><td>"+fmt(d.lb,"板")+"</td><td>"+d.vb.toFixed(2)+"</td>"+
+      "<td>"+d.mr+"</td><td>"+d.pos+"</td><td>"+d.days+" 天</td><td>"+d.cat+"</td>"+
+      '<td class="'+g.c+'">'+g.t+"</td>"+
+      '<td><span class="score">'+bars+"</span></td>"+
+      '<td class="avg">'+a.toFixed(2)+"</td>"+
+      '<td><span class="tagline '+cls(d,a)+'">'+label(d,a)+"</span></td>"+
+      "</tr>");
+  }
+  tb.innerHTML=rows.join("");
+  var ez=document.getElementById("ebbZone");
+  if(ebbs.length){
+    var h='<div style="margin-top:12px;">';
+    for(var k=0;k<ebbs.length;k++){
+      var e=ebbs[k],m=avg(e.s);
+      h+='<div class="ebbcard">🚫 <b>'+e.n+"</b>｜涨幅 "+e.z.toFixed(2)+"%｜主力净流入 "+e.f.toFixed(2)+" 亿｜涨停 "+e.zt+" 家｜均分 "+m.toFixed(2)+
+         "——"+(e.gateMsg||"板块指数跌破 20 日均线，按《热点板块追踪方法》一票否决：政策、资金、梯队再好看，20 日线收复前一律视为退潮，反弹不算热点复活。")+"</div>";
+    }
+    h+="</div>";
+    ez.innerHTML=h;
+  }else{ez.innerHTML="";}
+}
+function exportJSON(){
+  var payload=JSON.stringify(SEED,null,1);
+  var blob=new Blob([payload],{type:"application/json;charset=utf-8"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="sector-rotation-data_2026-10-16收盘.json";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+render();
+</script>
+</body>
+</html>
