@@ -1,6 +1,6 @@
 {
-  "updated": "2026-10-16 15:30",
-  "period": "2026-09-18 ~ 2026-10-16",
+  "updated": "2026-10-19 15:31",
+  "period": "2026-09-21 ~ 2026-10-19",
   "days": 15,
   "fields": [
     "date",
@@ -23,25 +23,6 @@
   ],
   "rows": [
     {
-      "date": "09-18",
-      "up": 3937,
-      "down": 1109,
-      "limit_up": 78,
-      "limit_down": 0,
-      "failed": 25,
-      "continuous": 12,
-      "actual_limit_up": 78,
-      "cyb_limit_up": 3,
-      "kcb_limit_up": 2,
-      "first_board": 66,
-      "two_board": 8,
-      "three_board": 2,
-      "four_board": 2,
-      "five_board": 0,
-      "six_plus": 0,
-      "cycle": "振荡"
-    },
-    {
       "date": "09-21",
       "up": null,
       "down": null,
@@ -58,7 +39,7 @@
       "four_board": 2,
       "five_board": 1,
       "six_plus": 0,
-      "cycle": "回暖"
+      "cycle": "振荡"
     },
     {
       "date": "09-22",
@@ -88,7 +69,7 @@
       "failed": 26,
       "continuous": 12,
       "actual_limit_up": 51,
-      "cyb_limit_up": 1,
+      "cyb_limit_up": 2,
       "kcb_limit_up": 5,
       "first_board": 39,
       "two_board": 3,
@@ -257,14 +238,14 @@
       "limit_up": 36,
       "limit_down": 11,
       "failed": 24,
-      "continuous": 15,
+      "continuous": 13,
       "actual_limit_up": 36,
       "cyb_limit_up": 2,
       "kcb_limit_up": 0,
-      "first_board": 21,
-      "two_board": 11,
+      "first_board": 23,
+      "two_board": 7,
       "three_board": 1,
-      "four_board": 3,
+      "four_board": 5,
       "five_board": 0,
       "six_plus": 0,
       "cycle": "退潮"
@@ -306,6 +287,25 @@
       "five_board": 0,
       "six_plus": 1,
       "cycle": "分歧"
+    },
+    {
+      "date": "10-19",
+      "up": 2202,
+      "down": 2861,
+      "limit_up": 46,
+      "limit_down": 22,
+      "failed": 21,
+      "continuous": 11,
+      "actual_limit_up": 46,
+      "cyb_limit_up": 6,
+      "kcb_limit_up": 1,
+      "first_board": 35,
+      "two_board": 9,
+      "three_board": 2,
+      "four_board": 0,
+      "five_board": 0,
+      "six_plus": 0,
+      "cycle": "振荡"
     }
   ]
 }
