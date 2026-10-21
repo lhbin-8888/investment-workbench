@@ -1,6 +1,6 @@
 {
-  "updated": "2026-10-20 15:31",
-  "period": "2026-09-22 ~ 2026-10-20",
+  "updated": "2026-10-21 15:36",
+  "period": "2026-09-23 ~ 2026-10-21",
   "days": 15,
   "fields": [
     "date",
@@ -23,25 +23,6 @@
   ],
   "rows": [
     {
-      "date": "09-22",
-      "up": 2283,
-      "down": 2783,
-      "limit_up": 63,
-      "limit_down": 3,
-      "failed": 18,
-      "continuous": 24,
-      "actual_limit_up": 63,
-      "cyb_limit_up": 3,
-      "kcb_limit_up": 1,
-      "first_board": 39,
-      "two_board": 17,
-      "three_board": 4,
-      "four_board": 1,
-      "five_board": 1,
-      "six_plus": 1,
-      "cycle": "振荡"
-    },
-    {
       "date": "09-23",
       "up": null,
       "down": null,
@@ -50,7 +31,7 @@
       "failed": 26,
       "continuous": 12,
       "actual_limit_up": 51,
-      "cyb_limit_up": 2,
+      "cyb_limit_up": 1,
       "kcb_limit_up": 5,
       "first_board": 39,
       "two_board": 3,
@@ -58,7 +39,7 @@
       "four_board": 2,
       "five_board": 0,
       "six_plus": 0,
-      "cycle": "衰退"
+      "cycle": "振荡"
     },
     {
       "date": "09-24",
@@ -303,6 +284,25 @@
       "two_board": 8,
       "three_board": 5,
       "four_board": 1,
+      "five_board": 0,
+      "six_plus": 0,
+      "cycle": "振荡"
+    },
+    {
+      "date": "10-21",
+      "up": 1941,
+      "down": 3055,
+      "limit_up": 50,
+      "limit_down": 5,
+      "failed": 19,
+      "continuous": 16,
+      "actual_limit_up": 50,
+      "cyb_limit_up": 4,
+      "kcb_limit_up": 2,
+      "first_board": 34,
+      "two_board": 12,
+      "three_board": 1,
+      "four_board": 3,
       "five_board": 0,
       "six_plus": 0,
       "cycle": "振荡"
