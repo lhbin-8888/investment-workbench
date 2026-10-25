@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>端侧芯片发展前景与A股竞争优势四维评估 · 2026Q4</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script>
+// 离线兜底：CDN 不可达时给出明确提示，避免用户误以为报告图表损坏
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    if (typeof echarts === 'undefined') {
+      var boxes = document.querySelectorAll('.chart');
+      for (var i = 0; i < boxes.length; i++) {
+        boxes[i].innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;'
+          + 'color:#7C848C;font-size:13px;text-align:center;padding:0 20px;line-height:1.8;'
+          + 'border:1px dashed #E3E6EA;border-radius:8px;background:#FAFBFC">'
+          + '图表组件（ECharts）未能加载 CDN 资源<br>'
+          + '<span style="font-size:12px">请联网后刷新，或直接查阅本报告导出的 PDF 版本</span></div>';
+      }
+    }
+  }, 2500);
+});
+</script>
+<style>
+:root{
+  --brand:#ED7D31;
+  --brand-l:#F8C9A4;
+  --brand-d:#B85A18;
+  --ink:#1A1D21;
+  --ink2:#4A5158;
+  --ink3:#7C848C;
+  --line:#E3E6EA;
+  --bg:#F7F8FA;
+  --card:#FFFFFF;
+  --up:#D93025;
+  --down:#0E9E62;
+  --blue:#2563EB;
+  --teal:#0D9488;
+  --purple:#7C3AED;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"Microsoft YaHei","PingFang SC","Hiragino Sans GB",-apple-system,sans-serif;
+  background:var(--bg);color:var(--ink);line-height:1.72;font-size:15px;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 80px}
+
+/* ---------- header ---------- */
+header{
+  background:linear-gradient(135deg,#ED7D31 0%,#C25E16 100%);
+  color:#fff;padding:44px 0 38px;margin-bottom:28px;
+}
+header .wrap{padding-bottom:0}
+.eyebrow{font-size:13px;letter-spacing:3px;opacity:.9;font-weight:600}
+h1{font-size:32px;font-weight:800;line-height:1.35;margin:10px 0 12px;letter-spacing:.5px}
+.hmeta{font-size:13.5px;opacity:.95;line-height:1.9}
+.hmeta b{font-weight:700}
+
+/* ---------- section ---------- */
+section{margin-bottom:34px}
+h2{
+  font-size:21px;font-weight:800;color:var(--ink);margin-bottom:6px;
+  padding-left:13px;border-left:5px solid var(--brand);line-height:1.4;
+}
+h2 .en{font-size:12px;color:var(--ink3);font-weight:600;letter-spacing:1px;margin-left:8px}
+.sub{color:var(--ink2);font-size:14px;margin:8px 0 18px;padding-left:18px}
+h3{font-size:16.5px;font-weight:800;margin:22px 0 10px;color:var(--ink)}
+h3 .tag{
+  display:inline-block;background:var(--brand);color:#fff;font-size:11.5px;font-weight:700;
+  padding:2px 9px;border-radius:3px;margin-right:9px;vertical-align:2px;letter-spacing:.5px;
+}
+h3 .tag.g{background:#0E9E62} h3 .tag.b{background:var(--blue)} h3 .tag.p{background:var(--purple)}
+p{margin-bottom:11px;color:var(--ink2)}
+p strong,li strong{color:var(--ink);font-weight:700}
+ul,ol{margin:0 0 13px 22px;color:var(--ink2)}
+li{margin-bottom:6px}
+
+/* ---------- cards ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px 22px;margin-bottom:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media(max-width:900px){.grid3,.grid2{grid-template-columns:1fr}}
+
+.podium{position:relative;overflow:hidden}
+.podium::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--brand)}
+.rk{font-size:12px;font-weight:800;color:#fff;background:var(--brand);padding:3px 11px;border-radius:0 0 6px 0;display:inline-block;letter-spacing:1px}
+.rk.s2{background:#8A94A0} .rk.s3{background:#B0784E}
+.pname{font-size:20px;font-weight:800;margin:12px 0 2px;color:var(--ink)}
+.pcode{font-size:13px;color:var(--ink3);font-weight:600;margin-bottom:12px}
+.pcode b{color:var(--brand-d)}
+.pdesc{font-size:13.6px;color:var(--ink2);line-height:1.75;margin-bottom:12px}
+.pstats{display:grid;grid-template-columns:1fr 1fr;gap:8px;border-top:1px dashed var(--line);padding-top:12px}
+.pstat{font-size:12.5px;color:var(--ink3)}
+.pstat b{display:block;font-size:15px;color:var(--ink);font-weight:800}
+
+/* ---------- kpi ---------- */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:15px 16px;border-top:3px solid var(--brand)}
+.kpi .k{font-size:12px;color:var(--ink3);margin-bottom:6px;line-height:1.5}
+.kpi .v{font-size:25px;font-weight:800;color:var(--ink);line-height:1.15}
+.kpi .v small{font-size:13px;font-weight:700;color:var(--ink3)}
+.kpi .n{font-size:11.5px;color:var(--ink3);margin-top:6px;line-height:1.5}
+
+/* ---------- table ---------- */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:9px;background:var(--card);margin-bottom:14px}
+table{border-collapse:collapse;width:100%;font-size:13.4px;min-width:760px}
+th{background:#F2F4F7;font-weight:800;color:var(--ink);text-align:right;padding:11px 12px;white-space:nowrap;border-bottom:2px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th.l,td.l{text-align:left}
+td{padding:10px 12px;text-align:right;border-bottom:1px solid #F0F2F5;color:var(--ink2);white-space:nowrap}
+tbody tr:hover{background:#FDF8F4}
+tbody tr:last-child td{border-bottom:none}
+tr.hl{background:#FFF7F0!important}
+tr.hl td{color:var(--ink);font-weight:700}
+.up{color:var(--up);font-weight:700} .down{color:var(--down);font-weight:700}
+.dim{color:var(--ink3);font-size:12px}
+
+/* ---------- chart ---------- */
+.chartbox{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:16px 18px 12px;margin-bottom:14px}
+.chartbox .ct{font-size:14.5px;font-weight:800;margin-bottom:2px}
+.chartbox .cs{font-size:12px;color:var(--ink3);margin-bottom:10px}
+.chart{width:100%;height:380px}
+.chart.sm{height:330px}
+.src{font-size:11.5px;color:var(--ink3);margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+.src b{color:var(--ink2)}
+.tblwrap{display:none}
+.tblwrap.on{display:block}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tabs button{
+  font-family:inherit;font-size:12.5px;font-weight:700;padding:5px 14px;border-radius:5px;
+  border:1px solid var(--line);background:#fff;color:var(--ink2);cursor:pointer;transition:.15s
+}
+.tabs button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+/* ---------- callout ---------- */
+.call{border-left:4px solid var(--brand);background:#FFF9F4;padding:14px 18px;border-radius:0 8px 8px 0;margin:14px 0;font-size:14px;color:var(--ink2)}
+.call.blue{border-color:var(--blue);background:#F3F7FF}
+.call.red{border-color:var(--up);background:#FFF5F4}
+.call.green{border-color:var(--down);background:#F1FBF6}
+.call b{color:var(--ink)}
+.call .ct{font-weight:800;color:var(--ink);display:block;margin-bottom:5px;font-size:14.5px}
+
+/* ---------- flow (css boxes) ---------- */
+.flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin:16px 0}
+.fstep{
+  flex:1;min-width:150px;background:var(--card);border:1px solid var(--line);
+  border-radius:8px;padding:13px 15px;margin-right:26px;position:relative
+}
+.fstep:last-child{margin-right:0}
+.fstep::after{
+  content:"›";position:absolute;right:-19px;top:50%;transform:translateY(-50%);
+  font-size:24px;color:var(--brand);font-weight:700
+}
+.fstep:last-child::after{display:none}
+.fstep .fh{font-size:13.5px;font-weight:800;color:var(--brand-d);margin-bottom:5px}
+.fstep .fb{font-size:12.3px;color:var(--ink2);line-height:1.6}
+.tier{display:flex;gap:10px;margin-bottom:10px;align-items:stretch}
+.tier .tl{
+  width:118px;flex:none;background:#2C3138;color:#fff;border-radius:8px;padding:12px 10px;
+  display:flex;flex-direction:column;justify-content:center;text-align:center
+}
+.tier .tl b{font-size:14px;display:block}
+.tier .tl span{font-size:11px;opacity:.75}
+.tier .tr{flex:1;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 15px}
+.tier .tr .co{font-size:13.8px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.tier .tr .co b{color:var(--brand-d)}
+.tier .tr .de{font-size:12.3px;color:var(--ink2);line-height:1.6}
+
+.rankbox{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:9px;padding:15px 18px;margin-bottom:9px}
+.rankbox .no{
+  width:44px;height:44px;flex:none;border-radius:50%;background:var(--brand);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800
+}
+.rankbox .no.s2{background:#8A94A0} .rankbox .no.s3{background:#B0784E}
+.rankbox .nm{font-size:16px;font-weight:800;color:var(--ink);min-width:132px}
+.rankbox .nm span{display:block;font-size:12px;color:var(--ink3);font-weight:600}
+.rankbox .ds{flex:1;font-size:13px;color:var(--ink2);line-height:1.65}
+.rankbox .sc{font-size:23px;font-weight:800;color:var(--brand-d);min-width:78px;text-align:right}
+.rankbox .sc span{display:block;font-size:11px;color:var(--ink3);font-weight:600}
+
+.foot{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--ink3);line-height:1.9}
+.disc{
+  background:#FFF9F4;border:1px solid var(--brand-l);border-radius:9px;padding:16px 20px;
+  margin-top:20px;font-size:12.8px;color:var(--ink2);line-height:1.85
+}
+.disc b{color:var(--brand-d);display:block;margin-bottom:5px;font-size:13.5px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">端侧 AI 芯片 · 产业链深度 · 四维竞争力评估</div>
+    <h1>端侧芯片发展前景全景<br>与 A 股竞争优势前三强定盘</h1>
+    <div class="hmeta">
+      <b>行情与估值基准</b>：2026-10-23 收盘（westock-data 结构化接口）　|　
+      <b>财务口径</b>：2026 年半年报为主，恒玄/乐鑫/中颖/汇顶已披露三季报（2026-09-30）<br>
+      <b>覆盖范围</b>：A 股全部端侧 AI 计算芯片标的（已剔除地平线 09660.HK、黑芝麻智能 02533.HK 等港股及未上市主体）　|　
+      <b>编制日期</b>：2026-10-25
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ================= TLDR ================= -->
+<section>
+  <h2>结论先行<span class="en">TL;DR</span></h2>
+
+  <div class="kpis">
+    <div class="kpi"><div class="k">全球端侧 AI 市场规模<br>2025→2029</div><div class="v">3219<small>亿</small> → 1.22<small>万亿</small></div><div class="n">CAGR 约 40%（Frost &amp; Sullivan）</div></div>
+    <div class="kpi"><div class="k">边缘 AI 芯片出货增速<br>vs 云端（2026Q1）</div><div class="v">+45<small>%</small> <span style="font-size:16px;color:#7C848C">/</span> +12<small>%</small></div><div class="n">中低端端侧芯片涨幅破 110%（IDC）</div></div>
+    <div class="kpi"><div class="k">A 股机器人视觉 AI SoC<br>前三合计全球份额</div><div class="v">68.9<small>%</small></div><div class="n">全志 29.7% / 星宸 23.0% / 瑞芯微 16.2%（2025H1）</div></div>
+    <div class="kpi"><div class="k">中国车规级芯片国产化率<br>2026H1</div><div class="v">约 15<small>%</small></div><div class="n">其中高端智驾 SoC 不足 5%</div></div>
+    <div class="kpi"><div class="k">四维加权总分冠军<br>（算力/能效/内存/生态）</div><div class="v">8.12<small> / 10</small></div><div class="n">瑞芯微 603893.SH，4 组权重情景下均居首</div></div>
+  </div>
+
+  <div class="grid3">
+    <div class="card podium">
+      <span class="rk">第 1 名 · 综合冠军</span>
+      <div class="pname">瑞芯微</div>
+      <div class="pcode"><b>603893.SH</b> · 收盘 214.04 元 · 市值 906 亿</div>
+      <div class="pdesc">四维唯一无短板的选手。算力靠「主控 SoC + RK182X 协处理器」双轨拉到 32 TOPS 级别；内存维度以高带宽低功耗协处理器设计为卖点；生态是 A 股最完整的一套（完整 SDK + 4000+ 开发者伙伴 + 与 MiniCPM/通义千问联合适配）。机器人「小脑」份额国产第一（宇树 G1、智元灵犀 X2）。</div>
+      <div class="pstats">
+        <div class="pstat">四维得分<b>8.12</b></div>
+        <div class="pstat">2026H1 净利<b>+61.73%</b></div>
+        <div class="pstat">毛利率<b>45.79%</b></div>
+        <div class="pstat">ROE(TTM)<b>27.79%</b></div>
+      </div>
+    </div>
+    <div class="card podium">
+      <span class="rk s2">第 2 名 · 内存与毛利冠军</span>
+      <div class="pname">星宸科技</div>
+      <div class="pcode"><b>301536.SZ</b> · 收盘 113.73 元 · 市值 481 亿</div>
+      <div class="pdesc">唯一把「内存」做成显性卖点的公司——芯片集成存储，在存储涨价周期反而成为客户首选，毛利率 55.36% 全场最高。视觉 AI SoC 全球第一（26.7%），机器人视觉全球第二。硬伤是客户集中度（前五大 88.2%）与 44.09% 的负债率。</div>
+      <div class="pstats">
+        <div class="pstat">四维得分<b>8.00</b></div>
+        <div class="pstat">2026H1 净利<b>+619.50%</b></div>
+        <div class="pstat">毛利率<b>55.36%</b></div>
+        <div class="pstat">端边侧 AI 占比<b>66.38%</b></div>
+      </div>
+    </div>
+    <div class="card podium">
+      <span class="rk s3">第 3 名 · 能效与卡位冠军</span>
+      <div class="pname">恒玄科技</div>
+      <div class="pcode"><b>688608.SH</b> · 收盘 119.48 元 · 市值 283 亿</div>
+      <div class="pdesc">能效维度断层第一：6nm FinFET vs 国内同行普遍 22nm，在 6–9 小时续航的眼镜场景里制程直接决定可用算力上限。AI 眼镜主控事实标准（雷鸟、Rokid、小米、阿里夸克、理想 Livis）。BES6100 是国产首颗眼镜单芯片主控，已流片送样、预计 2027 量产。业绩正在下行期。</div>
+      <div class="pstats">
+        <div class="pstat">四维得分<b>7.38</b></div>
+        <div class="pstat">前三季净利<b class="down">−57.03%</b></div>
+        <div class="pstat">资产负债率<b>6.81%</b></div>
+        <div class="pstat">BES6100 进度<b>2027 量产</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="call">
+    <span class="ct">五条核心判断</span>
+    <ol style="margin-bottom:0">
+      <li><strong>端侧是确定性高的方向，但增速拐点已从「量」转向「量 + 规格升级 + ASP」三条腿走。</strong>2026Q1 边缘 AI 芯片出货 +45%，云端仅 +12%，剪刀差已经打开（IDC）。</li>
+      <li><strong>三个场景的竞争强度天差地别，切勿混为一谈。</strong>AI 眼镜（国产已卡位主控）＞ 机器人（国产赢在中低端视觉 SoC 与「小脑」）＞ 自动驾驶（<b>A 股几乎没有位置</b>，真正的玩家地平线在港股、高通占座舱 71.4%）。</li>
+      <li><strong>四维打分在 4 组不同权重情景下，Top3 完全不变</strong>——瑞芯微 / 星宸科技 / 恒玄科技。但第 3 与第 4 名（晶晨股份）差距仅 0.14–0.34 分，属于「打平」，需按场景取舍。</li>
+      <li><strong>技术第一 ≠ 股票第一。</strong>瑞芯微 PB 18.28 倍、恒玄 PE(TTM) 91.91 倍、星宸客户集中度 88.2%——四维竞争力与股价性价比要分开看，详见第六节。</li>
+      <li><strong>最大的技术真差距在内存，不在 TOPS。</strong>跑 30B MoE 级模型的瓶颈是缓存、内存带宽与动态显存调度；同时全行业面临「N 种模型 × M 种芯片 × K 种终端」的部署碎片化，这最后一公里至今没有解。</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================= 1. 标的池 ================= -->
+<section>
+  <h2>一、先把「端侧芯片」的边界划清楚<span class="en">Scope Definition</span></h2>
+  <p class="sub">口径不同，结论就不同。下面按算力形态分四层锁定 A 股标的池，并明确剔除项——这是全篇打分的前提。</p>
+
+  <h3><span class="tag">分层</span>端侧 AI 计算芯片的 A 股四层结构</h3>
+  <div class="flow">
+    <div class="fstep">
+      <div class="fh">L1 通用 AIoT / 应用处理器 SoC</div>
+      <div class="fb">自研 NPU，承担终端主控算力。硬件成本占整机 30%–50%。业绩已充分兑现。</div>
+    </div>
+    <div class="fstep">
+      <div class="fh">L2 低功耗无线 / 音频 SoC</div>
+      <div class="fb">轻量 NPU，覆盖 AI 眼镜、TWS、穿戴。技术代差最大的一层。</div>
+    </div>
+    <div class="fstep">
+      <div class="fh">L3 边缘 AI 专用 ASIC / 推理芯片</div>
+      <div class="fb">安防、边缘盒子、机器人。多数仍在亏损，是弹性与风险的同义词。</div>
+    </div>
+    <div class="fstep">
+      <div class="fh">L4 NPU IP 授权 / MCU</div>
+      <div class="fb">卖铲子与控制层。IP 不依赖单一终端成败；MCU 走独立涨价周期。</div>
+    </div>
+  </div>
+
+  <div class="tier">
+    <div class="tl"><b>L1</b><span>通用 SoC</span></div>
+    <div class="tr">
+      <div class="co"><b>瑞芯微 603893</b> ｜ <b>星宸科技 301536</b> ｜ <b>晶晨股份 688099</b> ｜ <b>全志科技 300458</b> ｜ 国科微 300672</div>
+      <div class="de">瑞芯微芯片业务占营收约 99%，主业纯度最高；星宸端边侧 AI 占 66.38%；晶晨是全球机顶盒/智能电视 SoC 第一，体量最大但 AI 属性偏弱；全志主打性价比路线。</div>
+    </div>
+  </div>
+  <div class="tier">
+    <div class="tl"><b>L2</b><span>低功耗 SoC</span></div>
+    <div class="tr">
+      <div class="co"><b>恒玄科技 688608</b> ｜ <b>乐鑫科技 688018</b> ｜ 炬芯科技 688049 ｜ 中科蓝讯 688332 ｜ 博通集成 603068 ｜ 安凯微 688620</div>
+      <div class="de">恒玄 6nm 领先同行一代制程；乐鑫 Wi-Fi MCU 全球第一、RISC-V 生态；炬芯 CIM 存算一体明确标注 6.4 TOPS/W 能效比。</div>
+    </div>
+  </div>
+  <div class="tier">
+    <div class="tl"><b>L3</b><span>边缘 ASIC</span></div>
+    <div class="tr">
+      <div class="co">云天励飞-U 688343 ｜ <b>富瀚微 300613</b> ｜ 寒武纪 688256</div>
+      <div class="de">富瀚微是这一层唯一实现规模盈利的标的（2026H1 净利 +1419.20%）；云天励飞仍亏损 2.52 亿；寒武纪主战场在云端训练，边缘延伸不构成端侧逻辑。</div>
+    </div>
+  </div>
+  <div class="tier">
+    <div class="tl"><b>L4</b><span>IP / MCU</span></div>
+    <div class="tr">
+      <div class="co"><b>芯原股份 688521</b> ｜ 中微半导 688380 ｜ 兆易创新 603986 ｜ 北京君正 300223 ｜ 汇顶科技 603160</div>
+      <div class="de">芯原 91 家客户、140 余款芯片、约 2.5 亿颗出货，是 NPU IP「卖铲人」，但 2026H1 亏损 6.12 亿、PB 22.43 倍、负债率 67.71%；兆易创新 75% 收入来自存储爆发，MCU 仅约 20%，不可当纯端侧 AI 标的对待。</div>
+    </div>
+  </div>
+
+  <div class="call red">
+    <span class="ct">已剔除的主体（避免混列导致结论失真）</span>
+    地平线 <b>09660.HK</b>、黑芝麻智能 <b>02533.HK</b>（港股，非 A 股）｜ 紫光展锐、华为海思、芯驰科技、芯擎科技、杰理科技（未上市）｜ 地瓜机器人（与地平线同源但非独立上市主体）｜ 澜起科技 688008（内存接口芯片，属内存链而非端侧算力芯片，单列讨论）｜ 沐曦股份 688802（具身智能芯片尚在合资公司研发阶段，计划 2027H2 流片）。
+  </div>
+</section>
+
+<!-- ================= 2. 前景 ================= -->
+<section>
+  <h2>二、发展前景：三个场景，一条分化主线<span class="en">Outlook by Scenario</span></h2>
+  <p class="sub">端侧 AI 不是单一故事。三个场景的市场规模、国产化率、技术瓶颈完全不在一个坐标系里，必须分开看。</p>
+
+  <div class="chartbox">
+    <div class="ct">图 1 ｜ 云端 vs 边缘 AI 芯片出货增速：增速剪刀差已经打开</div>
+    <div class="cs">2026Q1 同比口径，对比 2025 年同期云端 +35% 的降速幅度</div>
+    <div id="chart_edge" class="chart sm"></div>
+    <div class="src"><b>来源</b>：IDC 数据（经集微咨询《2026 年端侧 AI 芯片行业研究报告》转述）｜ <b>时点</b>：2026Q1 ｜ 属非一手来源，需核实原文</div>
+  </div>
+
+  <h3><span class="tag b">场景一</span>AI 眼镜：国产已经站在牌桌上</h3>
+  <div class="grid2">
+    <div class="card">
+      <h4 style="font-size:14.5px;font-weight:800;margin-bottom:9px">市场与格局</h4>
+      <ul style="font-size:13.4px">
+        <li>2025 年全球销量约 846 万台，同比 +453%（维深 WellsennXR）；2026H1 全球出货 711.4 万台，同比 +70.5%（IDC）</li>
+        <li>2026Q2 全球 354.7 万台，同比 +35.3%，增速较 Q1 的 +130% 明显回落</li>
+        <li><b>2026Q2 中国出货 61.1 万台、同比 −8.0%，首次负增长</b>（音频眼镜 −35.4% 拖累）</li>
+        <li>2026 全年预测存在分歧：IDC 2,368.7 万台 vs Omdia 1,500 万台</li>
+        <li>主控 SoC 占整机 BOM 约 30%–40%（Ray-Ban Meta 一代 BOM 约 174 美元，AR1 约 55 美元、占 31.6%）</li>
+        <li>全球 AI 眼镜 SoC 市场：2025 年 0.8 亿美元 → 2030 年 20.4 亿美元（约 143 亿元），CAGR 超 90%（麦高证券）</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4 style="font-size:14.5px;font-weight:800;margin-bottom:9px">A 股卡位地图</h4>
+      <ul style="font-size:13.4px">
+        <li><b>恒玄科技</b>：BES2800（6nm）导入雷鸟、Rokid、理想 Livis、小米、阿里夸克、魅族 MYVU 等；BES6100 单芯片方案已流片送样，预计 2027 量产</li>
+        <li><b>瑞芯微</b>：RK3588/RK3566/RV1106 用作小米 AI 眼镜主控及诠视 AR 眼镜</li>
+        <li><b>全志科技</b>：V821（12nm）+ 杰理 701X 双芯片，助青橙无线实现百万级出货；整机 BOM 可低于 200 元</li>
+        <li><b>星宸科技</b>：SSC309QL 用 Chiplet 适配眼镜长条形态，已出货 Looktech AI 眼镜</li>
+        <li><b>富瀚微</b>：MC6350（12nm、集成内存、8×8mm）接入国产开源大模型</li>
+        <li><b>中科蓝讯</b>：讯龙三代 BT895X 已适配豆包大模型</li>
+      </ul>
+    </div>
+  </div>
+  <div class="call blue">
+    <span class="ct">场景一判断</span>
+    国产替代不是「正面刚高通」，而是<b>三条分层路径</b>：协处理器（恒玄 BES2700/2800 搭高通 AR1）、中低价位系统级主控（全志 V821/V881）、显示型单芯片（BES6100 2027 量产后的真正突破点）。真差距在<b>工具链</b>——RKNN 算子兼容性与自动调优弱于高通 QNN、联发科 NeuroPilot，模型厂商优先适配海外平台，形成生态负循环。恒玄公开判断「眼镜无需追求特别大算力，算力与智力应放在云端和手机，眼镜做好环境感知」，是自身约束下的务实定位，也意味着短期不会与大算力正面竞争。
+  </div>
+
+  <h3><span class="tag b">场景二</span>自动驾驶：A 股最弱的环节，且需澄清认知</h3>
+  <div class="chartbox">
+    <div class="ct">图 2 ｜ 2026 年 1–6 月中国乘用车座舱域控芯片装机份额</div>
+    <div class="cs">A股唯一上榜者：杰发科技（四维图新 002405）0.7%，排名第十</div>
+    <div id="chart_cockpit" class="chart sm"></div>
+    <div class="src"><b>来源</b>：盖世汽车研究院（经爱建证券研究所图表转述）｜ <b>时点</b>：2026 年 1–6 月 ｜ 口径：国内乘用车座舱域控芯片装机量，非一手来源，需核实原文</div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <h4 style="font-size:14.5px;font-weight:800;margin-bottom:9px">智驾域控 SoC（2026 年 8 月装机颗数口径）</h4>
+      <ul style="font-size:13.4px">
+        <li>英伟达 24.6 万颗 / <b>30.2%</b>（第一）</li>
+        <li>地平线 16.1 万颗 / <b>19.8%</b>（第二）</li>
+        <li>华为 14.8% ｜ 特斯拉 12.3%</li>
+        <li>两家合计约 50%，年内差距从 35.9 个百分点收窄至 10.4 个百分点</li>
+        <li>自主品牌全阶口径（2026H1）：地平线 31.94% 第一，英伟达 29.38% 第二</li>
+        <li>城区 NOA 高阶口径（2026H1）：英伟达 39.43% 第一，地平线 22.82% 第二</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4 style="font-size:14.5px;font-weight:800;margin-bottom:9px">A 股在这个场景里到底有什么</h4>
+      <ul style="font-size:13.4px">
+        <li><b>晶晨股份 688099</b>：座舱 SoC 与信息娱乐 SoC 已进入宝马、林肯品牌量产（A 股最接近「已上车」）</li>
+        <li><b>四维图新 002405</b>（杰发科技）：AC8015 入门座舱 SoC 累计前装超 500 万颗、覆盖国内 90% 以上主机厂、出海占比超 50%；AC8025 中阶域控近 20 家车企定点。但 2026H1 SoC 收入利润双降，公司整体仍亏损 4.89 亿</li>
+        <li><b>全志科技 300458</b>：T527V 车规 AI SoC 过 AEC-Q100，前装智能座舱、舱泊一体定点量产</li>
+        <li><b>瑞芯微 603893</b>：RK3588M 轻量辅助驾驶落地，规划 RK3668M/RK3688M 向高阶座舱延伸</li>
+        <li><b>寒武纪 688256</b>：车规 SD5223 与在研产品，属边缘延伸</li>
+        <li><b>国芯科技 688262</b>：车规 MCU 国产替代弹性最大（汽车电子收入 +108.47%），但整体仍亏损</li>
+      </ul>
+    </div>
+  </div>
+  <div class="call red">
+    <span class="ct">场景二判断（必须点明的认知纠偏）</span>
+    <b>A 股没有纯智驾 SoC 上市龙头。</b>地平线、黑芝麻在港股；华为海思未独立上市；芯擎、芯驰未上市。整体上「<b>总成先国产化、芯片后国产化</b>」——Tier1 端德赛西威 2026H1 座舱域控装机 69.37 万套、份额 14.9% 稳居第一，而芯片层面国产合计仅约 13.7%。截至 2026H1，中国车规级芯片整体国产化率约 15%，<b>高端智驾 SoC 国产化率不足 5%</b>。工信部目标 2027 年车规级芯片国产化率 30%。同时车企自研（比亚迪璇玑 A3 单颗约 700 TOPS、蔚来神玑 NX9031、小鹏图灵、理想 M100）构成第三方芯片的长期上限约束，但 2025 年自研平台在量产车中实际采用率不足 5%，短期内「自研 + 外购」并行，第三方芯片仍有安全垫。
+  </div>
+
+  <h3><span class="tag b">场景三</span>机器人：国产最确定的战场，但赢在中低端</h3>
+  <div class="grid2">
+    <div class="chartbox" style="margin:0">
+      <div class="ct">图 3 ｜ 2025H1 全球机器人视觉 AI SoC 份额</div>
+      <div class="cs">A 股三家合计 68.9%，口径为机器人视觉 AI SoC 出货量</div>
+      <div id="chart_robot" class="chart sm"></div>
+      <div class="src"><b>来源</b>：星宸科技招股书、弗若斯特沙利文 ｜ <b>时点</b>：2025H1 ｜ 口径与「视觉 AI SoC 全市场」不同，不可混用或相加</div>
+    </div>
+    <div class="card">
+      <h4 style="font-size:14.5px;font-weight:800;margin-bottom:9px">「大脑」与「小脑」的分野</h4>
+      <ul style="font-size:13.4px">
+        <li>全球机器人视觉 AI SoC 出货：2020 年 70 万颗 → 2024 年 680 万颗（CAGR 76.5%）→ 2029 年预计 8010 万颗（CAGR 63.8%）</li>
+        <li>英伟达占 2025 年机器人 SoC 市场约 <b>69%</b>（Yole）；Jetson AGX Thor T5000 达 2070 TOPS(FP4)、128GB LPDDR5X</li>
+        <li><b>Jetson 内置 Cortex-R52 是安全岛用途，不能做身体运动控制</b>，头部整机厂普遍采用「Orin/Thor（大脑）+ 瑞芯微 RK3588（小脑）」双芯片组合</li>
+        <li>瑞芯微 RK3588（6 TOPS）已上宇树 G1、智元灵犀 X2——2025 年出货量最高的两款人形机器人；智元灵犀 X2 基础算力板已用 RK3588 替代 Xavier，成本从 1.45 万降至 9800 元、功耗降 7W</li>
+        <li>中微半导 688380 端侧 AI SoC 已流片，并发布 FoC 具身智能灵巧手方案，首次把「具身机器人」纳入应用范畴</li>
+        <li>富瀚微已向数家头部人形机器人客户供货，处于量产前关键阶段</li>
+        <li>2026H1 全球人形机器人出货约 1.9 万台（同比近 +300%），中国厂商占约 97%；半导体占整机 BOM 15%–25%，其中 <b>SoC + 内存占半导体价值量 65% 以上</b></li>
+      </ul>
+    </div>
+  </div>
+  <div class="call green">
+    <span class="ct">场景三判断</span>
+    <b>格局已定的是中低算力层，未定的是高算力「大脑」层。</b>金字塔结构清晰：&lt;1 TOPS（安凯微等拼功耗）、1–16 TOPS（全志、星宸、富瀚微，<b>这是当前真正放量的层</b>）、≥16 TOPS（星宸 32 TOPS 单芯片、瑞芯微主控+协处理器组合、地瓜 S600 560 TOPS）。短期内兑现业绩的是<b>泛机器人</b>（扫地 CAGR 16.5%、割草 130.1%、泳池清洁 32.4%），不是人形本体。而人形机器人本体大多尚未盈利，一级市场已现分化（2026 年 6 月起部分国资背景机构基本不再看具身智能项目）——<b>芯片供应商押注的是一个尚未被本体盈利验证的放量假设</b>。
+  </div>
+</section>
+
+<!-- ================= 3. 四维模型 ================= -->
+<section>
+  <h2>三、四维竞争力打分模型与前三名<span class="en">Four-Dimension Scoring</span></h2>
+  <p class="sub">四维打分，每维 10 分制，权重基准为等权 25%。评分依据全部来自公开技术参数、客户名单与财报数据，逐项标注来源，非主观印象分。</p>
+
+  <div class="chartbox">
+    <div class="tabs" data-target="radar">
+      <button class="on" data-view="chart">图</button>
+      <button data-view="table">表</button>
+    </div>
+    <div class="ct">图 4 ｜ 四维竞争力雷达：Top3 与主要对照</div>
+    <div class="cs">每维 10 分制，指标定义见下方评分口径表</div>
+    <div id="chart_radar" class="chart"></div>
+    <div class="tblwrap" id="radar">
+      <table>
+        <thead><tr><th class="l">公司（代码）</th><th>算力</th><th>能效</th><th>内存</th><th>生态</th><th>加权总分</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td class="l">瑞芯微 603893.SH</td><td>9.0</td><td>6.5</td><td>8.5</td><td>8.5</td><td>8.12</td></tr>
+          <tr class="hl"><td class="l">星宸科技 301536.SZ</td><td>8.5</td><td>6.5</td><td>9.0</td><td>8.0</td><td>8.00</td></tr>
+          <tr class="hl"><td class="l">恒玄科技 688608.SH</td><td>5.5</td><td>9.5</td><td>6.5</td><td>8.0</td><td>7.38</td></tr>
+          <tr><td class="l">晶晨股份 688099.SH</td><td>7.0</td><td>7.0</td><td>6.0</td><td>8.5</td><td>7.12</td></tr>
+          <tr><td class="l">炬芯科技 688049.SH</td><td>6.0</td><td>9.0</td><td>6.0</td><td>6.0</td><td>6.75</td></tr>
+          <tr><td class="l">乐鑫科技 688018.SH</td><td>3.5</td><td>9.0</td><td>5.0</td><td>8.5</td><td>6.50</td></tr>
+          <tr><td class="l">北京君正 300223.SZ</td><td>6.0</td><td>5.0</td><td>8.5</td><td>5.0</td><td>6.12</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="src"><b>来源</b>：作者基于公司公开技术参数、2026 半年报及第三方研究整理评分 ｜ 详见下方「评分口径与数据出处」｜ 非一手来源</div>
+  </div>
+
+  <h3><span class="tag">口径</span>四维指标定义与评分依据</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th class="l">维度</th><th class="l">指标定义（打分依据）</th><th class="l">为什么这个维度决定胜负</th></tr></thead>
+      <tbody>
+        <tr><td class="l"><b>算力</b></td><td class="l">NPU 峰值算力（INT8）+ 架构代际 + 可本地运行的最大模型参数规模 + 是否具备「主控 + 协处理器」组合扩展能力</td><td class="l">端侧算力是产品定价与场景准入的门槛，但单看 TOPS 已被证明会误导——须与能效、内存联读</td></tr>
+        <tr><td class="l"><b>能效</b></td><td class="l">制程节点 + 每瓦算力（TOPS/W）+ 架构级能效优化（存算一体等）+ 整机续航约束下的实际可用算力</td><td class="l">可穿戴与机器人都是「毫瓦到瓦级」预算，制程代差直接转化为续航与散热优势</td></tr>
+        <tr><td class="l"><b>内存</b></td><td class="l">内存带宽 + 缓存容量与调度 + 片上集成存储/堆叠能力 + 访存架构（存算一体、近存计算）</td><td class="l"><b>真正的硬差距在这里。</b>跑 30B MoE 级模型的瓶颈是缓存、内存带宽与动态显存调度，不是 TOPS</td></tr>
+        <tr><td class="l"><b>生态</b></td><td class="l">SDK 与工具链完整度 + 模型适配广度 + 量产客户数量与质量 + 开发者社区规模 + 是否有 Turnkey 交付能力</td><td class="l">换芯片从来不是换料号，而是重写算子、调量化参数、承担迁移成本与性能释放不确定性</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3><span class="tag p">排名</span>最终排序</h3>
+  <div class="rankbox">
+    <div class="no">1</div>
+    <div class="nm">瑞芯微<span>603893.SH</span></div>
+    <div class="ds"><b>算力 9.0</b>：RK3588/RK3576 6 TOPS，RK182X 协处理器量产（支持 3B/7B 模型），RK182X/RK1860 迭代，RK3668/RK3688 采用 4–5nm 制程；全梯度 NPU 覆盖 &lt;1 TOPS 至 16 TOPS 以上。<b>能效 6.5</b>：8nm 主控 6 TOPS 约 8W，约 1 TOPS/W，属中上但非顶级。<b>内存 8.5</b>：RK182X 定位「高带宽、低功耗、面向端侧大模型落地设计」，公司称至少领先业界一年、市场无类似产品，已有数百客户、数十行业在研发。<b>生态 8.5</b>：完整 SDK + RKNN 工具链、深度适配的视觉/音频/AI 算法生态、可复用参考设计、开发者大会 4000+ 合作伙伴、与 MiniCPM/通义千问联合适配。</div>
+    <div class="sc">8.12<span>加权总分</span></div>
+  </div>
+  <div class="rankbox">
+    <div class="no s2">2</div>
+    <div class="nm">星宸科技<span>301536.SZ</span></div>
+    <div class="ds"><b>算力 8.5</b>：SSR670 旗舰 8 TOPS，2026 年推出 12nm 及以下大算力芯片，单芯片 32 TOPS、原生支持 7B 端侧模型，全梯度覆盖 0.1T 至百 T 级。<b>能效 6.5</b>：12nm 及以下制程 + Chiplet 封装低功耗视觉方案（SSC309QL 对标国际竞品功耗优势显著）。<b>内存 9.0</b>：<b>芯片集成存储是全场唯一把内存做成显性卖点的</b>——存储紧缺期客户反而优先选它；2026H1 毛利率 55.36% 印证议价力。<b>生态 8.0</b>：视觉 AI SoC 全球第一（26.7%）、安防 41.2%、机器人视觉 23.0%，全球每 3 台家用扫地机用其 SoC；自研 IP 平台 + 交钥匙方案 + 境内外双循环供应链。扣分项：前五大客户占 88.2%、负债率 44.09%。</div>
+    <div class="sc">8.00<span>加权总分</span></div>
+  </div>
+  <div class="rankbox">
+    <div class="no s3">3</div>
+    <div class="nm">恒玄科技<span>688608.SH</span></div>
+    <div class="ds"><b>算力 5.5</b>：BES2800 为 TOPS 级 NPU（较 BES2700 提升 4 倍）；BES6000 为极致低功耗 1 TOPS；BES6100 已流片送样、预计 2027 量产，绝对算力仍是短板。<b>能效 9.5</b>：<b>断层第一。</b>6nm FinFET vs 国内同行普遍 22nm，在 6–9 小时续航的眼镜场景，制程直接决定可用算力上限。<b>内存 6.5</b>：BES6100 内置 ISP 的单芯片方案，系统层面消除双芯片通信复杂度与 PCB 面积，是内存/通信效率的实质改进，但绝对内存容量非其强项。<b>生态 8.0</b>：智能眼镜主控事实标准，覆盖雷鸟、Rokid、理想 Livis、小米、阿里夸克、魅族 MYVU、Looktech、旷明智能；智能手表导入小天才、颂拓；Turnkey 交付 + 全栈自研（射频/模拟/无线/声学/视觉/NPU/超低功耗 SoC）。</div>
+    <div class="sc">7.38<span>加权总分</span></div>
+  </div>
+  <div class="call">
+    <span class="ct">第 4 名：晶晨股份 688099.SH（7.12 分）——与第 3 名是「打平」关系</span>
+    晶晨的生态维度得分与瑞芯微并列最高（谷歌智能家居生态指定系统级芯片商、6nm AI 芯片 2025 年商用近 900 万颗、2026 年预计破 3000 万颗、全球渠道与宝马/林肯前装），PE(TTM) 43.17 与 PB 5.35 均为板块最低之一，资产负债率仅 16.55%。但<b>算力仅 8 TOPS（A311Y3）</b>、内存维度无差异化叙事，机器人业务尚在立项 40 余个项目的早期、未单独披露收入，AI 属性弱于前三。<b>取舍规则：若你更看重「生态规模 + 财务确定性 + 估值安全垫」，用晶晨替换恒玄；若你更看重「端侧 AI 技术壁垒 + AI 眼镜卡位 + 弹性」，保留恒玄。</b>
+  </div>
+
+  <h3><span class="tag g">稳健</span>敏感性检验：4 组权重下 Top3 是否稳定</h3>
+  <div class="chartbox">
+    <div class="tabs" data-target="sens">
+      <button class="on" data-view="chart">图</button>
+      <button data-view="table">表</button>
+    </div>
+    <div class="ct">图 5 ｜ 不同权重情景下的综合得分</div>
+    <div class="cs">四组情景代表四种投资/研究视角，检验排名稳健性</div>
+    <div id="chart_sens" class="chart"></div>
+    <div class="tblwrap" id="sens">
+      <table>
+        <thead><tr><th class="l">情景</th><th class="l">权重设定</th><th>瑞芯微</th><th>星宸科技</th><th>恒玄科技</th><th>晶晨股份</th><th>炬芯科技</th><th>乐鑫科技</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td class="l">A 等权</td><td class="l">25/25/25/25</td><td>8.12</td><td>8.00</td><td>7.38</td><td>7.12</td><td>6.75</td><td>6.50</td></tr>
+          <tr><td class="l">B 硬核派</td><td class="l">算力/能效 30/30，内存/生态 20/20</td><td>8.05</td><td>7.90</td><td>7.40</td><td>7.10</td><td>6.90</td><td>6.45</td></tr>
+          <tr><td class="l">C 可穿戴视角</td><td class="l">能效/生态 30/35，算力/内存 20/15</td><td>8.00</td><td>7.80</td><td>7.72</td><td>7.38</td><td>6.90</td><td>7.12</td></tr>
+          <tr><td class="l">D 内存视角</td><td class="l">内存/生态 30/25，算力/能效 25/20</td><td>8.22</td><td>8.12</td><td>7.22</td><td>7.08</td><td>6.60</td><td>6.30</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="src"><b>结论</b>：四组情景下 Top3 均为<b>瑞芯微 &gt; 星宸科技 &gt; 恒玄科技</b>，排名稳定。第 3 与第 4 名（晶晨股份）的差距在 0.14–0.34 分之间，视为「打平」；在情景 C（可穿戴视角）下差距收窄至 0.34 分、乐鑫升至第 5，说明结论对权重不敏感。</div>
+  </div>
+</section>
+
+<!-- ================= 4. Top3 深度 ================= -->
+<section>
+  <h2>四、三强深度画像：优势、硬伤与不可替代性<span class="en">Top 3 Deep Dive</span></h2>
+
+  <h3><span class="tag">No.1</span>瑞芯微 603893.SH —— 唯一四维无短板的「平台型」公司</h3>
+  <div class="grid2">
+    <div class="card">
+      <h4 style="font-size:14.5px;font-weight:800;margin-bottom:9px">不可替代性来源</h4>
+      <ul style="font-size:13.4px">
+        <li><b>「主芯片 + 协处理器」双轨战略</b>是最有价值的架构判断：客户不必为升级模型重做主板，加一颗协处理器即可提升 AI 能力。RK182X 已量产，数百客户、数十行业在研发，首批进入发布与量产阶段；下一代 RK1860 已完成研发</li>
+        <li>机器人「小脑」国产渗透率最高：宇树 G1、智元灵犀 X2 两款 2025 年出货量最高的人形机器人的运动控制方案均用其芯片；客户还包括云深处、优必选、极智嘉、科沃斯、比亚迪、联想</li>
+        <li>AI 眼镜已进入小米 AI 眼镜主控方案，下一代旗舰明确「重点布局 AI 眼镜市场」</li>
+        <li>智能应用处理器芯片占营收约 90%（另有口径称芯片业务合计约 99%，主业纯度全板块最高）——业绩弹性不依赖概念拼盘</li>
+        <li>财务质量最好：ROE(TTM) 27.79%、资产负债率 25.27%、有息负债仅 0.67 亿；2026H1 毛利率 45.79%、净利率 29.86% 双升，扣非 8.39 亿≈归母 8.59 亿（非经常性损益极少）</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4 style="font-size:14.5px;font-weight:800;margin-bottom:9px">硬伤与风险</h4>
+      <ul style="font-size:13.4px">
+        <li><b>估值全板块最贵</b>：PB 18.28 倍、PE(TTM) 66.25 倍。虽然 PE 近 5 年分位仅约 19%，但 PB 分位约 81%——结构上偏贵</li>
+        <li>工具链硬伤：RKNN 算子兼容性、自动调优弱于高通 QNN 与联发科 NeuroPilot，模型移植需大量人工适配，模型厂商优先适配海外平台</li>
+        <li>供应链集中风险：2026Q3 PCB 原材料短缺、交期拉长，因 AIoT 品类碎片化受冲击大于成熟产业，PCB 延迟导致芯片订单滞后顺延（公司预计 Q4 恢复）</li>
+        <li>存储涨价双向挤压：既抬升行业利润，也推高自身 BOM 成本并压制终端需求</li>
+        <li>Robot 收入未单独披露，把公司简单当「人形机器人概念股」会低估其 AIoT 平台属性、把估值逻辑想窄</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3><span class="tag">No.2</span>星宸科技 301536.SZ —— 视觉垂直做深后横向迁移，内存维度唯一赢家</h3>
+  <div class="grid2">
+    <div class="card">
+      <h4 style="font-size:14.5px;font-weight:800;margin-bottom:9px">不可替代性来源</h4>
+      <ul style="font-size:13.4px">
+        <li><b>集成存储是其在存储涨价周期里的反杀点</b>：外挂存储的同行成本飙升、供应紧张，星宸因芯片集成存储反而成为客户优先选择，2025Q4 起与客户协商涨价且接受度高</li>
+        <li>全球最大视觉 AI SoC 供应商（2024 年 26.7%），安防赛道全球第一 41.2%，与富瀚微合计占国内专业安防超 60%</li>
+        <li>机器人视觉 AI SoC 全球第二 23.0%，全球每 3 台家用扫地机用其 SoC；2025 年机器人芯片出货超 1000 万颗</li>
+        <li>班底来自晨星与联发科体系，75 项视频监控专利，自研 IP 平台 + 交钥匙方案，联发科至今仍是第一大股东之一</li>
+        <li>财务弹性最强：2026H1 营收 26.58 亿（+89.43%）、归母 8.63 亿（+619.50%）、毛利率 55.36% 全场最高，2026Q2 单季利润 6.43 亿增长超 8 倍；研报上调 2026 年净利至 18.83 亿，对应 PE 约 26.9 倍</li>
+        <li>战略投资 LPU 架构公司元川微，补强推理侧</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4 style="font-size:14.5px;font-weight:800;margin-bottom:9px">硬伤与风险</h4>
+      <ul style="font-size:13.4px">
+        <li><b>客户集中度极端</b>：前五大客户贡献全年 88.2% 销售额。安防收入占比仍高于 60%，且 2026 年 AI 眼镜与机器人并非其主战场</li>
+        <li>财务杠杆最高：资产负债率 44.09%（四家头部 SoC 中最高），有息负债 16.32 亿（长期借款 6.73 亿、短期借款 5.76 亿）、商誉 1.53 亿</li>
+        <li><b>利润质量裂缝</b>：净利增速 +619.50% 远高于经营现金流增速（+21.89%，3.70 亿）；存货从期初大幅增至 20.41 亿；H1 非经常性损益含较大金额金融资产公允价值变动收益（扣非 7.12 亿、+644.14%）</li>
+        <li>公司口径称剔除存储顺价后仍有超 10pct 毛利率提升，但 2025H2 的涨价顺价成分有多大，是后续季度必须验证的</li>
+        <li>存货与涨价周期的双向风险：存储价格回落时，毛利率与价格能否维持是核心变量</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3><span class="tag">No.3</span>恒玄科技 688608.SH —— 场景卡位最准，但业绩正在下行</h3>
+  <div class="grid2">
+    <div class="card">
+      <h4 style="font-size:14.5px;font-weight:800;margin-bottom:9px">不可替代性来源</h4>
+      <ul style="font-size:13.4px">
+        <li><b>AI 眼镜主控的事实标准</b>：国内大部分眼镜客户已量产或陆续导入 BES2800；覆盖雷鸟、Rokid（2026H1 新导入）、理想 Livis（BES2800BP）、小米、阿里夸克、魅族 MYVU、Looktech、旷明智能</li>
+        <li><b>制程代差是真实壁垒</b>：BES2800 用 6nm FinFET，国内可比公司（杰理、中科蓝讯、炬芯）仍停留 22nm——这不是营销话术，是功耗与可用算力的直接差</li>
+        <li>BES6100 是<b>国内首颗「混合异构单芯片」智能眼镜主控</b>：首款基于 ARM A 核设计（此前均为 M 核）、内置 ISP，解决双芯片方案通信复杂/PCB 面积大/成本高三大痛点；已流片并进入客户送样，预计 2027 量产</li>
+        <li>从「耳机芯片厂商」向「智能终端芯片厂商」转型，智能手表导入小天才、颂拓</li>
+        <li>财务极度干净：资产负债率 6.81%、货币资金 33.71 亿、PB 4.01 倍（板块最低之一）、无长期借款，有能力穿越下行期</li>
+        <li>股权激励目标 2027–2030 年营收增长 10%/22%/35%/50%，扣非净利增长 25%/42%/90%/130%</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4 style="font-size:14.5px;font-weight:800;margin-bottom:9px">硬伤与风险</h4>
+      <ul style="font-size:13.4px">
+        <li><b>业绩正在加速恶化</b>：2026H1 营收 13.51 亿（−30.29%）、归母 1.71 亿（−43.87%）；前三季度进一步至营收 21.47 亿（−26.81%）、归母 2.16 亿（<b>−57.03%</b>）、扣非 −59.41%</li>
+        <li>单季利润崩塌：3Q26 归母 0.44 亿、同比 −77.42%、环比 −45.85%；研发费用 2.23 亿（同比 +54%、环比 +36%、费用率 27.98%），主因 BES6100 流片费用计提</li>
+        <li><b>PE(TTM) 91.91 倍为板块最高</b>，市场给的是「AI 眼镜期权」估值，不是当期业绩估值；年初至今 −25.83%，股价与估值方向背离，属高风险高弹性品种</li>
+        <li>需求端不确定：2026Q2 中国智能眼镜出货首次负增长（−8.0%），音频眼镜 −35.4%；据行业媒体，2026 年 7 月中国线上销量仅 7.4 万台、同比环比双降，拍摄类均价被压至 819 元（需核实原文）</li>
+        <li>隐私监管风险：挪威拟禁、纽约州法院禁录、德国汉堡对 Meta 罚款，对拍摄类品类构成不确定性</li>
+        <li>成本端被动：存储与代工涨价，公司明确「会根据上游成本变动适时调整芯片价格」</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 5. 财务/估值 ================= -->
+<section>
+  <h2>五、技术第一 ≠ 股票第一：财务与估值现实检查<span class="en">Financial Reality Check</span></h2>
+  <p class="sub">四维竞争力衡量的是竞争壁垒，股价反映的是预期差。以下为可比口径横向对照，数据时点统一。</p>
+
+  <div class="tw">
+    <table>
+      <thead>
+        <tr><th class="l">公司（代码）</th><th>收盘价<br>(元)</th><th>总市值<br>(亿元)</th><th>PE(TTM)</th><th>PB</th><th>资产负债率</th><th>毛利率</th><th>最新期营收同比</th><th>最新期归母净利同比</th><th>年初至今</th></tr>
+      </thead>
+      <tbody>
+        <tr class="hl"><td class="l">瑞芯微 603893.SH</td><td>214.04</td><td>906</td><td>66.25</td><td>18.28</td><td>25.27%</td><td>45.79%</td><td class="up">+40.60%</td><td class="up">+61.73%</td><td class="up">+21.08%</td></tr>
+        <tr class="hl"><td class="l">星宸科技 301536.SZ</td><td>113.73</td><td>481</td><td>45.70</td><td>12.32</td><td>44.09%</td><td>55.36%</td><td class="up">+89.43%</td><td class="up">+619.50%</td><td class="up">+90.79%</td></tr>
+        <tr class="hl"><td class="l">恒玄科技 688608.SH</td><td>119.48</td><td>283</td><td>91.91</td><td>4.01</td><td>6.81%</td><td>42.27%</td><td class="down">−26.81%</td><td class="down">−57.03%</td><td class="down">−25.83%</td></tr>
+        <tr><td class="l">晶晨股份 688099.SH</td><td>100.68</td><td>426</td><td>43.17</td><td>5.35</td><td>16.55%</td><td>38.73%</td><td class="up">+31.86%</td><td class="up">+23.00%</td><td class="up">+15.68%</td></tr>
+        <tr><td class="l">全志科技 300458.SZ</td><td>30.08</td><td>299</td><td>50.56</td><td>8.58</td><td>19.15%</td><td>43.12%</td><td class="up">+41.23%</td><td class="up">+204.17%</td><td class="down">−13.71%</td></tr>
+        <tr><td class="l">乐鑫科技 688018.SH</td><td>154.36</td><td>362</td><td>63.38</td><td>7.69</td><td>11.26%</td><td>49.32%</td><td class="up">+33.38%</td><td class="up">+46.76%</td><td class="up">+27.49%</td></tr>
+        <tr><td class="l">君正股份 300223.SZ</td><td>105.40</td><td>543</td><td>39.60</td><td>3.99</td><td>—</td><td>51.75%</td><td class="up">+75.95%</td><td class="up">+489.60%</td><td class="down">−0.46%</td></tr>
+        <tr><td class="l">富瀚微 300613.SZ</td><td>69.30</td><td>161</td><td>34.23</td><td>5.08</td><td>—</td><td>45.28%</td><td class="up">+112.66%</td><td class="up">+1419.20%</td><td class="up">+50.71%</td></tr>
+        <tr><td class="l">芯原股份 688521.SH</td><td>124.79</td><td>656</td><td class="down">亏损</td><td>22.43</td><td class="up">67.71%</td><td>31.34%</td><td class="up">+75.95%</td><td class="down">−6.12亿</td><td class="down">−8.89%</td></tr>
+        <tr><td class="l">云天励飞-U 688343.SH</td><td>53.85</td><td>194</td><td class="down">亏损</td><td>5.43</td><td>—</td><td>29.05%</td><td>—</td><td class="down">−2.52亿</td><td class="down">−29.22%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="src"><b>来源</b>：westock-data 结构化接口（行情、估值、PE/PB、资产负债率、利润率、同比增速）｜ <b>时点</b>：行情与估值 2026-10-23 收盘；财务为 2026 半年报，恒玄/乐鑫/中颖/汇顶为 2026 三季报 ｜ 涨跌幅为年初至今 ｜ 均为公司披露口径</div>
+
+  <div class="call red">
+    <span class="ct">三个必须提示的估值/质量裂缝</span>
+    <ol style="margin-bottom:0">
+      <li><b>估值极端分化</b>：PE(TTM) 从中科蓝讯 7.59 倍到博通集成 123.88 倍相差 16 倍，PB 从 2.35 到瑞芯微 18.28 相差 7.8 倍。<b>端侧芯片板块不存在统一估值锚</b>，任何板块级估值判断都失效。</li>
+      <li><b>顺价成分普遍存在</b>：富瀚微明确将业绩归因于存储涨价下的产品提价 + 量增；全志称「上游存储涨价，不但扛住还成功把价格传导给客户」。这类利润的可持续性取决于成本回落后价格能否维持——三季报是第一个验证窗口。</li>
+      <li><b>星宸的现金流与利润不同步</b>：净利 +619.50% 对经营现金流 +21.89%、存货大增至 20.41 亿，是全表最需要跟踪的一处裂缝。</li>
+    </ol>
+  </div>
+
+  <h3><span class="tag p">资金</span>资金面：脉冲式行情，不是持续净流入</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th class="l">公司</th><th>当日主力净流入</th><th>5 日</th><th>10 日</th><th>20 日</th><th>当日流入占流通市值</th><th class="l">解读</th></tr></thead>
+      <tbody>
+        <tr><td class="l">乐鑫科技</td><td class="up">+2.69 亿</td><td class="down">−1.18 亿</td><td class="down">−1.90 亿</td><td class="down">−3.23 亿</td><td>0.74%</td><td class="l">当日最热，但 5/10/20 日全部净流出</td></tr>
+        <tr><td class="l">瑞芯微</td><td class="up">+2.16 亿</td><td class="down">−0.27 亿</td><td class="up">+4.38 亿</td><td class="down">−4.34 亿</td><td>0.24%</td><td class="l">10 日维度唯一持续净流入</td></tr>
+        <tr><td class="l">星宸科技</td><td class="up">+1.19 亿</td><td class="up">+0.40 亿</td><td class="up">+6.13 亿</td><td class="down">−2.54 亿</td><td>0.56%</td><td class="l">10 日净流入 6.13 亿，弹性最强</td></tr>
+        <tr><td class="l">恒玄科技</td><td class="up">+0.87 亿</td><td class="down">−0.92 亿</td><td class="down">−0.25 亿</td><td class="down">−1.60 亿</td><td>0.31%</td><td class="l">各维度均净流出，与股价表现一致</td></tr>
+        <tr><td class="l">全志科技</td><td class="up">+0.83 亿</td><td class="up">+0.22 亿</td><td class="up">+0.04 亿</td><td class="down">−5.60 亿</td><td>0.34%</td><td class="l">业绩强、股价弱，资金持续撤退</td></tr>
+        <tr><td class="l">晶晨股份</td><td class="up">+0.16 亿</td><td class="down">−2.67 亿</td><td class="down">−6.84 亿</td><td class="down">−10.24 亿</td><td>0.04%</td><td class="l">「业绩稳健但缺乏弹性」被系统性减持</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="src"><b>来源</b>：westock-data 资金流向接口 ｜ <b>时点</b>：2026-10-23 ｜ 催化背景：10 月 20–23 日由英伟达 GTC 柏林大会（物理 AI、智能体 AI）、Meta Muse 智能体爆火、Counterpoint/Gartner 渗透率预测共同催化，10 月 20 日恒玄 20cm 涨停，乐鑫 +16.86%</div>
+</section>
+
+<!-- ================= 6. 风险 ================= -->
+<section>
+  <h2>六、反面声音与风险清单<span class="en">Counter-Arguments &amp; Risks</span></h2>
+  <div class="grid2">
+    <div class="card">
+      <h4 style="font-size:14.5px;font-weight:800;margin-bottom:9px">可能被市场充分知道的事</h4>
+      <ul style="font-size:13.4px">
+        <li>端侧 AI 增速快于云端——已被充分定价（10 月行情已反应）</li>
+        <li>AI 眼镜、机器人是主线——已被充分定价</li>
+        <li>国产替代逻辑——在多数标的中已是共识</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4 style="font-size:14.5px;font-weight:800;margin-bottom:9px">可能还没被充分定价的事（预期差所在）</h4>
+      <ul style="font-size:13.4px">
+        <li><b>内存而非算力</b>：存算一体 / 近存计算是政策已点名的方向（工信部《电子信息制造业发展「十五五」规划》明确攻关近存计算、存算一体架构），炬芯 CIM（6.4 TOPS/W）、君正堆叠 DRAM、澜起内存接口是这条线上的不同落点</li>
+        <li><b>顺价周期的退出时点</b>：存储价格回落后，涨价传导能否维持，是 2027 年最大的变量</li>
+        <li><b>星宸的现金流与存货</b>：利润与现金流背离尚未被充分质疑</li>
+        <li><b>恒玄 BES6100 定点名单</b>：2027 量产的确定性尚未定价</li>
+        <li><b>汽车芯片国产化率 15% → 30%</b>的工信部目标路径</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="call red">
+    <span class="ct">六条硬风险（按杀伤力排序）</span>
+    <ol style="margin-bottom:0">
+      <li><b>生态迁移成本 &gt; 算力差距。</b>具身智能这一轮技术演进——大规模仿真训练、世界模型、VLA、算子库——几乎全部长在 CUDA 上。国产阵营出现「国产芯片密集发布」与「头部整机厂旗舰机继续标配英伟达」并存的现象，正是因为换芯片不是换料号，而是重写算子、调量化参数、承担迁移成本与性能释放不确定性。</li>
+      <li><b>存储涨价的双向作用。</b>既抬升 MCU 与部分 SoC 厂商利润，也侵蚀 SoC 成本、压制终端需求（国元证券已提示 DDR5 涨价压制终端需求）。这是全行业共同软肋。</li>
+      <li><b>Fabless 对海外先进制程代工的依赖是结构性风险</b>，同时叠加 PCB 原材料短缺、交期拉长（瑞芯微已明确提示）。</li>
+      <li><b>需求真实性分层。</b>2026Q2 中国智能眼镜首次负增长；人形机器人本体大多未盈利，一级市场已现分化。</li>
+      <li><b>部署侧碎片化未解。</b>NPU、GPGPU、DSA、RISC-V AI、ARM 并存，形成「N 种模型 × M 种芯片 × K 种终端」的组合，「最后一公里」打通是全产业共同问题。</li>
+      <li><b>技术迭代风险。</b>6nm/4nm 高端芯片量产进度、车规定点转批量交付节奏存在不确定性；舱驾一体若加速（2030 年渗透率预计超 40%），双芯方案供应商份额可能被快速压缩。</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================= 7. 跟踪指标 ================= -->
+<section>
+  <h2>七、可验证的跟踪指标清单<span class="en">Tracking Checklist</span></h2>
+  <div class="tw">
+    <table>
+      <thead><tr><th class="l">#</th><th class="l">跟踪项</th><th class="l">对应公司</th><th class="l">验证频率</th><th class="l">看什么信号</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td class="l">机器人芯片收入是否开始单独披露</td><td class="l">瑞芯微、星宸、全志</td><td class="l">季报</td><td class="l">从「场景之一」变成「独立业务线」＝主题升级为业绩</td></tr>
+        <tr><td>2</td><td class="l">毛利率在存储价格回落后能否维持</td><td class="l">星宸、富瀚微、全志</td><td class="l">季报</td><td class="l">顺价成分消退后的真实毛利率中枢</td></tr>
+        <tr><td>3</td><td class="l">RK182X / RK1860 协处理器与 RK3668（4–5nm）量产节奏</td><td class="l">瑞芯微</td><td class="l">季度</td><td class="l">首批客户量产数、数十行业的导入转化</td></tr>
+        <tr><td>4</td><td class="l">BES6100 客户定点名单与 2027 量产时点</td><td class="l">恒玄科技</td><td class="l">事件</td><td class="l">国产单芯片主控是否真正拿到主控地位</td></tr>
+        <tr><td>5</td><td class="l">AI 眼镜中国区出货能否从 Q2 负增长中恢复</td><td class="l">恒玄、全志、星宸</td><td class="l">月度/季度</td><td class="l">国补与 618 是否透支了真实需求</td></tr>
+        <tr><td>6</td><td class="l">高通风行 Q1 出货量与 ASP</td><td class="l">全板块</td><td class="l">月度</td><td class="l">成本回落曲线，决定顺价利润的持续性</td></tr>
+        <tr><td>7</td><td class="l">地瓜 S600、曦选创智（2027H2 流片）的实际客户导入数</td><td class="l">机器人大脑层对照组</td><td class="l">半年</td><td class="l">国产大脑层何时具备真正替代选项</td></tr>
+        <tr><td>8</td><td class="l">整机厂「Orin NX 可选化」进度</td><td class="l">瑞芯微（受益方）</td><td class="l">事件</td><td class="l">智元灵犀 X2 已把 Orin NX 变为可选项而非必选项，这是最有信息量的边际变化</td></tr>
+        <tr><td>9</td><td class="l">星宸经营现金流与存货周转</td><td class="l">星宸科技</td><td class="l">季报</td><td class="l">利润与现金流背离是否修复</td></tr>
+        <tr><td>10</td><td class="l">工信部 2027 年车规级芯片国产化率 30% 目标的落地细则</td><td class="l">晶晨、四维图新、全志</td><td class="l">政策</td><td class="l">「总成先国产化」向「芯片后国产化」切换的信号</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================= 8. 来源 ================= -->
+<section>
+  <h2>八、数据来源与口径说明<span class="en">Sources &amp; Methodology</span></h2>
+  <div class="card">
+    <h4 style="font-size:14.5px;font-weight:800;margin-bottom:9px">一手来源（可直接采信）</h4>
+    <ul style="font-size:13.2px">
+      <li>westock-data 结构化接口：行情、估值（PE/PB/股息率）、利润表、资产负债表、资金流向 —— <b>时点 2026-10-23 收盘 / 2026 半年报及三季报</b></li>
+      <li>公司公开披露：瑞芯微、星宸科技、恒玄科技、乐鑫科技、中微半导、富瀚微、国科微、君正股份等 2026 年半年报及投资者关系活动记录表（恒玄 2026-09-08 记录表明确 BES6100 流片与 2027 量产时点）</li>
+    </ul>
+    <h4 style="font-size:14.5px;font-weight:800;margin:14px 0 9px">非一手来源（需核实原文，已在正文标注）</h4>
+    <ul style="font-size:13.2px">
+      <li>集微咨询《2026 年端侧 AI 芯片行业研究报告》、弗若斯特沙利文（全球端侧 AI 市场规模、机器人视觉 AI SoC 份额）</li>
+      <li>IDC（AI 眼镜出货、边缘 AI 芯片增速）、Omdia / Counterpoint / Gartner / 维深 WellsennXR（智能眼镜出货口径分歧）</li>
+      <li>盖世汽车研究院（座舱域控芯片装机）、NE 时代（智驾域控芯片装机）、佐思汽研（2025 年 1–11 月智驾 SoC）</li>
+      <li>麦高证券（AI 眼镜 SoC 市场规模与单价）、Yole（机器人 SoC 份额）</li>
+      <li>券商研报（<b>第三方观点，本报告不采纳为推荐</b>）：华创证券瑞芯微首次覆盖（2026-09-28，研报目标价 277.22 元）、华泰证券恒玄（2026-10-24，研报目标价 119.32 元，56×2027PE，维持增持）</li>
+    </ul>
+    <h4 style="font-size:14.5px;font-weight:800;margin:14px 0 9px">口径与局限声明</h4>
+    <ul style="font-size:13.2px">
+      <li>四维打分为作者基于公开技术参数与财务数据的主观量化，<b>评分口径已在第三节完整披露，可被复核与推翻</b>；敏感性检验显示 Top3 对权重不敏感。</li>
+      <li>机器人视觉 AI SoC 份额（29.7%/23.0%/16.2%）为 2025H1 出货量口径，与「视觉 AI SoC 全市场」口径（星宸 2024 年 26.7% 全球第一）<b>不是同一统计范围，不可混用或相加</b>。</li>
+      <li>瑞芯微、星宸科技、全志科技、晶晨股份<b>均未单独披露「机器人芯片」收入</b>；第三方整理的「机器人芯片营收占比 100%」实为集成电路设计业务整体口径。</li>
+      <li>市占率数据来自多家机构，因统计口径与样本不同而存在分歧（如 2026 全年 AI 眼镜出货预测 IDC 2,368.7 万台 vs Omdia 1,500 万台），正文已分别标注来源，未做强行平均。</li>
+      <li>各公司财报财年均为自然年，横向比较基于 2026H1 同口径，未发生财年错位问题。</li>
+      <li>本报告不含任何具体买卖价位、仓位建议或目标价推荐。</li>
+    </ul>
+  </div>
+</section>
+
+<div class="disc">
+  <b>免责声明</b>
+  以上内容基于公开数据和量化分析，仅供参考，不构成投资建议。市场有风险，投资需谨慎。任何投资决策应结合个人风险承受能力、资金状况和投资目标独立判断，必要时咨询持牌专业机构。过往表现不预示未来收益。
+</div>
+
+<div class="foot">
+  <b>报告元信息</b>　编制日期：2026-10-25 ｜ 行情与估值基准：2026-10-23 收盘（westock-data）｜ 财务基准：2026 年半年报（恒玄/乐鑫/中颖/汇顶为三季报）｜ 货币单位：人民币<br>
+  <b>方法论</b>　产业链映射与卡点（industry-chain）＋ 同业比选（peer-comparison）＋ HTML 研报输出规范 ｜ <b>覆盖范围</b>　A 股端侧 AI 计算芯片，已剔除港股与未上市主体<br>
+  <b>数据一致性</b>　所有关键数据均可追溯至来源与时点；跨源冲突已显式标注分歧，未做静默取舍
+</div>
+
+</div>
+
+<script>
+(function(){
+  var C = {
+    orange:'#ED7D31', orangeL:'#F5B77E', blue:'#2563EB', teal:'#0D9488',
+    purple:'#7C3AED', gray:'#9AA3AC', red:'#D93025', green:'#0E9E62',
+    ink:'#1A1D21', ink2:'#4A5158', ink3:'#7C848C', line:'#E3E6EA'
+  };
+  var base = {
+    textStyle:{ fontFamily:'Microsoft YaHei, PingFang SC, sans-serif' },
+    color:[C.orange, C.blue, C.teal, C.purple, C.gray, C.red]
+  };
+  function merge(a,b){ var o={}; for(var k in a){o[k]=a[k];} for(var k2 in b){o[k2]=b[k2];} return o; }
+
+  // ---- chart 1: edge growth ----
+  var edgeEl = document.getElementById('chart_edge');
+  if(edgeEl){
+    echarts.init(edgeEl).setOption(merge(base, {
+      tooltip:{ trigger:'axis', axisPointer:{type:'shadow'}, valueFormatter:function(v){return v+'%';} },
+      legend:{ data:['2025Q1','2026Q1'], itemWidth:14, itemHeight:9, textStyle:{color:C.ink2,fontSize:12} },
+      grid:{ left:52, right:24, top:44, bottom:36 },
+      xAxis:{ type:'category', data:['云端 AI 芯片','边缘 AI 芯片','中低端端侧 AI 芯片'], axisLabel:{color:C.ink2,fontSize:12,interval:0}, axisLine:{lineStyle:{color:C.line}}, axisTick:{show:false} },
+      yAxis:{ type:'value', name:'同比出货增速 %', nameTextStyle:{color:C.ink3,fontSize:11}, axisLabel:{color:C.ink3,fontSize:11}, splitLine:{lineStyle:{color:'#F0F2F5'}} },
+      series:[
+        { name:'2025Q1', type:'bar', barWidth:26, data:[35,null,null], itemStyle:{color:'#C9CFD6', borderRadius:[4,4,0,0]} },
+        { name:'2026Q1', type:'bar', barWidth:26, data:[12,45,110], itemStyle:{color:C.orange, borderRadius:[4,4,0,0]},
+          label:{show:true, position:'top', formatter:'+{c}%', color:C.ink, fontWeight:700, fontSize:12} }
+      ]
+    }));
+  }
+
+  // ---- chart 2: cockpit share ----
+  var cockEl = document.getElementById('chart_cockpit');
+  if(cockEl){
+    var cockData = [
+      {v:71.4,n:'高通',a:false},{v:7.5,n:'华为',a:false},{v:5.2,n:'芯擎科技',a:false},
+      {v:5.1,n:'AMD',a:false},{v:4.8,n:'联发科',a:false},{v:2.0,n:'芯驰科技',a:false},
+      {v:1.5,n:'三星半导体',a:false},{v:0.9,n:'瑞萨电子',a:false},{v:0.8,n:'德州仪器',a:false},
+      {v:0.7,n:'杰发科技（A股）',a:true}
+    ];
+    echarts.init(cockEl).setOption(merge(base, {
+      tooltip:{ trigger:'axis', axisPointer:{type:'shadow'}, formatter:function(p){return p[0].name+'<br/>份额 '+p[0].value+'%';} },
+      grid:{ left:118, right:66, top:20, bottom:28 },
+      xAxis:{ type:'value', name:'装机份额 %', nameTextStyle:{color:C.ink3,fontSize:11}, axisLabel:{color:C.ink3,fontSize:11}, splitLine:{lineStyle:{color:'#F0F2F5'}} },
+      yAxis:{ type:'category', data: cockData.map(function(d){return d.n;}).reverse(),
+        axisLabel:{color:C.ink2,fontSize:11.5},
+        axisLine:{lineStyle:{color:C.line}}, axisTick:{show:false} },
+      series:[{ type:'bar', barWidth:'62%',
+        data: cockData.map(function(d){ return {value:d.v, itemStyle:{color: d.a?C.orange:'#C9CFD6', borderRadius:[0,4,4,0]}}; }),
+        label:{ show:true, position:'right', formatter:'{c}%', color:C.ink2, fontSize:11.5, fontWeight:600 }
+      }]
+    }));
+  }
+
+  // ---- chart 3: robot pie ----
+  var robEl = document.getElementById('chart_robot');
+  if(robEl){
+    echarts.init(robEl).setOption(merge(base, {
+      tooltip:{ trigger:'item', formatter:'{b}<br/>份额 {d}%' },
+      legend:{ bottom:4, itemWidth:12, itemHeight:9, textStyle:{color:C.ink2,fontSize:11.5} },
+      series:[{ type:'pie', radius:['42%','68%'], center:['50%','45%'],
+        label:{ formatter:'{b}\n{d}%', fontSize:11.5, color:C.ink2, lineHeight:15 },
+        data:[
+          { name:'全志科技', value:29.7, itemStyle:{color:C.orange} },
+          { name:'星宸科技', value:23.0, itemStyle:{color:C.blue} },
+          { name:'瑞芯微', value:16.2, itemStyle:{color:C.teal} },
+          { name:'其他厂商', value:31.1, itemStyle:{color:'#D5DADF'} }
+        ]
+      }]
+    }));
+  }
+
+  // ---- chart 4: radar ----
+  var radEl = document.getElementById('chart_radar');
+  if(radEl){
+    echarts.init(radEl).setOption(merge(base, {
+      tooltip:{},
+      legend:{ bottom:4, itemWidth:14, itemHeight:9, data:['瑞芯微','星宸科技','恒玄科技','晶晨股份'], textStyle:{color:C.ink2,fontSize:12} },
+      radar:{
+        indicator:[
+          { name:'算力', max:10 }, { name:'能效', max:10 },
+          { name:'内存', max:10 }, { name:'生态', max:10 }
+        ],
+        radius:'64%', center:['50%','46%'],
+        axisName:{ color:C.ink2, fontSize:13, fontWeight:700 },
+        splitLine:{ lineStyle:{color:'#E9ECF0'} },
+        splitArea:{ areaStyle:{color:['#FFFFFF','#FAFBFC']} },
+        axisLine:{ lineStyle:{color:'#E9ECF0'} }
+      },
+      series:[{ type:'radar', symbolSize:5,
+        data:[
+          { name:'瑞芯微', value:[9.0,6.5,8.5,8.5], itemStyle:{color:C.orange}, lineStyle:{width:2.4}, areaStyle:{opacity:0.16} },
+          { name:'星宸科技', value:[8.5,6.5,9.0,8.0], itemStyle:{color:C.blue}, lineStyle:{width:2.4}, areaStyle:{opacity:0.13} },
+          { name:'恒玄科技', value:[5.5,9.5,6.5,8.0], itemStyle:{color:C.teal}, lineStyle:{width:2.4}, areaStyle:{opacity:0.13} },
+          { name:'晶晨股份', value:[7.0,7.0,6.0,8.5], itemStyle:{color:C.purple}, lineStyle:{width:2, type:'dashed'}, areaStyle:{opacity:0.08} }
+        ]
+      }]
+    }));
+  }
+
+  // ---- chart 5: sensitivity ----
+  var senEl = document.getElementById('chart_sens');
+  if(senEl){
+    echarts.init(senEl).setOption(merge(base, {
+      tooltip:{ trigger:'axis', valueFormatter:function(v){ return v.toFixed(2); } },
+      legend:{ bottom:4, itemWidth:14, itemHeight:9, textStyle:{color:C.ink2,fontSize:11.5} },
+      grid:{ left:56, right:26, top:36, bottom:56 },
+      xAxis:{ type:'category', data:['A 等权','B 硬核派','C 可穿戴视角','D 内存视角'], axisLabel:{color:C.ink2,fontSize:11.5}, axisLine:{lineStyle:{color:C.line}}, axisTick:{show:false} },
+      yAxis:{ type:'value', min:5.5, max:8.6, axisLabel:{color:C.ink3,fontSize:11}, splitLine:{lineStyle:{color:'#F0F2F5'}} },
+      series:[
+        { name:'瑞芯微', type:'line', data:[8.12,8.05,8.00,8.22], itemStyle:{color:C.orange}, lineStyle:{width:3}, symbol:'circle', symbolSize:9 },
+        { name:'星宸科技', type:'line', data:[8.00,7.90,7.80,8.12], itemStyle:{color:C.blue}, lineStyle:{width:3}, symbol:'circle', symbolSize:9 },
+        { name:'恒玄科技', type:'line', data:[7.38,7.40,7.72,7.22], itemStyle:{color:C.teal}, lineStyle:{width:3}, symbol:'circle', symbolSize:9 },
+        { name:'晶晨股份', type:'line', data:[7.12,7.10,7.38,7.08], itemStyle:{color:C.purple}, lineStyle:{width:2, type:'dashed'}, symbol:'circle', symbolSize:8 },
+        { name:'乐鑫科技', type:'line', data:[6.50,6.45,7.12,6.30], itemStyle:{color:C.gray}, lineStyle:{width:2, type:'dotted'}, symbol:'circle', symbolSize:7 }
+      ]
+    }));
+  }
+
+  // ---- resize ----
+  var timer=null;
+  window.addEventListener('resize', function(){
+    if(timer){ clearTimeout(timer); }
+    timer=setTimeout(function(){
+      var ids=['chart_edge','chart_cockpit','chart_robot','chart_radar','chart_sens'];
+      for(var i=0;i<ids.length;i++){
+        var el=document.getElementById(ids[i]);
+        if(el){ var ins=echarts.getInstanceByDom(el); if(ins){ ins.resize(); } }
+      }
+    },160);
+  });
+
+  // ---- chart/table toggle ----
+  var tabs=document.querySelectorAll('.tabs');
+  for(var t=0;t<tabs.length;t++){
+    tabs[t].addEventListener('click', function(ev){
+      var btn=ev.target;
+      if(btn.tagName!=='BUTTON'){ return; }
+      var box=this;
+      var btns=box.querySelectorAll('button');
+      for(var b=0;b<btns.length;b++){ btns[b].classList.remove('on'); }
+      btn.classList.add('on');
+      var key=box.getAttribute('data-target');
+      var view=btn.getAttribute('data-view');
+      var chartBox=box.parentNode;
+      var chartDiv=chartBox.querySelector('.chart');
+      var tableDiv=document.getElementById(key);
+      if(chartDiv){ chartDiv.style.display = (view==='chart') ? '' : 'none'; }
+      if(tableDiv){ tableDiv.classList.toggle('on', view==='table'); }
+      if(view==='chart'){
+        var ids=['chart_edge','chart_cockpit','chart_robot','chart_radar','chart_sens'];
+        setTimeout(function(){
+          for(var i=0;i<ids.length;i++){
+            var el=document.getElementById(ids[i]);
+            if(el && el.style.display!=='none'){ var ins=echarts.getInstanceByDom(el); if(ins){ ins.resize(); } }
+          }
+        },60);
+      }
+    });
+  }
+})();
+</script>
+</body>
+</html>
