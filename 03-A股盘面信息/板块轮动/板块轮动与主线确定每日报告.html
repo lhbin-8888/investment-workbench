@@ -229,12 +229,11 @@ select{padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size
 <span style="color:#dc2626;">上期真热点（航天装备Ⅱ 4.39 / 银行Ⅱ 3.71）→ 本期：双双断裂</span>（航天装备Ⅱ -1.41% 破 MA20；银行Ⅱ 主力转负、gate=cold 未入围）；
 <span style="color:#059669;">新出现的真热点：白酒 4.16（weak 封顶，未连涨 3 天不得判主线）</span>；
 其余 10 个 ebb / 1 个 cold 全部为退潮或未入围。<b>连续第 9 期零真主线</b>（自 10-13 起）。</p></p>
-</p>
   </div>
 
   <div class="card">
     <h2>结论与下一交易日观察清单<span class="tag">下一交易日观察清单 8 条 · 按优先级 · 条件型判据为主</span></h2>
-    <p class="note" style="color:var(--ink);line-height:2;">    <p class="note" style="color:var(--ink);line-height:2;">
+    <p class="note" style="color:var(--ink);line-height:2;">
 <p style="margin:0 0 10px;"><b>本期结论：普跌去杠杆第三日 · 零真主线（连续第 9 期） · 防御资金由银行切向白酒消费，唯一真热点仍不得判主线</b><br>
 全市场 918 涨 / 4642 跌、跌停 82 家（近乎翻倍）、涨停 47 家微增；128 个行业主力合计 -396.66 亿；
 收复 20 日线板块仅 2/357（0.6%）。
@@ -265,14 +264,14 @@ select{padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size
 <b>在 ①②③ 同时出现前，成长链一律按 ebb 档处理，不做超跌反弹预期</b>——本期 rebound 档为 0 正是纪律生效的结果。</div></div></div>
 
 <div class="obscard"><div class="obnum">4</div><div><div class="obtitle">医药链「资金先行」能否兑现为价格（本期唯一像样的资金异动）</div>
-<div class="obtxt">医疗服务 +1.56%（主力 +16.36 亿、3 家涨停、3 板澳洋健康）、CRO概念 +0.76%（+18.71 亿、2 家涨停）、
+<div class="obtxt">医疗服务 +1.56%（主力 +16.36 亿、3 家涨停、3 板澳洋健康）、CRO概念 +0.76%（+18.71 亿、3 家涨停）、
 创新药 -0.56%（+14.19 亿、4 家涨停、2 板桂林三金）—— <b>三者资金均位列全市场前列，但价格全部未跟上、全部破 MA20 → 全落 ebb</b>。
 <b>判据（条件型）</b>：① 至少一个板块当日涨幅 z&gt;3% <b>且</b>收盘收复 MA20 → 触发 rebound 档（这是 v2 优先入选路径）；
 ② 板块资金连续第 2 日为正；③ 涨停家数维持 3 家以上且梯队出现 3 板以上。
 <b>收复前一律记 ebb，不得称主线。</b></div></div></div>
 
 <div class="obscard"><div class="obnum">5</div><div><div class="obtitle">电池链「资金先行 vs 价格杀跌」的背离（第 3 类资金异动样本）</div>
-<div class="obtxt">动力电池回收 -2.45%（主力 +11.58 亿、涨停 0 家）、钠离子电池 -2.08%（+7.17 亿、涨停 0 家）——
+<div class="obtxt">动力电池回收 -2.45%（主力 +11.58 亿、涨停 0 家）、钠离子电池 -2.08%（+7.17 亿、涨停 1 家）——
 <b>资金大幅流入而价格下跌、且无涨停家数</b>，与上期「四航天概念」同构。
 <b>判据（条件型）</b>：① 板块当日转正且收复 MA20；② 出现至少 1 家涨停；③ 主力资金留存（次日不低于 50%）。
 <b>若连续两日出现「资金流入 + 价格下跌 + 零涨停」，视为抄底资金而非配置资金，一律 ebb 处理。</b></div></div></div>
@@ -303,11 +302,12 @@ select{padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size
 ① <b>板块涨跌幅与主力资金流</b>：东方财富 datacenter <code>RPT_INDUSTRY_FUNDFLOW</code>（行业 128 个，<b>回溯 2026-09-01~10-30 共 38 个交易日，逐日断言每日均为 128 个板块</b>，缺失日逐日重拉补齐，节假日 0 行属正常）与 <code>RPT_CONCEPT_FUNDFLOW</code>（概念 400 个，仅当日有数据，历史不可回补）。<br>
 ② <b>板块指数日线（MA20 / MA10 / 连涨 / 近 20 日涨幅 / 量比）</b>：<b>东财 push2his 族本期被限流封禁（HTTP 000，20 次重试全部失败后按纪律零重试换源）</b>，
 改用 <b>同花顺 d.10jqka.com.cn/v6/line/48_{code}/01/last.js</b>（140 根日线，<b>已含 10-30 当日 bar</b>）+ <code>realhead</code> 当日快照，覆盖 <b>408 个同花顺板块、358 个日线可用</b>。
-<b>同花顺与东财板块名口径不同（申万 vs 东财），已建立人工核实别名表</b>（如 白酒→白酒Ⅱ、银行→银行Ⅱ、CRO概念→CRO、空调→白色家电）；
+<b>同花顺与东财板块名口径不同（申万 vs 东财），已建立人工核实别名表</b>（如 白酒→白酒Ⅱ、银行→银行Ⅱ、CRO概念→CRO、空调→白色家电、<b>机场航运→航空机场</b>）；<br>
+<b>已修正「别名广播」口径缺陷</b>：此前 航运 / 港口航运 / 机场航运 三个不同同花顺板块曾被统一映射到东财「航运港口」，导致三者资金流与广度数据完全相同、且机场航运的领涨中军被错列为港口股；本期起广度一律按<b>各板块自有成分股</b>计算，资金流按板块逐一匹配（机场航运→东财航空机场 BK0420，-0.87 亿）；
 <b>未匹配上的板块标注「口径缺失」不编造资金流</b>。同源交叉验证：57 个精确同名板块 |Δz| 均值 0.23pp / 中位 0.13pp。<br>
 ③ <b>涨停 / 跌停与连板梯队</b>：东方财富 push2ex 涨停池（<b>47 家</b>）/ 跌停池（<b>82 家</b>），字段 <code>lbc</code>（连板数）、<code>fund</code>（封单额）、<code>hybk</code>（所属行业）。<br>
 ④ <b>成分股与广度</b>：datacenter <code>RPT_BOARD_CONSTITUENT</code>（候选池 11 个可映射板块 / 312 只）+ 腾讯 qt.gtimg.cn 批量快照（<b>312/312 只全量，≤30 只/批</b>），
-上涨占比与涨跌幅中位数由个股快照统计；涨停家数按「成分股 ∩ 涨停池」精确匹配（<b>以池为准，不用涨跌幅阈值近似</b>）。<br>
+上涨占比与涨跌幅中位数由<b>同花顺原生成分股名单</b>逐只统计（板块自有口径，与 realhead 官方上涨家数逐板块核对一致）；涨停家数按「成分股 ∩ 涨停池」精确匹配（<b>以池为准，不用涨跌幅阈值近似</b>）。<br>
 ⑤ <b>指数与涨跌家数</b>：腾讯 qt.gtimg.cn 指数快照（时间戳 <b>20261030161400</b>，确认 10-30 收盘）；<b>新浪 <code>Market_Center.getHQNodeData</code> 接口本期已下线（返回 Service not found）</b>，
 改用 datacenter <code>RPT_BOARD_CONSTITUENT</code> 汇总全市场 <b>5654 只</b>代码 + 腾讯 gtimg 逐只快照自统计（涨 918 / 跌 4642 / 平 94，中位 -3.08%）。<br>
 ⑥ <b>外围市场</b>：新浪 hq.sinajs.cn 美股 <code>gb_dji / gb_ixic / gb_inx</code> + 腾讯 gtimg 交叉验证（美东 10-30 收盘）、商品快照为北京时间 10-31 09:26。<br>
@@ -318,7 +318,7 @@ select{padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size
 ② <b>催化维度</b>：本期无人工核，<code>catProxy=true</code>，催化分固定为代理值 3，<b>「催化成色待人工核」</b>。<br>
 ③ <b>换源影响</b>：因 push2his 被封，本期板块日线主源由东财切换为同花顺，<b>与上期报告的板块涨跌幅存在 0.1~0.2pp 量级的源间差异</b>（同源交叉验证已量化），已在核销区块标注为「换源效应而非口径漂移」。<br>
 ④ <b>概念板块资金历史</b>：东财概念资金流仅保留当日，故概念板块的「资金连续多日为正」判据（资金分 5）<b>无法计算，按单日口径判定并归一化</b>；白酒、创新药、酒店三类已用<b>经人工核实的同义行业</b>（白酒Ⅱ / 化学制药 / 酒店餐饮）作历史代理。<br>
-⑤ <b>数据缺失一律标注</b>：高压氧舱（申万细分口径，东财无对应板块）资金流与广度标 <code>null</code>，不编造；量比取不到时标 <code>null</code> 且不参与任何门槛判定。<br>
+⑤ <b>数据缺失一律标注</b>：高压氧舱（申万细分口径，东财无对应板块）<b>资金流</b>标 <code>null</code>，不编造；但其<b>广度与涨停家数改由同花顺原生成分股（11 只）统计可得</b>（上涨占比 63.6%、澳洋健康 3 板），故不再整列置空；量比取不到时标 <code>null</code> 且不参与任何门槛判定。<br>
 ⑥ <b>不编造原则</b>：所有取不到的数据标 <code>null</code> 并在对应字段注明缺失，不以估值或推测填补。<br>
 ⑦ <b>判定纪律</b>：拿不准一律<b>就低不就高</b>——宁可错过，不可接盘。所有结论不构成投资建议。
 </p>
@@ -342,7 +342,7 @@ var SEED = [
   "zt": 4,
   "lb": 1,
   "vb": 1.718,
-  "mr": "泸州老窖、皇台酒业、古井贡酒",
+  "mr": "皇台酒业、泸州老窖、古井贡酒",
   "pos": "趋势中段",
   "days": 2,
   "cat": "无",
@@ -369,8 +369,8 @@ var SEED = [
   "ma10": true,
   "up3": false,
   "gateMsg": "弱启动：未连涨3天，最高只能判真热点",
-  "upRatio": 0.95,
-  "medPct": 4.35,
+  "upRatio": 0.9474,
+  "medPct": 5.35,
   "hist20": 6.63,
   "launchScore": 5,
   "catProxy": true
@@ -382,7 +382,7 @@ var SEED = [
   "zt": 0,
   "lb": 0,
   "vb": 1.128,
-  "mr": "海尔智家、海信家电、TCL智家",
+  "mr": "海信家电、格力电器、美的集团",
   "pos": "低位启动",
   "days": 3,
   "cat": "无",
@@ -409,8 +409,8 @@ var SEED = [
   "ma10": true,
   "up3": true,
   "gateMsg": "跌破20日线（dev20 -1.70%）且当日涨幅未过3%（+1.26%），收复前反弹不算热点复活",
-  "upRatio": 0.6364,
-  "medPct": 1.46,
+  "upRatio": 0.75,
+  "medPct": 2.18,
   "hist20": -3.91,
   "launchScore": 1,
   "catProxy": true
@@ -449,8 +449,8 @@ var SEED = [
   "ma10": false,
   "up3": false,
   "gateMsg": "跌破20日线（dev20 -4.64%）且当日涨幅未过3%（+1.56%），收复前反弹不算热点复活",
-  "upRatio": 0.5741,
-  "medPct": 0.46,
+  "upRatio": 0.5714,
+  "medPct": 0.38,
   "hist20": -12.26,
   "launchScore": 1,
   "catProxy": true
@@ -462,14 +462,14 @@ var SEED = [
   "zt": 1,
   "lb": 1,
   "vb": 3.592,
-  "mr": "首旅酒店、锦江酒店、锦江Ｂ股",
+  "mr": "首旅酒店、锦江酒店、金陵饭店",
   "pos": "低位启动",
   "days": 1,
   "cat": "无",
   "s": [
    4,
    2,
-   2,
+   3,
    5,
    3,
    2
@@ -482,74 +482,34 @@ var SEED = [
    0.8,
    1.4
   ],
-  "avg": 2.74,
-  "avgRaw": 3.0,
+  "avg": 2.94,
+  "avgRaw": 3.17,
   "gate": "ebb",
   "ma20": false,
   "ma10": true,
   "up3": false,
   "gateMsg": "跌破20日线（dev20 -0.56%）且当日涨幅未过3%（+2.90%），收复前反弹不算热点复活",
-  "upRatio": 0.5,
-  "medPct": -0.01,
+  "upRatio": 0.6,
+  "medPct": 0.63,
   "hist20": -4.66,
   "launchScore": 2,
-  "catProxy": true
- },
- {
-  "n": "CRO概念",
-  "z": 0.76,
-  "f": 18.715,
-  "zt": 2,
-  "lb": 1,
-  "vb": 1.289,
-  "mr": "万邦医药、毕得医药、近岸蛋白",
-  "pos": "低位启动",
-  "days": null,
-  "cat": "无",
-  "s": [
-   null,
-   3,
-   3,
-   3,
-   3,
-   1
-  ],
-  "s_w": [
-   1.0,
-   1.2,
-   1.2,
-   0.6,
-   0.8,
-   1.4
-  ],
-  "avg": 2.46,
-  "avgRaw": 2.6,
-  "gate": "ebb",
-  "ma20": false,
-  "ma10": false,
-  "up3": false,
-  "gateMsg": "跌破20日线（dev20 -6.74%）且当日涨幅未过3%（+0.76%），收复前反弹不算热点复活",
-  "upRatio": 0.5769,
-  "medPct": 0.43,
-  "hist20": -13.92,
-  "launchScore": 1,
   "catProxy": true
  },
  {
   "n": "高压氧舱",
   "z": 1.32,
   "f": null,
-  "zt": 0,
-  "lb": 0,
+  "zt": 1,
+  "lb": 3,
   "vb": 1.817,
-  "mr": "—",
+  "mr": "澳洋健康、创新医疗、倍益康",
   "pos": "低位启动",
   "days": null,
   "cat": "无",
   "s": [
    null,
    null,
-   null,
+   3,
    5,
    3,
    1
@@ -562,16 +522,56 @@ var SEED = [
    0.8,
    1.4
   ],
-  "avg": 2.43,
+  "avg": 2.6,
   "avgRaw": 3.0,
   "gate": "ebb",
   "ma20": false,
   "ma10": true,
   "up3": true,
   "gateMsg": "跌破20日线（dev20 -0.75%）且当日涨幅未过3%（+1.32%），收复前反弹不算热点复活",
-  "upRatio": null,
-  "medPct": null,
+  "upRatio": 0.6364,
+  "medPct": 0.34,
   "hist20": -4.61,
+  "launchScore": 1,
+  "catProxy": true
+ },
+ {
+  "n": "CRO概念",
+  "z": 0.76,
+  "f": 18.715,
+  "zt": 3,
+  "lb": 2,
+  "vb": 1.289,
+  "mr": "万邦医药、近岸蛋白、睿智医药",
+  "pos": "低位启动",
+  "days": null,
+  "cat": "无",
+  "s": [
+   null,
+   3,
+   2,
+   3,
+   3,
+   1
+  ],
+  "s_w": [
+   1.0,
+   1.2,
+   1.2,
+   0.6,
+   0.8,
+   1.4
+  ],
+  "avg": 2.23,
+  "avgRaw": 2.4,
+  "gate": "ebb",
+  "ma20": false,
+  "ma10": false,
+  "up3": false,
+  "gateMsg": "跌破20日线（dev20 -6.74%）且当日涨幅未过3%（+0.76%），收复前反弹不算热点复活",
+  "upRatio": 0.4805,
+  "medPct": -0.08,
+  "hist20": -13.92,
   "launchScore": 1,
   "catProxy": true
  },
@@ -582,7 +582,7 @@ var SEED = [
   "zt": 1,
   "lb": 1,
   "vb": 1.664,
-  "mr": "锦江航运、中远海控、上港集团",
+  "mr": "锦江航运、中远海控、国航远洋",
   "pos": "低位启动",
   "days": 0,
   "cat": "无",
@@ -609,8 +609,8 @@ var SEED = [
   "ma10": true,
   "up3": false,
   "gateMsg": "跌破20日线（dev20 -1.73%）且当日涨幅未过3%（+1.83%），收复前反弹不算热点复活",
-  "upRatio": 0.7027,
-  "medPct": 1.18,
+  "upRatio": 0.7895,
+  "medPct": 1.37,
   "hist20": -6.21,
   "launchScore": 1,
   "catProxy": true
@@ -649,8 +649,8 @@ var SEED = [
   "ma10": true,
   "up3": false,
   "gateMsg": "跌破20日线（dev20 -1.54%）且当日涨幅未过3%（+1.44%），收复前反弹不算热点复活",
-  "upRatio": 0.7027,
-  "medPct": 1.18,
+  "upRatio": 0.6857,
+  "medPct": 0.88,
   "hist20": -3.79,
   "launchScore": 1,
   "catProxy": true
@@ -658,11 +658,11 @@ var SEED = [
  {
   "n": "机场航运",
   "z": 0.76,
-  "f": -0.353,
-  "zt": 1,
-  "lb": 1,
+  "f": -0.871,
+  "zt": 0,
+  "lb": 0,
   "vb": 1.108,
-  "mr": "锦江航运、中远海控、上港集团",
+  "mr": "春秋航空、吉祥航空、深圳机场",
   "pos": "低位启动",
   "days": 0,
   "cat": "无",
@@ -689,8 +689,8 @@ var SEED = [
   "ma10": true,
   "up3": false,
   "gateMsg": "跌破20日线（dev20 -0.51%）且当日涨幅未过3%（+0.76%），收复前反弹不算热点复活",
-  "upRatio": 0.7027,
-  "medPct": 1.18,
+  "upRatio": 0.7692,
+  "medPct": 0.39,
   "hist20": -2.35,
   "launchScore": 1,
   "catProxy": true
@@ -730,7 +730,7 @@ var SEED = [
   "up3": false,
   "gateMsg": "涨停仅0家且主力净流出-1.04亿，题材未成型",
   "upRatio": 0.6905,
-  "medPct": 0.59,
+  "medPct": 0.6,
   "hist20": 5.26,
   "launchScore": 1,
   "catProxy": true
@@ -742,7 +742,7 @@ var SEED = [
   "zt": 0,
   "lb": 0,
   "vb": 0.97,
-  "mr": "天奇股份、盟固利、宁德时代",
+  "mr": "圣阳股份、天奇股份、盟固利",
   "pos": "低位启动",
   "days": null,
   "cat": "无",
@@ -769,8 +769,8 @@ var SEED = [
   "ma10": false,
   "up3": false,
   "gateMsg": "跌破20日线（dev20 -9.73%）且当日涨幅未过3%（-2.45%），收复前反弹不算热点复活",
-  "upRatio": 0.25,
-  "medPct": -2.08,
+  "upRatio": 0.1789,
+  "medPct": -2.24,
   "hist20": -15.5,
   "launchScore": 0,
   "catProxy": true
@@ -779,10 +779,10 @@ var SEED = [
   "n": "钠离子电池",
   "z": -2.08,
   "f": 7.169,
-  "zt": 0,
-  "lb": 0,
+  "zt": 1,
+  "lb": 1,
   "vb": 0.989,
-  "mr": "圣阳股份、立中集团、普利特",
+  "mr": "上海洗霸、海博思创、先导智能",
   "pos": "低位启动",
   "days": null,
   "cat": "无",
@@ -809,8 +809,8 @@ var SEED = [
   "ma10": false,
   "up3": false,
   "gateMsg": "跌破20日线（dev20 -9.93%）且当日涨幅未过3%（-2.08%），收复前反弹不算热点复活",
-  "upRatio": 0.25,
-  "medPct": -1.69,
+  "upRatio": 0.1944,
+  "medPct": -2.17,
   "hist20": -14.85,
   "launchScore": 0,
   "catProxy": true
@@ -988,7 +988,7 @@ function wavg(d){
 }
 function gateInfo(d){
   if(!d.gate) return {t:"—",c:"",k:"pass"};
-  if(d.gate==="rebound") return {t:"↩ 超跌强反弹(z>"+d.z.toFixed(1)+"%破MA20)",c:"gate-rebound",k:"rebound"};
+  if(d.gate==="rebound") return {t:"↩ 超跌强反弹(z>"+num(d.z,1)+"%破MA20)",c:"gate-rebound",k:"rebound"};
   if(d.gate==="ebb") return {t:"✗ 退潮(破MA20)",c:"gatebad",k:"ebb"};
   if(d.gate==="cold") return {t:"✗ 未入围",c:"gatebad",k:"cold"};
   if(d.gate==="unknown") return {t:"数据缺",c:"",k:"unknown"};
@@ -1010,6 +1010,7 @@ function label(d,a){
 }
 function cls(d,a){var g=gateInfo(d).k;if(g==="ebb")return"ebb";if(g==="cold")return"cold";if(g==="rebound")return"rebound";if(g==="weak")return a>=3.0?"watch":"rot";return a>=4.0?"main":(a>=3.2?"watch":"rot");}
 function fmt(v,unit){if(v===null||v===undefined)return "—";return v+unit;}
+function num(v,d){if(v===null||v===undefined||isNaN(v))return "—";return v.toFixed(d===undefined?2:d);}
 function render(){
   var f=document.getElementById("filterSel").value;
   var tb=document.getElementById("tbody");
@@ -1047,13 +1048,13 @@ function render(){
     var rc = (g.k==="rebound") ? ' class="rebound-cell"' : '';
     rows.push("<tr"+(g.k==="rebound"?' class="rebound-row"':'')+">"+
       "<td><b>"+d.n+"</b></td>"+
-      '<td class="'+zc+'">'+d.z.toFixed(2)+"</td>"+
-      '<td class="'+fc+'">'+d.f.toFixed(2)+"</td>"+
+      '<td class="'+zc+'">'+num(d.z,2)+"</td>"+
+      '<td class="'+fc+'">'+num(d.f,2)+"</td>"+
       "<td>"+fmt(d.zt,"")+"</td><td>"+fmt(d.lb,"板")+"</td><td>"+fmt(d.vb,"")+"</td>"+
       "<td>"+d.mr+"</td><td>"+d.pos+"</td><td>"+fmt(d.days," 天")+"</td><td>"+d.cat+"</td>"+
       '<td class="'+g.c+'">'+g.t+"</td>"+
       '<td><span class="score w6" title="六维(时间/资金/广度/位置/催化/启动) 权重1.0/1.2/1.2/0.6/0.8/1.4">'+bars+"</span></td>"+
-      '<td class="avg">'+a.toFixed(2)+"</td>"+
+      '<td class="avg">'+num(a,2)+"</td>"+
       "<td"+rc+">"+ltag+"</td>"+
       "</tr>");
   }
@@ -1070,7 +1071,7 @@ function render(){
     var h='<div style="margin-top:12px;">';
     for(var k=0;k<ebbs.length;k++){
       var e=ebbs[k],m=wavg(e);
-      h+='<div class="ebbcard">🚫 <b>'+e.n+"</b>｜涨幅 "+e.z.toFixed(2)+"%｜主力净额 "+e.f.toFixed(2)+" 亿｜涨停 "+fmt(e.zt,"")+" 家｜均分 "+m.toFixed(2)+
+      h+='<div class="ebbcard">🚫 <b>'+e.n+"</b>｜涨幅 "+num(e.z,2)+"%｜主力净额 "+num(e.f,2)+" 亿｜涨停 "+fmt(e.zt,"")+" 家｜均分 "+num(m,2)+
          "——"+(e.gateMsg||"板块指数跌破 20 日均线，按 v2 规则：z≤3% 视为退潮，收复前反弹不算热点复活。")+"</div>";
     }
     h+="</div>";
