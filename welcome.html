@@ -152,6 +152,68 @@ body::before{
 }
 .risk-item b{color:#FFD8C2;font-weight:650}
 
+/* ============ 交易心得（手动录入，随风险提示展示） ============ */
+.risk-notes{margin-top:14px;padding-top:13px;border-top:1px dashed rgba(255,176,32,.28)}
+.rn-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rn-add{
+  font:inherit;font-size:12.5px;font-weight:650;cursor:pointer;
+  color:#0A0E17;background:linear-gradient(135deg,var(--accent),#5FD8FF);
+  border:none;border-radius:8px;padding:7px 14px;
+}
+.rn-add:hover{filter:brightness(1.08)}
+.rn-count{font-size:11.5px;color:var(--muted)}
+.rn-io{margin-left:auto;display:flex;gap:12px}
+.rn-io button{
+  font:inherit;font-size:11.5px;cursor:pointer;color:var(--muted);
+  background:none;border:none;padding:2px 0;
+  text-decoration:underline;text-underline-offset:3px;
+}
+.rn-io button:hover{color:var(--accent)}
+.rn-form{margin-top:12px;display:flex;flex-direction:column;gap:9px}
+.rn-form[hidden]{display:none}
+.rn-form input,.rn-form textarea{
+  font:inherit;font-size:13px;color:var(--text);width:100%;
+  background:rgba(10,14,23,.6);border:1px solid var(--border);
+  border-radius:9px;padding:9px 12px;outline:none;resize:vertical;
+}
+.rn-form input:focus,.rn-form textarea:focus{
+  border-color:rgba(0,229,255,.55);box-shadow:0 0 0 3px rgba(0,229,255,.08);
+}
+.rn-form input::placeholder,.rn-form textarea::placeholder{color:var(--dim)}
+.rn-form-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rn-hint{flex:1 1 240px;font-size:11px;color:var(--dim);line-height:1.5}
+.rn-len{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
+.rn-cancel,.rn-save{
+  font:inherit;font-size:12.5px;font-weight:650;cursor:pointer;
+  border-radius:8px;padding:6px 14px;
+}
+.rn-cancel{color:var(--muted);background:var(--panel-2);border:1px solid var(--border)}
+.rn-save{color:#04121A;background:linear-gradient(135deg,var(--accent),#5FD8FF);border:1px solid transparent}
+.rn-msg{font-size:11.5px;color:var(--accent);margin-top:8px;min-height:1px}
+
+/* 自定义心得条目（与静态提示同列，青色区分） */
+.risk-item.mine{align-items:flex-start}
+.risk-item.mine > i{background:var(--accent);box-shadow:0 0 8px rgba(0,229,255,.8)}
+.risk-item.mine b{color:#9FE9FF}
+.rn-body{flex:1;min-width:0;word-break:break-word}
+.rn-text{white-space:pre-wrap}
+.rn-meta{display:block;font-size:10.5px;color:var(--dim);margin-top:2px}
+.rn-ops{flex:0 0 auto;display:flex;gap:6px;opacity:.45;transition:opacity .15s ease}
+.risk-item.mine:hover .rn-ops{opacity:1}
+.rn-ops button{
+  font:inherit;font-size:10.5px;cursor:pointer;color:var(--muted);
+  background:rgba(255,255,255,.05);border:1px solid var(--line);
+  border-radius:6px;padding:2px 7px;
+}
+.rn-ops button:hover{color:var(--accent);border-color:rgba(0,229,255,.4)}
+.rn-ops button[data-act="del"]:hover{color:#FF8A8C;border-color:rgba(255,77,79,.4)}
+
+@media (max-width:620px){
+  .rn-io{margin-left:0}
+  .rn-ops{opacity:1}
+  .rn-hint{flex-basis:100%}
+}
+
 /* ============ 两列 ============ */
 .cols{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;margin-top:18px}
 .cols > .card{margin-top:0}
@@ -324,6 +386,29 @@ body::before{
       <span class="risk-badge">&#9888; 开仓前必读</span>
     </div>
     <div class="risk-grid" id="riskList"></div>
+    <!-- 手动输入：把本人交易心得写入重大风险提示 -->
+    <div class="risk-notes">
+      <div class="rn-bar">
+        <button type="button" class="rn-add" id="rnAddBtn">＋ 记一条交易心得</button>
+        <span class="rn-count" id="rnCount">已记录 0 条</span>
+        <span class="rn-io">
+          <button type="button" id="rnExportBtn">导出备份</button>
+          <button type="button" id="rnImportBtn">导入备份</button>
+          <input type="file" id="rnFile" accept=".json,application/json" hidden>
+        </span>
+      </div>
+      <div class="rn-form" id="rnForm" hidden>
+        <input type="text" id="rnTitle" maxlength="40" placeholder="标题（选填，如：追高教训）">
+        <textarea id="rnText" maxlength="500" rows="3" placeholder="写下自己总结的交易心得，例如：连续两根大阳线后不追高，等回踩确认再介入……"></textarea>
+        <div class="rn-form-foot">
+          <span class="rn-hint">仅保存在本浏览器（localStorage），不会上传服务器，也不会写入线上仓库；建议定期导出备份。</span>
+          <span class="rn-len"><span id="rnLen">0</span>/500</span>
+          <button type="button" class="rn-cancel" id="rnCancelBtn">取消</button>
+          <button type="button" class="rn-save" id="rnSaveBtn">保存心得</button>
+        </div>
+      </div>
+      <div class="rn-msg" id="rnMsg"></div>
+    </div>
   </section>
 
   <!-- ================= 二 & 三 ================= -->
@@ -429,12 +514,8 @@ var BRIEF = [
 ];
 
 /* ---------- 渲染静态板块 ---------- */
+/* 风险提示（静态 6 条 + 手动录入的交易心得）由下方 renderRisks() 统一渲染 */
 (function(){
-  var rl = document.getElementById('riskList');
-  rl.innerHTML = RISKS.map(function(r){
-    return '<div class="risk-item"><i></i><span><b>' + r[0] + '</b>：' + r[1] + '</span></div>';
-  }).join('');
-
   document.getElementById('ruleList').innerHTML = RULES.map(function(r, i){
     var n = (i + 1 < 10 ? '0' : '') + (i + 1);
     return '<div class="rule"><span class="rule-no">' + n + '</span>' +
@@ -446,6 +527,215 @@ var BRIEF = [
     return '<li>' + t + '</li>';
   }).join('');
 })();
+
+/* ---------- 我的交易心得：手动录入，随重大风险提示一同展示 ----------
+   纯前端静态站点：数据只存本机浏览器 localStorage，不上传服务器、不写入仓库。
+   所有用户输入经 rnEsc() 转义后再拼 innerHTML，避免破坏页面结构。 */
+var RN_KEY = 'welcome-risk-notes-v1';
+var RN_MAX_TEXT = 500;
+var RN_MAX_TITLE = 40;
+var rnEditingId = null;
+
+function rnEsc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function rnPad(n){ return (n < 10 ? '0' : '') + n; }
+function rnToday(){
+  var d = new Date();
+  return d.getFullYear() + '-' + rnPad(d.getMonth() + 1) + '-' + rnPad(d.getDate());
+}
+function rnNewId(){
+  return 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+function rnNorm(n){
+  if (!n || typeof n.text !== 'string' || !n.text.trim()) return null;
+  return {
+    id:    String(n.id || rnNewId()).slice(0, 64),
+    title: typeof n.title === 'string' ? n.title.trim().slice(0, RN_MAX_TITLE) : '',
+    text:  n.text.trim().slice(0, RN_MAX_TEXT),
+    date:  /^\d{4}-\d{2}-\d{2}$/.test(n.date || '') ? n.date : rnToday(),
+    ts:    Number(n.ts) || Date.now()
+  };
+}
+function rnRead(){
+  try {
+    var raw = localStorage.getItem(RN_KEY);
+    if (!raw) return [];
+    var o = JSON.parse(raw);
+    var arr = Array.isArray(o) ? o : (o && Array.isArray(o.notes) ? o.notes : []);
+    var out = [];
+    for (var i = 0; i < arr.length; i++){
+      var n = rnNorm(arr[i]);
+      if (n) out.push(n);
+    }
+    out.sort(function(a, b){ return b.ts - a.ts; });   /* 最新在前 */
+    return out;
+  } catch (e) { return []; }
+}
+function rnWrite(arr){
+  try { localStorage.setItem(RN_KEY, JSON.stringify({ v:1, notes:arr })); return true; }
+  catch (e) { return false; }
+}
+function rnMsg(msg, isErr){
+  var el = document.getElementById('rnMsg');
+  el.textContent = msg || '';
+  el.style.color = isErr ? 'var(--warn-2)' : 'var(--accent)';
+  clearTimeout(rnMsg._t);
+  if (msg){ rnMsg._t = setTimeout(function(){ el.textContent = ''; }, 4000); }
+}
+
+function renderRisks(){
+  var notes = rnRead();
+  var html = RISKS.map(function(r){
+    return '<div class="risk-item"><i></i><span><b>' + r[0] + '</b>：' + r[1] + '</span></div>';
+  });
+  notes.forEach(function(n){
+    html.push(
+      '<div class="risk-item mine">' +
+        '<i></i>' +
+        '<span class="rn-body">' +
+          '<b>' + rnEsc(n.title || '交易心得') + '</b>：' +
+          '<span class="rn-text">' + rnEsc(n.text) + '</span>' +
+          '<span class="rn-meta">记于 ' + rnEsc(n.date) + '</span>' +
+        '</span>' +
+        '<span class="rn-ops">' +
+          '<button type="button" data-act="edit" data-id="' + rnEsc(n.id) + '">编辑</button>' +
+          '<button type="button" data-act="del" data-id="' + rnEsc(n.id) + '">删除</button>' +
+        '</span>' +
+      '</div>'
+    );
+  });
+  document.getElementById('riskList').innerHTML = html.join('');
+  document.getElementById('rnCount').textContent = '已记录 ' + notes.length + ' 条';
+}
+
+function rnOpenForm(note){
+  rnEditingId = note ? note.id : null;
+  document.getElementById('rnTitle').value = note ? note.title : '';
+  document.getElementById('rnText').value  = note ? note.text  : '';
+  document.getElementById('rnLen').textContent = note ? note.text.length : 0;
+  document.getElementById('rnSaveBtn').textContent = note ? '保存修改' : '保存心得';
+  document.getElementById('rnForm').hidden = false;
+  document.getElementById('rnText').focus();
+}
+function rnCloseForm(){
+  rnEditingId = null;
+  document.getElementById('rnForm').hidden = true;
+  document.getElementById('rnTitle').value = '';
+  document.getElementById('rnText').value = '';
+  document.getElementById('rnLen').textContent = '0';
+  document.getElementById('rnSaveBtn').textContent = '保存心得';
+}
+function rnFindBtn(node, root){
+  while (node && node !== root){
+    if (node.nodeType === 1 && node.getAttribute && node.getAttribute('data-act')) return node;
+    node = node.parentNode;
+  }
+  return null;
+}
+function rnSave(){
+  var title = document.getElementById('rnTitle').value.trim().slice(0, RN_MAX_TITLE);
+  var text  = document.getElementById('rnText').value.trim().slice(0, RN_MAX_TEXT);
+  if (!text){ rnMsg('请先输入心得内容。', true); document.getElementById('rnText').focus(); return; }
+  var notes = rnRead(), wasEdit = !!rnEditingId, found = false;
+  if (wasEdit){
+    for (var i = 0; i < notes.length; i++){
+      if (notes[i].id === rnEditingId){
+        notes[i].title = title; notes[i].text = text; notes[i].ts = Date.now();
+        found = true; break;
+      }
+    }
+  }
+  if (!found){
+    notes.unshift({ id:rnNewId(), title:title, text:text, date:rnToday(), ts:Date.now() });
+  }
+  notes.sort(function(a, b){ return b.ts - a.ts; });
+  if (!rnWrite(notes)){
+    rnMsg('保存失败：浏览器存储不可用（可能处于隐私模式），请改用「导出备份」留存。', true);
+    return;
+  }
+  rnCloseForm();
+  renderRisks();
+  rnMsg(wasEdit && found ? '心得已更新。' : '心得已保存，仅存于本浏览器。');
+}
+function rnDel(id){
+  var notes = rnRead();
+  var left = notes.filter(function(n){ return n.id !== id; });
+  if (left.length === notes.length) return;
+  if (!window.confirm('确定删除这条交易心得吗？删除后不可恢复。')) return;
+  if (!rnWrite(left)){ rnMsg('删除失败：浏览器存储不可用。', true); return; }
+  renderRisks();
+  rnMsg('已删除。');
+}
+function rnExport(){
+  var notes = rnRead();
+  if (!notes.length){ rnMsg('暂无心得可导出。', true); return; }
+  var data = { v:1, exportedAt:new Date().toISOString(), notes:notes };
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = '交易心得备份_' + rnToday() + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  rnMsg('已导出 ' + notes.length + ' 条。');
+}
+function rnImport(file){
+  var reader = new FileReader();
+  reader.onload = function(){
+    try {
+      var o = JSON.parse(String(reader.result));
+      var arr = Array.isArray(o) ? o : (o && Array.isArray(o.notes) ? o.notes : null);
+      if (!arr) throw new Error('bad');
+      var cur = rnRead(), seen = {}, added = 0;
+      cur.forEach(function(n){ seen[n.id] = 1; });
+      arr.forEach(function(x){
+        var n = rnNorm(x);
+        if (n && !seen[n.id]){ seen[n.id] = 1; cur.push(n); added++; }
+      });
+      cur.sort(function(a, b){ return b.ts - a.ts; });
+      if (!rnWrite(cur)){ rnMsg('导入失败：浏览器存储不可用。', true); return; }
+      renderRisks();
+      rnMsg('已导入 ' + added + ' 条（重复条目已跳过）。');
+    } catch (e) { rnMsg('导入失败：文件格式不正确，请选择本页导出的 JSON 备份。', true); }
+  };
+  reader.onerror = function(){ rnMsg('导入失败：文件读取出错。', true); };
+  reader.readAsText(file, 'utf-8');
+}
+
+/* 事件绑定（委托绑在 #riskList 上，重渲染后按钮依然有效） */
+document.getElementById('rnAddBtn').addEventListener('click', function(){ rnMsg(''); rnOpenForm(null); });
+document.getElementById('rnCancelBtn').addEventListener('click', function(){ rnCloseForm(); rnMsg(''); });
+document.getElementById('rnSaveBtn').addEventListener('click', rnSave);
+document.getElementById('rnText').addEventListener('input', function(){
+  document.getElementById('rnLen').textContent = this.value.length;
+});
+document.getElementById('rnText').addEventListener('keydown', function(e){
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); rnSave(); }
+});
+document.getElementById('riskList').addEventListener('click', function(e){
+  var btn = rnFindBtn(e.target, this);
+  if (!btn) return;
+  var id = btn.getAttribute('data-id') || '';
+  if (btn.getAttribute('data-act') === 'del'){ rnDel(id); return; }
+  var note = null, notes = rnRead();
+  for (var i = 0; i < notes.length; i++){ if (notes[i].id === id){ note = notes[i]; break; } }
+  if (note){ rnMsg(''); rnOpenForm(note); }
+});
+document.getElementById('rnExportBtn').addEventListener('click', rnExport);
+document.getElementById('rnImportBtn').addEventListener('click', function(){
+  document.getElementById('rnFile').click();
+});
+document.getElementById('rnFile').addEventListener('change', function(){
+  if (this.files && this.files[0]) rnImport(this.files[0]);
+  this.value = '';   /* 允许重复导入同一文件 */
+});
+
+renderRisks();
 
 /* ---------- 时钟与交易时段 ---------- */
 var WEEK = ['周日','周一','周二','周三','周四','周五','周六'];
