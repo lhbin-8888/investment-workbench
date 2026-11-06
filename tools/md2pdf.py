@@ -16,9 +16,11 @@ md2pdf.py —— 投研报告 Markdown 转 PDF（白底简洁版）
 import argparse
 import pathlib
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
+import time
 
 import markdown
 
@@ -157,17 +159,48 @@ def build_html(md_text: str, title: str = "", subtitle: str = "", meta: str = ""
 
 
 def render_pdf(html_path: pathlib.Path, pdf_path: pathlib.Path) -> None:
+    # Edge headless=new 会派生子进程并让父进程立即返回，PDF 往往在数秒后才落盘，
+    # 因此必须轮询等待文件出现且大小稳定，否则会误判为渲染失败。
+    # 另外使用独立 user-data-dir，避免与已运行的 Edge 实例抢占 profile。
+    profile_dir = html_path.parent / "_edge_profile"
     cmd = [
         EDGE, "--headless=new", "--disable-gpu", "--no-pdf-header-footer",
-        "--run-all-compositor-stages-before-draw",
+        f"--user-data-dir={profile_dir.resolve().as_posix()}",
+        "--virtual-time-budget=15000",
         f"--print-to-pdf={pdf_path.resolve().as_posix()}",
         html_path.resolve().as_uri(),
     ]
+
+    def wait_for_pdf(timeout_s: int = 120) -> bool:
+        deadline = time.time() + timeout_s
+        last = -1
+        stable = 0
+        while time.time() < deadline:
+            if pdf_path.exists():
+                size = pdf_path.stat().st_size
+                if size >= 1024 and size == last:
+                    stable += 1
+                    if stable >= 2:
+                        return True
+                else:
+                    stable = 0
+                last = size
+            time.sleep(1.0)
+        return False
+
     r = subprocess.run(cmd, capture_output=True, timeout=180)
-    if not pdf_path.exists() or pdf_path.stat().st_size < 1024:
-        raise RuntimeError(
-            f"PDF 渲染失败: {r.stdout.decode('utf-8', 'ignore')[-500:]}"
-        )
+    if not wait_for_pdf():
+        # 首次失败时清掉残留 profile 再重试一次
+        try:
+            if profile_dir.exists():
+                shutil.rmtree(profile_dir, ignore_errors=True)
+        except OSError:
+            pass
+        r = subprocess.run(cmd, capture_output=True, timeout=180)
+        if not wait_for_pdf():
+            raise RuntimeError(
+                f"PDF 渲染失败: {r.stdout.decode('utf-8', 'ignore')[-500:]}"
+            )
 
 
 def main() -> None:
