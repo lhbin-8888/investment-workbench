@@ -2,7 +2,7 @@
 """
 周线选股器（路线 A：本地日线 → 周线聚合，零网络依赖）
 ====================================================
-依据「周线 MA3/MA5/MA10 多头 + 3周刚上穿5周 + 3周已上穿20周 + 一阳穿三线」早期突破信号制作。
+依据「周线 MA3/MA5/MA10 多头 + 3周刚上穿5周 + 3周已上穿20周 + 一阳穿三线 + 近5日累计涨幅>10%」早期突破信号制作。
 
   核心判据（全部满足才入选）：
     1) 多头排列：MA3 > MA5 > MA10（3/5/10 周三线短期多头）
@@ -13,6 +13,7 @@
          · 收盘价站上 MA3、MA5、MA10 三线
          · 当周最低价低于三线中最低者（MA10），即从下方穿刺上来
     5) 量能：本周量能相对前 10 周均量放大（加分，非硬门槛）
+    6) 动量确认：最近 5 个交易日（日线）累计涨幅 > 10%（无近期上攻动能则不入选）
 
   剔除规则（命中即不入选）：
     · 日线：最近 3 个交易日连续下跌；或最近 10 个交易日连续下跌累计幅度 >8%，
@@ -84,6 +85,8 @@ CROSS_LOOKBACK = 60
 # 量能对比窗口（周）与放量倍数（用于评分与"放量"标签）
 VOL_MA_WINDOW = 10
 BREAKOUT_VOL_RATIO = 1.5   # 本周量 ≥ 前 10 周均量 ×1.5 视为放量
+# 动量确认：最近 5 个交易日累计涨幅下限（小数，0.10=10%）；不足则不入选
+RECENT5_GAIN_LIMIT = 0.10
 DEFAULT_MAX = 80           # 默认最多入选（保护板块不至于过大）
 
 REC = struct.Struct("<iiiiifii")  # 32 字节一条日线记录
@@ -223,7 +226,8 @@ def evaluate(weekly, gain_limit=RECENT_GAIN_LIMIT, gain_window=RECENT_GAIN_WINDO
              daily_window=DAILY_CHECK_WINDOW,
              consec_down_days=CONSEC_DOWN_DAYS,
              pierce_tol=PIERCE_TOL,
-             cross_lookback=CROSS_LOOKBACK):
+             cross_lookback=CROSS_LOOKBACK,
+             recent5_gain_limit=RECENT5_GAIN_LIMIT):
     """
     对一只股票的周线施加「MA3/MA5/MA10 多头 + 3周刚上穿5周 + 3周已上穿20周 + 一阳穿三线」信号。
     返回 None（不入选）或 (score, reasons, info)。
@@ -247,6 +251,11 @@ def evaluate(weekly, gain_limit=RECENT_GAIN_LIMIT, gain_window=RECENT_GAIN_WINDO
         d_amp, d_dd = daily_weakness(daily_bars, daily_window)
         if d_amp > d_decline_amp_limit or d_dd > d_drawdown_limit:
             return None
+        # 动量确认：最近 5 个交易日累计涨幅需 > 阈值（不足 5 日则跳过该检查，保守保留）
+        if len(d_closes) >= 5:
+            gain5 = d_closes[-1] / d_closes[-5] - 1
+            if gain5 <= recent5_gain_limit:
+                return None
 
     # —— 剔除：截至最新一周往前 gain_window 周累计涨幅 > gain_limit（高位过度拉升）——
     if L > gain_window:
@@ -313,7 +322,8 @@ def scan_all(max_n=DEFAULT_MAX, verbose=False,
              gain_limit=RECENT_GAIN_LIMIT, gain_window=RECENT_GAIN_WINDOW,
              exclude_loss=True,
              d_decline_amp_limit=DAILY_DECLINE_AMP_LIMIT,
-             d_drawdown_limit=DAILY_DRAWNDOWN_LIMIT, daily_window=DAILY_CHECK_WINDOW):
+             d_drawdown_limit=DAILY_DRAWNDOWN_LIMIT, daily_window=DAILY_CHECK_WINDOW,
+             recent5_gain_limit=RECENT5_GAIN_LIMIT):
     """扫描全部本地日线文件，返回 [(score, code, reasons, info), ...] 按分降序"""
     global _ST_SKIPPED, _LOSS_SKIPPED, _BSE_SKIPPED
     results = []
@@ -355,7 +365,8 @@ def scan_all(max_n=DEFAULT_MAX, verbose=False,
             bars = parse_day_file(os.path.join(ddir, fn))
             weekly = to_weekly(bars)
             ev = evaluate(weekly, gain_limit, gain_window, bars,
-                          d_decline_amp_limit, d_drawdown_limit, daily_window)
+                          d_decline_amp_limit, d_drawdown_limit, daily_window,
+                          recent5_gain_limit=recent5_gain_limit)
             if ev is None:
                 continue
             score, reasons, info = ev
@@ -512,7 +523,8 @@ def write_report(block_name, rows, total_scanned, ts=None):
             f"{'、'.join(reasons) if reasons else '-'} |")
     lines.append("")
     lines.append("> 判据：MA3>MA5>MA10 多头排列 + 本周 MA3 刚上穿 MA5 + MA3 已上穿 MA20（中期转多）"
-                 " + 最近周K收阳且收盘站上三线、最低价穿刺三线（一阳穿三线）。")
+                 " + 最近周K收阳且收盘站上三线、最低价穿刺三线（一阳穿三线）"
+                 " + 最近5个交易日累计涨幅>10%（动量确认）。")
     lines.append("> 附加剔除：最近3日连跌、最近10日日线连跌累计>8%或较近期高点回撤>12%、"
                  "近13周涨幅>50%、ST/*ST 股、北交所股、亏损股（净利润<0）。")
     lines.append("")
@@ -544,6 +556,8 @@ def main():
                     help=f"近三个月涨幅剔除阈值（%），超过即剔除，默认 {RECENT_GAIN_LIMIT*100:.0f}")
     ap.add_argument("--gain-weeks", type=int, default=RECENT_GAIN_WINDOW,
                     help=f"近三个月涨幅统计窗口（周），默认 {RECENT_GAIN_WINDOW}")
+    ap.add_argument("--recent5", type=float, default=RECENT5_GAIN_LIMIT * 100,
+                    help=f"近5个交易日累计涨幅下限（%），低于即不入选，默认 {RECENT5_GAIN_LIMIT*100:.0f}")
     ap.add_argument("--verbose", action="store_true", help="打印扫描进度")
     ap.add_argument("--no-loss", action="store_true",
                     help="不排除亏损股（默认剔除净利润<0的股票）")
@@ -561,14 +575,16 @@ def main():
           f"{args.daily_decline_amp:.0f}%或回撤>{args.daily_dd:.0f}% / "
           f"近{args.gain_weeks}周涨幅>{args.gain:.0f}% / ST/*ST / 北交所 / "
           f"{'不剔除' if args.no_loss else '剔除'}亏损股；"
-          f"信号：MA3>MA5>MA10 多头 + 3周刚上穿5周 + 3周已上穿20周 + 一阳穿三线）")
+          f"信号：MA3>MA5>MA10 多头 + 3周刚上穿5周 + 3周已上穿20周 + 一阳穿三线"
+          f" + 近5日累计涨幅>{args.recent5:.0f}%）")
     t0 = datetime.datetime.now()
     rows, total = scan_all(max_n=args.max, verbose=args.verbose,
                            gain_limit=gain_limit, gain_window=args.gain_weeks,
                            exclude_loss=not args.no_loss,
                            d_decline_amp_limit=args.daily_decline_amp / 100.0,
                            d_drawdown_limit=args.daily_dd / 100.0,
-                           daily_window=args.daily_window)
+                           daily_window=args.daily_window,
+                           recent5_gain_limit=args.recent5 / 100.0)
     dt = (datetime.datetime.now() - t0).total_seconds()
     log_line(f"[扫描] 完成：扫描 {total} 只个股，命中 {len(rows)} 只，用时 {dt:.1f}s")
     if _ST_SKIPPED:
@@ -579,7 +595,7 @@ def main():
         log_line(f"[筛选] 剔除亏损股（净利润<0）{_LOSS_SKIPPED} 只")
 
     if not rows:
-        log_line("[结果] 本轮无符合「MA3/MA5/MA10 多头 + 一阳穿三线」信号的个股")
+        log_line("[结果] 本轮无符合「MA3/MA5/MA10 多头 + 一阳穿三线 + 近5日涨幅>10%」信号的个股")
         return
 
     # 打印 Top 结果
