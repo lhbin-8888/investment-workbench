@@ -596,6 +596,16 @@ def main():
 
     if not rows:
         log_line("[结果] 本轮无符合「MA3/MA5/MA10 多头 + 一阳穿三线 + 近5日涨幅>5%」信号的个股")
+        # 0 命中时清空板块，避免过期存量票长期残留被误认为「今天新入选」
+        if not args.dry_run:
+            ok, n, fpath = tw.clear_block("AI周线")
+            if ok:
+                log_line(f"[清空] 本轮 0 命中，已清空「AI周线」板块的过期存量 → {fpath}")
+                log_line("       通达信需退出重开（或右键刷新）才能看到空板块")
+            else:
+                log_line(f"[清空] 失败：{fpath}")
+        else:
+            log_line("[dry-run] 未清空板块")
         return
 
     # 打印 Top 结果
