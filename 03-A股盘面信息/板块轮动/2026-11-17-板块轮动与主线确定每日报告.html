@@ -1,0 +1,2478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>板块轮动与主线确定每日报告 · 2026-11-17（周二 · 交易日 · v5 评分标准 v2）</title>
+<!--
+  ============================================================================
+  板块轮动与主线确定每日报告 · HTML 版式 v2（2026-10-29 实盘回溯修订）
+  ----------------------------------------------------------------------------
+  本模板为【标准化版式】，自动化任务（v5）与人工补录均须遵循以下四点：
+    ① rebound 超跌强反弹徽章（破 20 日线但当日涨幅 z>3% → 优先入选，不再一票否决）
+    ② 六维评分（时间/资金/广度/位置/催化/启动），权重 1.0/1.2/1.2/0.6/0.8/1.4
+    ③ 启动强度列（第 6 维，由当日涨幅 z 映射：>5%→5 / 3~5%→4 / 2~3%→2 / 0~2%→1 / ≤0→0）
+    ④ 10 日指数跟踪区块（TRACK 数组，逐期核销入选板块的 10 日累计/超额/回撤/MA20/判定）
+  另：MA20 不可算（如新上市板块历史不足 20 根）必须 gate="unknown" 就低判定，
+      不得把「不可算」写成「低于 MA20」。2026-11-05 已修正该缺陷。
+  旧版（v1）仅有五维、无 rebound 徽章、无启动强度列、无 10 日跟踪区块，请勿混用。
+  数据字段、JSON Schema、权重与阈值以 references/scoring_v2.md 为准。
+  ============================================================================
+-->
+<style>
+:root{--bg:#f6f7fb;--card:#ffffff;--ink:#1e293b;--sub:#64748b;--line:#e2e8f0;--red:#dc2626;--grn:#059669;--org:#ea580c;--blue:#2563eb;--ind:#4f46e5;--gold:#d97706;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei","PingFang SC",sans-serif;}
+body{background:var(--bg);color:var(--ink);padding:16px;}
+.wrap{max-width:1180px;margin:0 auto;}
+.header{background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff;border-radius:14px;padding:22px 26px;margin-bottom:14px;}
+.header h1{font-size:22px;margin-bottom:8px;}
+.header .meta{font-size:13px;opacity:.92;display:flex;flex-wrap:wrap;gap:14px;}
+.banner{border-radius:10px;padding:12px 16px;font-size:13.5px;line-height:1.7;margin-bottom:14px;}
+.banner.closed{background:#ecfdf5;border:1px solid #6ee7b7;color:#065f46;}
+.banner.zeromain{background:#fef2f2;border:1px solid #fca5a5;color:#7f1d1d;}
+.banner.holiday{background:#eff6ff;border:1px solid #93c5fd;color:#1e40af;}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px;}
+.kpi{background:var(--card);border-radius:10px;padding:14px 12px;border:1px solid var(--line);text-align:center;}
+.kpi .v{font-size:24px;font-weight:700;color:var(--ind);}
+.kpi .v.r{color:var(--red);}.kpi .v.g{color:var(--grn);}.kpi .v.o{color:var(--org);}.kpi .v.p{color:#6d28d9;}
+.kpi .l{font-size:12px;color:var(--sub);margin-top:4px;}
+.card{background:var(--card);border-radius:12px;border:1px solid var(--line);padding:18px 20px;margin-bottom:14px;}
+.card h2{font-size:16px;margin-bottom:12px;color:#1e3a8a;}
+.card h2 .tag{font-size:11px;color:#fff;background:#3b82f6;border-radius:4px;padding:2px 7px;margin-left:8px;vertical-align:2px;}
+.verify{border-left:4px solid #a855f7;}
+.idxline{font-size:13px;color:var(--sub);line-height:2;}
+.idxline b{color:var(--ink);font-size:14px;}
+.up{color:var(--red);font-weight:600;}.dn{color:var(--grn);font-weight:600;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:#f1f5f9;color:#334155;padding:9px 6px;text-align:center;border-bottom:2px solid var(--line);white-space:nowrap;}
+td{padding:9px 6px;text-align:center;border-bottom:1px solid #f1f5f9;white-space:nowrap;}
+tr:hover td{background:#f8fafc;}
+.score{display:inline-flex;gap:2px;vertical-align:middle;}
+.score i{width:9px;height:12px;border-radius:2px;background:#e2e8f0;display:inline-block;}
+.score i.on{background:#3b82f6;}
+.score.w6 i.on{background:#6d28d9;}
+.avg{font-weight:700;font-size:14px;}
+.tagline{border-radius:20px;padding:2px 10px;font-size:11.5px;font-weight:600;display:inline-block;}
+.tagline.main{background:#fee2e2;color:#b91c1c;}
+.tagline.watch{background:#fef3c7;color:#b45309;}
+.tagline.rot{background:#dcfce7;color:#15803d;}
+.tagline.ebb{background:#991b1b;color:#fff;}
+.tagline.cold{background:#e2e8f0;color:#475569;}
+.tagline.rebound{background:#ede9fe;color:#6d28d9;}
+.gateok{color:#059669;font-weight:700;}
+.gatebad{color:#dc2626;font-weight:700;}
+.gate-rebound{color:#6d28d9;font-weight:700;}
+.gate-pass{color:#059669;font-weight:700;}
+.gate-weak{color:#d97706;font-weight:700;}
+.gate-ebb{color:#dc2626;font-weight:700;}
+.gate-cold{color:#475569;font-weight:700;}
+td.rebound-cell{background:#f5f3ff;}
+tr.rebound-row td:first-child{box-shadow:inset 4px 0 0 #6d28d9;}
+.ebbcard{background:#fef2f2;border:1px solid #fca5a5;border-left:4px solid #dc2626;border-radius:10px;padding:12px 16px;font-size:13px;line-height:1.9;margin-bottom:10px;color:#7f1d1d;}
+.ebbcard b{color:#991b1b;}
+.note{font-size:12.5px;color:var(--sub);line-height:1.9;}
+.ladder{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+.ladder .chip{background:#f1f5f9;border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:12.5px;}
+.ladder .chip b{color:#1e3a8a;}
+select{padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;margin-bottom:12px;background:#fff;}
+.btn{display:inline-block;background:#2563eb;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:13px;cursor:pointer;margin-top:4px;}
+.btn:hover{background:#1d4ed8;}
+.foot{font-size:12px;color:var(--sub);text-align:center;padding:14px 0;line-height:1.8;}
+.warn{background:#fffbeb;border:1px solid #fcd34d;color:#92400e;border-radius:10px;padding:12px 16px;font-size:13px;line-height:1.8;margin-bottom:14px;}
+.track th{background:#faf5ff;color:#5b21b6;}
+.track td.t-hit{color:#059669;font-weight:700;}
+.track td.t-weak{color:#2563eb;font-weight:700;}
+.track td.t-pend{color:#94a3b8;}
+.track td.t-up{color:var(--red);}.track td.t-dn{color:var(--grn);}
+.narr{display:flex;gap:12px;margin:10px 0;padding:10px 12px;background:#f8fafc;border-radius:8px;}
+.narr .nn{flex:0 0 28px;font-weight:800;color:#1e3a8a;font-size:15px;}
+.narr .nb .nt{font-weight:700;color:#0f172a;margin-bottom:4px;font-size:13.5px;}
+.narr .nb .nx{font-size:13px;color:#334155;line-height:1.85;}
+.obscard{display:flex;gap:12px;margin:10px 0;padding:12px 14px;background:#f8fafc;border-left:4px solid #3b82f6;border-radius:8px;}
+.obscard .obnum{flex:0 0 26px;font-weight:800;color:#1e3a8a;font-size:15px;}
+.obscard .obtitle{font-weight:700;color:#0f172a;margin-bottom:4px;font-size:13.5px;}
+.obscard .obtxt{font-size:13px;color:#334155;line-height:1.85;}
+.ph{color:#94a3b8;font-style:italic;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>📊 板块轮动与主线确定每日报告</h1>
+    <div class="meta">
+      <span>📅 报告日期：2026-11-17（周二 · <b>交易日 · 收盘口径 · 全量重算 + 上期核销 + 口径抽查 + 10 日跟踪推进</b>）</span>
+      <span>🕐 数据口径：<b>2026-11-17 收盘（15:00 全天）</b> · 东财 datacenter / push2ex / 新浪 Market_Center / 腾讯 gtimg / RPTA_WEB_RZRQ_GGMX（两融）｜ <b>✅ 本期东财 push2his 经探测已恢复、走主源（561/561 成功、CHANGE_RATE 交叉校验零不符）</b></span>
+      <span>🟦 状态：<b>2 真主线（光刻胶 3.77、光刻机 3.77，均 rebound 档）/ 2 真热点（第四代半导体 3.48、小家电 3.06）/ 2 待验证 / 6 退潮观察</b> · 缩量至 1.46 万亿（-1.8%）、连续第 2 日缩量 · 创业板 -1.20%、科创50 +0.62% 分化 · <b>🔴 首次由 rebound 档单期产出 2 真主线（同为半导体链、days=1、催化成色待人工核）</b> · <b>半导体链被 3% 反弹线一刀切：3 个 rebound 入选、6 个 ebb 一票否决（中芯概念 +41.82 亿概念第一仍退潮）</b> · 跌停 60→67 连续第 3 日攀升、收复 MA20 再降至 4.0% 创新低 · <b>行业主力 -263.04 亿、流出/流入 3.57 倍（较上期 3.74 略收窄）= 出逃放缓但情绪未修复</b> · <b>剪刀差连续第 4 期同向向下</b> · 满窗命中率 48.3% · <b>上期观察清单核销 ✓2/◐3/✗5</b></span>
+      <span>🤖 自动化生成 · 仅供参考，不构成投资建议</span>
+    </div>
+  </div>
+
+<div class="banner">
+    <span>📅 报告日期：2026-11-17（周二 · <b>交易日 · 收盘口径 · 全量重算 + 上期核销 + 口径抽查 + 10 日跟踪推进</b>）</span>
+    <span>🕐 数据口径：<b>2026-11-17 收盘（15:00 全天）</b> · 东财 push2his（板块日线主源，已恢复）/ datacenter / push2ex / 新浪 Market_Center / 腾讯 gtimg / RPTA_WEB_RZRQ_GGMX（两融）</span>
+    <span>🟦 状态：<b>2 真主线（光刻胶 3.77、光刻机 3.77，均 rebound 档）/ 2 真热点（第四代半导体 3.48 rebound、小家电 3.06 weak）/ 2 待验证（白色家电 3.13 pass、中韩自贸区 2.46 unknown）/ 6 退潮观察（半导体链 ebb）</b> · 缩量至 1.46 万亿 · 全市场 1325 涨 / 4119 跌（中位 -1.31%）、跌停 67 家 · <b>🔴 连续第 4 期普跌，跌停 60 → 67 家继续攀升，创业板 -1.20%、科创50 +0.62% 分化</b> · <b>🔴 半导体链集体反弹但多数被 ebb 一票否决——光刻胶/光刻机 z≈+3.1% 破 MA20 判 rebound 真主线，中芯概念/电子化学品/高带宽内存 z≤3% 判退潮观察</b> · 行业主力 -263.04 亿（流出/流入 100/28 = 3.57 倍，较上期 3.74 略收窄） · <b>收复 MA20 由 52 降至 21（4.0%）、MA10 由 19 降至 9，剪刀差连续第 4 期同向向下</b> · 满窗命中率 48.3% · <b>上期观察清单核销结果见下</b></span>
+</div>
+
+>
+<div class="kpis">
+    <div class="kpi"><div class="v p" id="kpiMain">—</div><div class="l">真主线（含超跌强反弹）</div></div>
+    <div class="kpi"><div class="v " id="kpiWatch">—</div><div class="l">真热点</div></div>
+    <div class="kpi"><div class="v r" id="kpiRot">—</div><div class="l">待验证</div></div>
+    <div class="kpi"><div class="v o" id="kpiEbb">—</div><div class="l">退潮观察（ebb）</div></div>
+    <div class="kpi"><div class="v " id="kpiCold">—</div><div class="l">未入围（cold）</div></div>
+    <div class="kpi"><div class="v " id="kpiReb">—</div><div class="l">超跌强反弹（rebound 优先入选）</div></div>
+    <div class="kpi"><div class="v g">1325</div><div class="l">上涨家数（全市场 5577 只）<br><span style="font-size:11px;color:#94a3b8;">跌 4119 / 平 133</span></div></div>
+    <div class="kpi"><div class="v ">4.0%</div><div class="l">收复 20 日线板块占比（反转阈值 30%）<br><span style="font-size:11px;color:#94a3b8;">21/528 · 上期 9.8%</span></div></div>
+    <div class="kpi"><div class="v o">37</div><div class="l">涨停家数（上期 32）<br><span style="font-size:11px;color:#94a3b8;">跌停 67（上期 60）</span></div></div>
+  </div>
+
+  <!-- ============ 候选主线六维打分（v2：六维 + 启动强度 + rebound 徽章） ============ -->
+  <div class="card">
+    <h2>🎯 候选主线六维加权打分<span class="tag">2026-11-17 收盘 · v2 六维权重 1.0/1.2/1.2/0.6/0.8/1.4 · 均分降序 · 硬门槛优先于均分</span></h2>
+    <select id="filterSel" onchange="render()">
+      <option value="all">全部候选板块</option>
+      <option value="main">仅真主线（pass≥4.0 / rebound≥3.5 且过硬门槛）</option>
+      <option value="watch">仅真热点（pass≥3.2 / rebound≥2.8 / weak≥3.0）</option>
+      <option value="rot">仅待验证（含 MA20 不可算的 unknown 档）</option>
+      <option value="rebound">仅超跌强反弹（z>3% 且破 MA20，优先入选）</option>
+      <option value="ebb">仅退潮观察（跌破 20 日线且 z≤3%）</option>
+      <option value="cold">仅未入围（涨停<2 且主力净流出）</option>
+    </select>
+    <div style="overflow-x:auto;">
+    <table>
+      <thead><tr>
+        <th>板块</th><th>涨幅%</th><th>主力净额(亿)</th><th>涨停</th><th>连板</th><th>量比*</th><th>领涨中军</th><th>位置</th><th>连续上榜</th><th>催化</th><th>硬门槛</th><th>启动<br>强度</th><th>六维得分（时间/资金/广度/位置/催化/启动）</th><th>均分</th><th>结论</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    </div>
+<p class="note" style="margin-top:10px;">
+    * 量比 = 当日板块成交额 ÷ 前 5 个交易日均额。<br>
+    <b>六维（权重 1.0/1.2/1.2/0.6/0.8/1.4）</b>：① 时间持续性（days=2→5 / days=1→4 / days≥3→3，非线性）② 资金质量 ③ 广度扩散 ④ 位置过热（收紧+降权：低位5/中段3/高位1/爆量0）⑤ 催化环境 ⑥ <b>启动强度（权重最高 1.4：z>5%→5 / 3~5%→4 / 2~3%→2 / 0~2%→1 / ≤0→0）</b>。<br>
+    <b>加权均分</b> = Σ(权重×分)/Σ权重，缺失维度按剩余权重归一（不按 0 计入）。<br>
+    <b>硬门槛（v2，优先于均分）</b>：<span class="gate-rebound">rebound 超跌强反弹</span>（破 20 日线但当日 z>3% → <b>优先入选</b>，均分≥3.5 真主线 / ≥2.8 真热点）｜<span class="gate-pass">pass 全部通过</span>（≥4.0 真主线 / ≥3.2 真热点）｜<span class="gate-weak">weak 弱启动</span>（≥3.0 真热点，<b>不得判主线</b>）｜<span class="gate-ebb">ebb 退潮</span>（破 20 日线且 z≤3%，一票否决）｜<span class="gate-cold">cold 未入围</span>（涨停<2 且主力净流出）｜<span class="gate-ebb">unknown 数据缺失</span>（<b>如新上市板块 MA20 不可算 → 就低判定</b>）。<br>
+    <b>结论分级（v2）</b>：rebound ≥3.5 真主线 / ≥2.8 真热点；pass ≥4.0 真主线 / ≥3.2 真热点；weak ≥3.0 真热点（不得判主线）；ebb 一律退潮观察；cold 未入围；<b>unknown 一律待验证</b>。<br>
+    <b>排序</b>：pass/weak/rebound 按均分降序在前，cold/ebb 沉底。<b>判定拿不准一律就低不就高——宁可错过，不可接盘。</b>
+    </p>
+    <div id="ebbZone"></div>
+  </div>
+
+  <!-- ============ 10 日指数跟踪区块（v2 新增闭环） ============ -->
+  <div class="card">
+    <h2>📈 10 日指数跟踪核销<span class="tag">跟踪窗口按交易日推进（周末不计数）· 对比全市场 510 板块等权基准（登记表口径）</span></h2>
+    <p class="note" style="margin-top:0;color:var(--ink);">
+      <b>口径</b>：入选（真主线/真热点/超跌强反弹）板块一律跟踪后续 10 个交易日，记录 10 日累计涨幅、10 日超额（减全市场等权基准）、区间最大回撤、期末是否仍站 MA20；判定：<b>命中(强)</b>=超额≥+3.0pp、<b>命中(弱)</b>=超额≥0。命中率累积到季度复盘用于校准锚点。
+    </p>
+    <div style="overflow-x:auto;">
+    <table class="track">
+      <thead><tr>
+        <th>板块</th><th>入选日</th><th>入选结论</th><th>跟踪状态</th><th>10日累计%</th><th>10日超额pp</th><th>最大回撤%</th><th>期末站MA20</th><th>判定</th>
+      </tr></thead>
+      <tbody id="trackBody"></tbody>
+    </table>
+    </div>
+    <p class="note" style="margin-top:10px;" id="trackNote"><b>跟踪状态</b>：<b>满窗 10 日跟踪命中率 48.3%（29 条满窗 / 命中 14 条，强 9 / 弱 5），较上期 53.8% 小幅回落 5.5pp</b>——本期 <b>11-04、11-05 两个 13 条批次仍在窗口内推进</b>，满窗样本由上期 26 增至 <b>29 条</b>。<b>分层结论保持稳定</b>：10-14 批次（10 月中旬高位追入）8 条命中率仅 <b>12.5%</b>，而 11-02 批次（低位启动）14 条命中率 <b>64.3%</b>，差距 <b>51.8pp</b>；<b>「低位启动型入选优于高位追入型」的分层统计结论维持（n=29）</b>；全历史累计强命中率 23.6% / 含弱命中率 39.9% 的 v2 校准基线仍作为长期参照。<br>
+<b>本期推进</b>：TRACK 累计 <b>93 → 97 条</b>，新增 <b>4 条</b>（光刻胶 3.77、光刻机 3.77 均真主线 rebound 档，第四代半导体 3.48 真热点 rebound、小家电 3.06 真热点 weak），10 日窗口预计 <b>2026-12-01 前后</b>到期。11-03 批次 3 条、11-04 批次 13 条、11-05 批次 13 条、11-06 批次 1 条、11-09 批次 5 条、11-10 批次 14 条、11-11 批次 11 条、11-12 批次 2 条、11-13 批次 2 条、11-16 批次 3 条均在窗口内逐日推进，判读 verdict 严格使用 <code>startswith('命中')</code>，避免「未命中」被误计。<b>⚠ 本期基准日均走弱（普跌环境），窗口内基准下行会同时抬高所有批次超额读数，故跨批次命中率绝对值不可直接与前期比较，分层结论只取同一时点的组间相对差</b>。<br>
+<b>基准口径已复核</b>：以 v2 登记表 510 板块宇宙重算 10-14→10-28 窗口日均为 <b>-0.5718%</b>，与登记表记录的 -0.572 完全一致，确保命中率基线口径连续。<br>
+<b>判定标准</b>：命中(强) = 10 日超额 ≥ +3.0pp；命中(弱) = 超额 ≥ 0；基准为全市场 510 板块等权（日均口径，与登记表一致）。</p>
+  </div>
+
+<div class="card">
+    <h2>指数与市场概览<span class="tag">2026-11-17 收盘（15:00 全天）· 腾讯 gtimg 快照时间戳 20261117161427</span></h2>
+    <div class="idxline">上证指数 <b class='down'>3584.58 -0.50%</b>　深证成指 <b class='down'>10638.52 -0.49%</b>　创业板指 <b class='down'>2292.20 -1.20%</b><br>科创50 <b class='up'>1221.19 +0.62%</b>　沪深300 <b class='down'>3976.46 -0.08%</b>　北证50 <b class='up'>841.49 +0.59%</b><br></div>
+    <p class="note" style="color:var(--ink);line-height:1.95;">
+<b>两市成交</b>：沪市 <b>6905.15 亿</b> + 深市 <b>7671.80 亿</b> = <b>14576.95 亿</b>（上日 14844.90 亿，<b class='down'>缩量 267.95 亿（-1.8%）</b>）——<b>连续第 2 日缩量、量能进一步枯萎</b>。<br>
+<b>全市场涨跌</b>：新浪 Market_Center hs_a 口径 <b>5577 只</b>，<b class='up'>1325 涨</b> / <b class='down'>4119 跌</b> / 133 平，个股中位 <b class='down'>-1.31%</b>——<b>涨跌比 1:3.1，较上期 1:3.8 略有收敛但仍为普跌格局</b>。<br>
+<b>涨停 / 跌停</b>：东财 push2ex 当日池 <b>涨停 37 家</b>（上期 32）/ <b class='down'>跌停 67 家</b>（上期 60，<b>再增 7 家、连续第 3 日攀升</b>）；梯队 1 板 31 / 2 板 5 / 3 板 1，最高 <b>3 板</b>（华东重机，工程机械）——<b>连板高度降至 3 板、无 4 板以上，赚钱效应持续冰点</b>。<br>
+<b>外围实况</b>：美股 11-16 道指 <b class='down'>-1.41%</b> / 纳指 <b class='down'>-2.49%</b> / 标普500 <b class='down'>-1.92%</b>（费半 usSOX 本期取不到，不编造）；港股 11-17 恒指 <b class='down'>-0.88%</b> / 恒生科技 <b class='down'>-0.94%</b>；商品 11-17 16:22 电子盘原油 85.39 <b class='down'>-0.38%</b> / 黄金 3871.49 <b class='up'>+0.48%</b> / 白银 47.49 <b class='up'>+1.35%</b>。<b>外围科技股大跌但 A 股科创50 逆势收红、贵金属受外盘提振——外围与 A 股结构分化。</b><br>
+<b>行业资金</b>：128 个行业主力合计 <b class='down'>-263.04 亿</b>（流入 28 / 流出 100，比值 <b>3.57 倍</b>，较上期 3.74 倍略收窄）；行业上涨 <b>15/128</b>。资金流入前三：半导体 +29.63 亿、光学光电子 +9.39 亿、贵金属 +3.82 亿；流出前三：通信设备 -25.18 亿、元件 -20.32 亿、自动化设备 -17.02 亿。<br>
+<b>技术面修复度（528 可算板块宇宙口径）</b>：收复 MA20 <b class='down'>21/528（4.0%，上期 52/528 = 9.8%）</b>、收复 MA10 <b class='down'>9/528（1.7%，上期 19 = 3.6%）</b>、up3 <b>4</b>（上期 4）、pass <b>4</b>（上期 2）——<b>🔴 收复 MA20 / MA10 双双继续下探、再创本轮新低，剪刀差连续第 4 期同向向下，趋势修复信号始终未出现</b>。<br>
+<b>两融</b>：11-16 两融合计 <b>22469.65 亿</b>（样本 4490 只完整），较 11-13 的 22684.24 亿<b class='down'>减少 214.59 亿</b>，杠杆资金延续去化；<b>11-17 数据受 T+1 延迟未入库，按慢变量纪律本期不参与判断，仅作存量披露</b>。
+    </p>
+  </div>
+
+
+<div class="card">
+    <h2>当日主线判定与结构解读<span class="tag">2026-11-17 · v2 硬门槛优先于均分 · 判定拿不准一律就低不就高</span></h2>
+    <p class="note" style="color:var(--ink);line-height:2;">
+<p style="margin:0 0 10px;"><b>本期结论：2 真主线 / 2 真热点 / 2 待验证 / 6 退潮观察 / 0 未入围</b>。候选池 12 个，gate 分布 rebound 3 / pass 1 / weak 1 / unknown 1 / ebb 6。<b>这是开刊以来首次由 rebound 档单期产出 2 个真主线</b>，且均来自半导体材料/设备链。</p>
+<b>① 真主线：光刻胶 3.77、光刻机 3.77（均 rebound 档）——超跌强反弹确认，但催化成色待人工核。</b>光刻胶当日 <b>+3.12%</b>、主力 <b>+7.84 亿</b>、涨停 <b>6 家</b>、上涨占比 77.8%、近 20 日 <b>-6.54%</b>；光刻机当日 <b>+3.08%</b>、主力 <b>+17.17 亿</b>、涨停 <b>5 家</b>、近 20 日 <b>-9.82%</b>。两者均满足「收盘仍破 MA20 但当日 z&gt;3%」的 rebound 硬门槛，六维 [4,3,4,5,3,4] 加权均分 3.77 ≥ 3.5，判<b>真主线</b>。<b>但须明示三点保留</b>：一是催化环境分 3 为代理值（连续上榜 × 资金连续性推算），<b>催化成色待人工核</b>——半导体材料国产替代逻辑长期成立，但本期未做逐条利好三问核验，不排除超跌反抽属性；二是 days=1（首次上榜）、无连板梯队（最高 1 板），持续性未经确认；三是二者与下方 6 个 ebb 半导体板块属同一产业链，<b>链内分化而非全链转强</b>。<br>
+<b>② 真热点：第四代半导体 3.48（rebound）、小家电 3.06（weak）。</b>第四代半导体 +3.01%、主力 +0.53 亿、近 20 日 -9.12%，rebound 档均分 3.48 落在 2.8~3.5 区间判真热点；<b>其广度维度成分股不足 5 只记为 None，按剩余权重归一</b>（六维 [4,2,None,5,3,4]），样本量偏小，置信度下调。小家电 +1.71%、主力 +0.55 亿、连板 2、days=2、近 20 日 +5.55%，weak 档（未连涨 3 天）均分 3.06 ≥ 3.0 判真热点、<b>按纪律封顶不得判主线</b>。<br>
+<b>③ 半导体链的「门槛分层」是本期最重要的结构特征。</b>同属半导体链的 6 个板块被 v2 门槛一刀切成两档：光刻胶/光刻机/第四代半导体 z≈+3.1%、破 MA20 → <b>rebound 档优先入选</b>；而中芯概念 +1.90%（主力 <b>+41.82 亿</b>全市场概念第一、3 涨停）、电子化学品Ⅱ +1.86%（+3.50 亿、3 涨停）、高带宽内存 +1.26%（+17.79 亿）、半导体 +0.30%（+29.63 亿）、先进封装 +0.45%（+27.28 亿）——<b>尽管资金与广度证据并不弱，却因 z≤3% 且破 MA20 被 ebb 一票否决，判退潮观察</b>。这是第 4 类偏差「3% 反弹线打回 ebb」再现：按纪律<b>不得因资金好就上调门槛</b>，但其「收复 MA20 前不算热点复活」的判据须在下一期逐条复核——若这批板块次日收复 MA20 且站稳，说明只是被阈值误杀，须走季度回溯而非常规改门槛。<br>
+<b>④ 上期主线/热点延续判定：算力链继续失血、防御链分化、影视院线崩塌。</b>上期（11-16）3 个真热点今日全线走弱：<b>白色家电</b> +1.47%/+3.41 亿但均分降至 3.13 判待验证（上期 3.94）；<b>保险Ⅱ</b> 主力资金直接转负；<b>电视广播Ⅱ</b> 未能延续。上期唯一 pass 档<b>银行Ⅱ</b>今日 +0.14% 但主力<b>由 +3.89 亿转为 -13.54 亿</b>、广度降至 54.8%，均分不足 3.2——<b>「防御属性回归」连续第 2 期被证伪</b>。算力链二次探底后未见止跌：通信设备 -2.00%/-25.18 亿、元件 -2.64%/-20.32 亿、5G概念 -1.95%/-47.38 亿、机器人概念 -2.34%/<b>-86.18 亿</b>（概念资金流出第一）。<b>影视院线 -9.02%、广度 0.0%、主力 -11.44 亿</b>，11-13 曾判的一日游彻底坐实。上一期主线判断（0 真主线）方向正确，本期 rebound 真主线为超跌反抽新信号，非旧主线复活。<br>
+<b>⑤ 退潮仍未结束，但出现「资金出逃放缓 + 结构微修复」两个边际变化。</b>跌停家数 60→67 仍在攀升、收复 MA20 由 52 降至 21 再创新低，<b>退潮趋势未反转</b>；但行业流出/流入比值由 3.74 收窄至 3.57、涨停由 32 升至 37、行业主力流出由 -646.80 亿收敛至 -263.04 亿——<b>出逃速度明显放缓</b>。按上期设定的判别式，本期落在「出逃放缓但情绪未修复」的中间态，<b>尚不足以判定退潮结束</b>（硬指标：比值回落至 1.5 以下 + 涨停回升至 50 家以上，均未达标）。<br>
+<b>判定拿不准一律就低不就高：宁可错过，不可接盘。</b>
+    </p>
+  </div>
+
+
+<div class="card">
+    <h2>上期观察清单核销与复盘验证<span class="tag">核销对象：2026-11-16 期 10 条 · ✓2 / ◐3 / ✗5 · 完全兑现率 20.0%</span></h2>
+    <p class="note" style="color:var(--ink);line-height:2.05;">
+<b>核销总评：✓ 兑现 2 / ◐ 部分 3 / ✗ 证伪 5，完全兑现率 20.0%</b>（上期对 11-13 期为 30.0%，下滑 10.0pp）。连续多期完全兑现率在 20%~30% 区间，说明条件型判据的设计具备可证伪性，但市场对判据的达标率偏低——多数观察项因退潮延续而未能兑现，属环境使然而非判据失效。<br><br>
+<p style="margin:0 0 8px;"><b>判据① 跌停回落 + 指数止跌双确认 → <span style="color:#0a7">✓ 部分兑现（◐）</span></b>：⑤ 跌停 <b>60 → 67</b> 未回落至 30 以下（✗）；② 创业板 -4.37% → <b>-1.20%</b> 收窄至 1% 内、科创50 <b>+0.62%</b> 收红（✓）；③ 前期连续跌停的沪电股份 <b>-1.46%</b>、景旺电子 <b>-5.39%</b> <b>跌停打开</b>（✓）；④ 跌停仍 67≥50 但指数已止跌，按纪律<b>不判退潮结束</b>（✓ 守住）；⑤ 成交额缩量 1.8% 属缩量企稳而非放量出清。<b>三方兑现、跌停数未达，记 ◐。</b></p>
+<p style="margin:0 0 8px;"><b>判据② 算力链资金分化（通信技术收窄 vs 半导体扩大）→ <span style="color:#0a7">◐ 部分兑现</span></b>：通信设备 <b>-71.28 → -25.18 亿</b>（继续大幅收窄，兑现）；但半导体 / 中芯概念本期转为<b>净流入 +29.63 / +41.82 亿</b>（不再是「扩大流出」而是资金回流，方向已变）；龙头中际旭创、新易盛本期未再创新低但仍在下跌通道；CPO概念广度 23.5% 较上期 8.8% 修复至 20% 以上（✓）。<b>「光模块收窄」兑现、「半导体资金迁移」方向改变，记 ◐。</b></p>
+<p style="margin:0 0 8px;"><b>判据③ MA10 修复度 3.6% 是否触底 + up3/pass 3 日均 → <span style="color:#c0392b">✗ 证伪</span></b>：收复 MA10 由 19/528（3.6%）<b>继续降至 9/528（1.7%）</b>，不仅未触底反而再创新低；收复 MA20 由 52 降至 21（4.0%）；up3 维持 4、pass 升至 4，3 日均仍处冰点。<b>「触底」假设被明确证伪，剪刀差连续第 4 期同向向下，记 ✗。</b></p>
+<p style="margin:0 0 8px;"><b>判据④ 防御链「属性回归」硬指标比值 3.74 → 1.5 以下 → <span style="color:#c0392b">✗ 证伪</span></b>：流出/流入比值仅由 <b>3.74 微降至 3.57</b>，远未达 1.5；涨停由 32 升至 37 但仍 <b>远低于 50 家</b>；银行Ⅱ主力<b>由 +3.89 转 -13.54 亿</b>，防御链资金反而失血。<b>硬指标持续不达标，记 ✗。</b></p>
+<p style="margin:0 0 8px;"><b>判据⑤ 3 个真热点（weak 档）补齐「站 MA10 + 3 连涨」升格 pass → <span style="color:#c0392b">✗ 证伪</span></b>：白色家电今日 +1.47% 但均分由 3.94 降至 3.13 判待验证；保险Ⅱ资金转负、电视广播Ⅱ未延续。<b>无一升格，反而全线走弱，记 ✗。</b></p>
+<p style="margin:0 0 8px;"><b>判据⑥ 唯一 pass 档银行Ⅱ均分推过 3.2 / 4.0 → <span style="color:#c0392b">✗ 证伪</span></b>：银行Ⅱ今日主力转为净流出 -13.54 亿、广度降至 54.8%，本期未进真主线/真热点，均分不满足 3.2。<b>记 ✗。</b></p>
+<p style="margin:0 0 8px;"><b>判据⑦ 10 日跟踪满窗命中率能否稳定在 50% 上 → <span style="color:#0a7">◐ 部分兑现</span></b>：满窗样本增至 <b>29 条</b>、命中 <b>14 条（强 9 / 弱 5）</b>、满窗命中率 <b>48.3%</b>（上期 53.8%，小幅回落但仍在 50% 附近）；10-14 高位追入批次 12.5% vs 11-02 低位启动批次 64.3% 的分层结论维持。<b>略低于 50% 但分层稳定，记 ◐。</b></p>
+<p style="margin:0 0 8px;"><b>判据⑧ 未完成项「头部 3 只个股成交额占板块成交额比例」量化指标必须补齐 → <span style="color:#c0392b">✗ 未完成（方法学债务）</span></b>：本期仍未将其做成可落库指标，仅以个别板块个股成交额做定性观察（如中际旭创、澜起科技成交额居前）。<b>已连续 3 期列为未完成项，须列为方法学债务优先处理，记 ✗。</b></p>
+<p style="margin:0 0 8px;"><b>判据⑨ ebb 档「收复 MA20 前不算热点复活」纪律复核 → <span style="color:#0a7">✓ 兑现</span></b>：上期 3 个退潮观察（房屋建设Ⅱ、煤炭开采、换电概念）本期无一收复 MA20 升级；本期 6 个 ebb 半导体板块（中芯概念、电子化学品Ⅱ等）虽有资金净流入但均 z≤3% 破 MA20，一律判退潮观察、<b>未因资金流入就上调</b>。<b>纪律完整守住，记 ✓。</b></p>
+<p style="margin:0 0 8px;"><b>判据⑩ 数据链路与空窗期纪律 → <span style="color:#0a7">✓ 兑现</span></b>：push2his 经单请求探测<b>已恢复</b>（561/561 全量拉取成功、末根均 11-17、交叉校验零不符），本期走主源链路无需 fallback；当日概念资金流 433 行已优先抢救落地，无隔日丢失；上期报告存在、无空窗缺口。<b>记 ✓。</b></p>
+<b>本期新增方法论沉淀</b>：① <b>rebound 真主线须同时披露「链内分化」</b>——本期 2 真主线与 6 退潮观察同属半导体链，仅按 z 阈值一刀切，若只报真主线不报同链 ebb，会误导为「半导体全链转强」；② <b>主源恢复也须交叉校验</b>——push2his 恢复后仍以 datacenter CHANGE_RATE 逐板块核对 561 个、零不符方可采信，避免「接口恢复但数据陈旧」的隐性错误；③ <b>方法学债务需显式计息</b>——「头部 3 只成交额占比」连续 3 期未完成，应升级为阻断项而非顺延项。
+    </p>
+  </div>
+
+
+<div class="card">
+    <h2>结论与下一交易日观察清单<span class="tag">下一交易日 2026-11-18（周三）执行 · 观察清单 10 条 · 条件型判据为主</span></h2>
+    <p class="note" style="color:var(--ink);line-height:2;">
+<p style="margin:0 0 10px;"><b>本期结论：2 真主线（光刻胶 3.77、光刻机 3.77，均 rebound 档）/ 2 真热点（第四代半导体 3.48 rebound、小家电 3.06 weak）/ 2 待验证（白色家电 3.13 pass、中韩自贸区 2.46 unknown）/ 6 退潮观察（半导体链 ebb）</b><br>
+全市场 <b>1325 涨 / 4119 跌 / 133 平</b>、涨停 <b>37 家</b>（上期 32）、跌停 <b>67 家</b>（上期 60，<b>连续第 3 日攀升</b>）、成交额<b>缩量 267.95 亿至 1.46 万亿</b>（-1.8%）；128 行业主力合计 <b>-263.04 亿</b>（流入 28 / 流出 100，比值 <b>3.57 倍</b>，较上期 3.74 略收窄），行业上涨 <b>15/128</b>；<br>
+收复 20 日线板块 <b>21/528（4.0%，上期 9.8%）</b>、收复 10 日线 <b>9/528（1.7%，上期 3.6%）</b>，<b>up3 维持 4、pass 升至 4，剪刀差连续第 4 期同向向下</b>；<br>
+<b>两融 11-16 = 22469.65 亿（较 11-13 减 214.59 亿）、11-17 受 T+1 延迟未入库不参与判断。</b><br>
+本期<b>2 真主线 · 2 真热点 · 2 待验证 · 6 退潮观察 · 0 未入围</b>。<b>本期三条核心结论：一是首次由 rebound 档单期产出 2 真主线（光刻胶/光刻机），但同为半导体链且 days=1、无连板梯队，催化成色待人工核；二是半导体链被 3% 反弹线一刀切成 rebound 真主线与 ebb 退潮观察两档，是门槛纪律的直接体现，须在下一期验证哪一侧成立；三是退潮趋势未反转（跌停再增、MA20 修复度再创新低）但出逃速度明显放缓（比值 3.74→3.57、行业流出 -646.80→-263.04 亿），落在「出逃放缓但情绪未修复」的中间态。</b></p>
+
+<div class="obscard"><span class="obnum">1</span><span class="obtitle">🔴 最高优先级：2 个 rebound 真主线（光刻胶 / 光刻机）能否走出「超跌反抽 → 趋势修复」的第一步</span><p class="obtxt">本期光刻胶 +3.12%/+7.84 亿/6 涨停、光刻机 +3.08%/+17.17 亿/5 涨停，均仍破 MA20。<b>判据（条件型）</b>：① 两者能否<b>连续第 2 日上涨并收复 MA20</b>（按「收复须连续 2 日站稳」修订，首日收复不算）；② 主力资金能否<b>连续第 2 日为正</b>，光刻机能否守住 10 亿级流入；③ 涨停家数能否维持 5 家以上、能否出现 2 板梯队（本期最高 1 板）；④ 若次日回落且资金转负，则本期 rebound 真主线判为<b>一日游 / 误判</b>，如实记录；⑤ 催化人工核须补齐——半导体材料国产替代的利好三问（覆盖行业 / 持续性 / 改变业绩预期）能否至少占其二。</p></div>
+
+<div class="obscard"><span class="obnum">2</span><span class="obtitle">🔴 半导体链门槛分层验证：6 个 ebb 板块（中芯概念 +41.82 亿等）会否收复 MA20 证明被阈值误杀</span><p class="obtxt">本期中芯概念（+41.82 亿，概念资金第一）、电子化学品Ⅱ（3 涨停）、高带宽内存（+17.79 亿）、半导体（+29.63 亿）、先进封装（+27.28 亿）资金与广度不弱，却因 z≤3% 且破 MA20 被 ebb 否决。<b>判据</b>：① 6 个 ebb 板块能否有<b>至少 3 个收复 MA20 且连续 2 日站稳</b>；② 若成立则说明是第 4 类阈值偏差误杀，须走季度回溯、<b>常规判定仍守 ebb 不擅改门槛</b>；③ 光刻胶/光刻机（rebound 真主线）与这批 ebb 的资金能否同步延续，判断是「链内轮动」还是「全链转强」；④ 中芯概念资金能否连续第 2 日为正并放大到 50 亿以上。</p></div>
+
+<div class="obscard"><span class="obnum">3</span><span class="obtitle">🔴 退潮是否见底：跌停 60 → 67 连续第 3 日攀升 vs 出逃速度放缓，哪个信号占主导</span><p class="obtxt">本期跌停 67 家再创新高，但行业流出由 -646.80 收敛至 -263.04 亿、比值 3.74→3.57。<b>判据</b>：① 跌停家数能否<b>回落至 50 家以下</b>（本轮首次转机信号）；② 流出/流入比值能否继续回落至 <b>3.0 以下</b>，向 1.5 退出阈值靠拢；③ 涨停能否回升至 <b>50 家以上</b>；④ 成交额能否止住连续 2 日缩量（本期 1.46 万亿）——<b>缩量企稳与放量出清含义不同</b>；⑤ 连板高度能否从 3 板回升至 4 板以上，恢复赚钱效应。</p></div>
+
+<div class="obscard"><span class="obnum">4</span><span class="obtitle">算力链资金回流能否持续：通信设备 -71.28→-25.18 亿收窄，半导体转为净流入</span><p class="obtxt">本期算力链出现方向变化：通信设备流出大幅收窄至 -25.18 亿、半导体/中芯概念转为净流入。<b>判据</b>：① 通信设备流出能否进一步收窄至 -15 亿以内或转正；② 半导体 +29.63 亿、中芯概念 +41.82 亿能否连续第 2 日为正（验证资金回流而非单日反抽）；③ 龙头中际旭创、新易盛、天孚通信能否止跌收红；④ 机器人概念 -86.18 亿（概念流出第一）能否收窄，人形机器人 -62.34 亿能否跟随。</p></div>
+
+<div class="obscard"><span class="obnum">5</span><span class="obtitle">技术面修复度冰点能否触底：MA20 4.0% / MA10 1.7% 的 3 日移动平均</span><p class="obtxt">上期「MA10 3.6% 触底」判据被证伪（本期降至 1.7%）。<b>判据</b>：① 收复 MA20 21/528（4.0%）能否止跌回升；② 收复 MA10 9/528（1.7%）能否触底；③ <b>建立 up3 / pass 的 3 日移动平均</b>（up3 现值 4、pass 4），消除单日跳变噪声；④ 剪刀差连续第 4 期同向向下，须出现<b>连续 2 期同向向上</b>方可确认趋势反转。</p></div>
+
+<div class="obscard"><span class="obnum">6</span><span class="obtitle">防御链与影视院线：银行Ⅱ资金转负后能否修复，影视院线 -9.02% 后是否继续崩塌</span><p class="obtxt">本期银行Ⅱ主力由 +3.89 转 -13.54 亿、广度降至 54.8%，防御属性连续第 2 期证伪；影视院线 -9.02%、广度 0%、-11.44 亿，一日游彻底坐实。<b>判据</b>：① 银行Ⅱ资金能否由负转正、广度能否回到 80% 以上；② 白酒Ⅱ +2.41 亿能否延续、贵金属 +3.82 亿（外盘金价提振）能否走成独立链；③ 影视院线/数字媒体/游戏Ⅱ（本期 -9%/-6.4%/-4.3%）能否止跌，若继续崩塌则确认 AI 应用链退潮进入主跌段。</p></div>
+
+<div class="obscard"><span class="obnum">7</span><span class="obtitle">10 日跟踪：满窗命中率 48.3%，11-04 / 11-05 批次下期起陆续满窗</span><p class="obtxt">满窗 29 条命中 14（48.3%，上期 53.8%），分层结论稳定（10-14 高位追入 12.5% vs 11-02 低位启动 64.3%）。<b>判据</b>：① 本期新启动 4 条（光刻胶、光刻机、第四代半导体、小家电）第 2/10 日推进；② 11-04 批次 13 条、11-05 批次 13 条下期起陆续满窗，须逐条标注并核对命中率是否守住基线；③ verdict 判读严格 startswith('命中')，避免「未命中」误计；④ 分层结论按「入选时市场位置 × gate 档」继续统计。</p></div>
+
+<div class="obscard"><span class="obnum">8</span><span class="obtitle">🔴 方法学债务（连续 3 期未完成）：「头部 3 只个股成交额占板块成交额比例」必须落地为可落库指标</span><p class="obtxt">该指标自 11-12 期提出已连续 3 期未补齐。<b>判据</b>：① 须写一个脚本对当期每个真主线/真热点板块计算头部 3 只成分股成交额 ÷ 板块总成交额，落库为 JSON 字段；② 回溯 11-11、11-13、11-17 三期的 5 个高确定性板块，验证「资金集中度过高 → 次日回落」的负向证据是否成立；③ 本期光刻胶（6 涨停）、光刻机（5 涨停）须优先计算该比例，若头部 3 只占比过高则按「负向证据提示」机制标注、只披露不改标签。</p></div>
+
+<div class="obscard"><span class="obnum">9</span><span class="obtitle">未知档与样本量偏差：中韩自贸区（unknown）、第四代半导体（广度 None）须就低判定复核</span><p class="obtxt">本期中韩自贸区因量比/位置数据缺失判 unknown（就低待验证）、第四代半导体成分股不足 5 只广度记 None。<b>判据</b>：① 中韩自贸区缺失数据能否补齐、补齐后 gate 是否变化；② 第四代半导体的小样本虚高是否会重演 11-10「其他家电Ⅱ」式误判，须核对次日表现；③ 「缺失维度按剩余权重归一」在极小样本 + 极端 z 场景下是否把分数抬过门槛线，记录量化证据。</p></div>
+
+<div class="obscard"><span class="obnum">10</span><span class="obtitle">数据链路与空窗期纪律：push2his 恢复后须持续交叉校验，概念资金流当日必取</span><p class="obtxt">本期 push2his 恢复走主源（561/561 成功、交叉校验零不符）。<b>判据</b>：① 下一期先单请求探测 push2his 是否仍稳定，若再度限流立即切备用链路并披露；② 无论主备，须坚持 CHANGE_RATE 交叉校验零不符；③ 概念资金流只保留当日、<b>每个交易日 16:10 必取、隔日不可回补</b>；④ 若遇休市日先查上一交易日是否漏跑（run_daily check），严禁以「今天休市」跳过缺口日补跑；⑤ 两融精确 filter 逐日取，11-18 可得 11-17 数据后须核对是否为 22469.65 亿的延续或转向。</p></div>
+    </p>
+  </div>
+
+
+<div class="card">
+    <h2>数据源、口径与链路变更披露<span class="tag">2026-11-17 收盘 · 全链路可回溯 · 缺失一律标注、不编造</span></h2>
+    <p class="note" style="color:var(--ink);line-height:1.95;">
+<p style="margin:0 0 8px;"><b>① 本期链路：push2his 主源恢复（与上期不同，须重点说明）</b>：上期（11-16）push2his 被 IP 限流、板块日线走 CHANGE_RATE 反推备用链路；本期开跑前先单请求探测，确认 <b>push2his 已恢复</b>（返回末根 11-17），故<b>全量走主源</b>——561 个板块日线全部拉取成功（<b>561/561，零失败</b>），并发 ≤2、单请求间隔 ≥0.35s、频控合规，未触发限流。</p>
+<p style="margin:0 0 8px;"><b>② 主源交叉校验（恢复后仍必须做）</b>：以 datacenter <b>CHANGE_RATE × 上一交易日（11-16）收盘反推涨幅</b>逐板块核对，<b>561 个板块末根均为 2026-11-17、重建涨幅 vs CHANGE_RATE 不符 0 个</b>（容差 0.02pp）——确认接口恢复且数据为当日新鲜值，非陈旧缓存。</p>
+<p style="margin:0 0 8px;"><b>③ 各数据源口径</b>：
+<b>板块日线</b> = 东财 push2his kline（klt=101、fqt=1、近 4 个月区间）；
+<b>资金流</b> = datacenter <b>RPT_INDUSTRY_FUNDFLOW</b>（行业全历史，当日 128 个）+ <b>RPT_CONCEPT_FUNDFLOW</b>（概念<b>仅当日 = 11-17</b>，433 行，隔日不可回补，已优先抢救落地）；
+<b>涨停 / 跌停</b> = 东财 <b>push2ex getTopicZTPool / getTopicDTPool</b> 当日池（<b>37 / 67 家，非阈值近似</b>；新浪阈值近似为 39 / 77，仅作交叉参考）；
+<b>全市场涨跌</b> = 新浪 <b>Market_Center.getHQNodeData?node=hs_a</b>（5577 只，1325 涨 / 4119 跌 / 133 平，中位 -1.31%）；
+<b>两市成交额</b> = 腾讯 <b>qt.gtimg.cn raw[37]</b>（沪 6905.15 + 深 7671.80 = 14576.95 亿）；
+<b>外围 / 指数</b> = 腾讯 gtimg（美股 11-16、港股与商品 11-17 实时快照）；
+<b>两融</b> = datacenter <b>RPTA_WEB_RZRQ_GGMX</b>，<b>精确 filter (DATE='YYYY-MM-DD') 逐日取</b>（11-16 = 22469.65 亿、样本 4490 只完整；11-17 受 T+1 延迟未入库，不参与判断）。</p>
+<p style="margin:0 0 8px;"><b>④ 三态纪律与缺失标注</b>：成分股不足 5 只的板块广度记 None（第四代半导体）、位置/量比数据缺失记 None（中韩自贸区 gate=unknown，就低判待验证）、新上市板块 MA20 不可算记 unknown——<b>一律不写成「低于 MA20」、不编造数字、不按 0 计入缺失维度权重</b>（按剩余权重归一）。费半 usSOX 本期取不到，如实标注不编造。</p>
+<p style="margin:0 0 8px;"><b>⑤ 口径抽查（第 0 步复盘验证）</b>：抽取上期 13 条板块的涨幅 z 与净流入 f，与当日数据源回溯的 11-16 值比对——<b>z 可比 13/13、最大 Δz 0.004pp；f 可比 6/13、最大 Δf 0.005 亿，零漂移</b>。f 仅 6/13 可比非漂移：上期 13 条中 7 条为概念板块，RPT_CONCEPT_FUNDFLOW 只保留当日、历史不可回补 → 记 null，属接口固有约束。</p>
+<p style="margin:0 0 8px;"><b>⑥ 基准校验</b>：以 v2 登记表 510 板块等权宇宙重算 10-14→10-28 窗口日均 <b>-0.5718%</b>，与登记表记录 -0.572 <b>完全一致</b>，命中率基线口径连续。<b>本期 11-17 基准日均由 step0 依当日 510 板块等权计算，仅用于超额收益相对比较。</b></p>
+<b>⑦ 免责</b>：本页所有结论基于公开数据与 v2 量化标准机械计算，<b>不构成投资建议</b>；催化环境分为代理值、成色待人工核；实时主线以当日监测为准。
+    </p>
+  </div>
+
+
+<div class="foot">
+    板块轮动与主线确定每日报告 · 2026-11-17（周二 · <b>交易日</b>）｜ 数据口径：<b>2026-11-17 收盘（15:00 全天）</b> ｜ 候选池 12 个（涨幅前10 ∪ 资金前5 ∪ rebound前3）｜ 结论：<b>2 真主线 / 2 真热点 / 2 待验证 / 6 退潮观察 / 0 未入围</b>（真主线为光刻胶 3.77、光刻机 3.77，<b>均 rebound 档、超跌强反弹优先入选</b>；真热点为第四代半导体 3.48 rebound、小家电 3.06 weak；待验证为白色家电 3.13 pass、中韩自贸区 2.46 unknown；退潮观察为中芯概念、电子化学品Ⅱ、高带宽内存、半导体、先进封装、贵金属，<b>均 ebb 档、z≤3% 破 MA20 一票否决</b>）——<b>① 首次由 rebound 档单期产出 2 真主线但同为半导体链、days=1、无连板梯队，催化成色待人工核</b>；<b>② 半导体链被 3% 反弹线一刀切成 rebound 真主线与 ebb 退潮观察两档，是 v2 门槛纪律的直接体现，6 个 ebb 板块资金不弱（中芯概念 +41.82 亿概念第一）但 z≤3% 一律不升档</b>；<b>③ 退潮趋势未反转但出逃放缓</b>：跌停 60→67 连续第 3 日攀升、收复 MA20 由 52 降至 21（4.0%）再创新低、剪刀差连续第 4 期同向向下，但行业流出由 -646.80 收敛至 -263.04 亿、比值 3.74→3.57、涨停 32→37，落在「出逃放缓但情绪未修复」中间态，<b>尚不足以判定退潮结束</b>；<b>④ 上期 3 真热点全线走弱、银行Ⅱ资金由 +3.89 转 -13.54 亿、影视院线 -9.02% 崩塌</b>，防御属性连续第 2 期证伪；<b>⑤ 上期 10 条观察清单核销 ✓2 / ◐3 / ✗5，完全兑现率 20.0%</b>（上期 30.0%），「头部 3 只成交额占比」连续 3 期未完成已列方法学债务；<b>⑥ 口径抽查 13 条 z 最大 Δ0.004pp / f 最大 Δ0.005 亿、零漂移</b>（概念 f 历史不可回补记 null 属正常）；<b>⑦ 满窗 10 日跟踪命中率 48.3%（29 条满窗 / 命中 14、强 9/弱 5）</b>，10-14 高位追入 12.5% vs 11-02 低位启动 64.3% 分层结论稳定，TRACK 累计 97 条 ｜ <b>⚠ 本期数据链路：push2his 经探测已恢复、走主源</b>——561/561 板块拉取成功、末根均 11-17、CHANGE_RATE 交叉校验零不符；概念资金流当日 433 行优先抢救；成交额取腾讯 gtimg（14576.95 亿）、涨跌家数取新浪 Market_Center（5577 只）、涨停跌停取 push2ex 当日池（37/67，非阈值近似）、两融精确 filter 逐日取（11-16 22469.65 亿、11-17 T+1 延迟未入库不参与判断）；<b>基准校验 10-14→10-28 日均 -0.5718% 与登记表 -0.572 一致</b>；<b>成分股不足 5 只广度记 None、位置/量比缺失记 unknown 就低判定、费半取不到如实标注，均不编造</b> ｜ 数据源：东财 push2his（主源恢复）+ datacenter + push2ex + 新浪 Market_Center + 腾讯 gtimg + RPTA_WEB_RZRQ_GGMX（两融）｜ <b>本页所有结论不构成投资建议；实时主线以当日监测为准</b> ｜ 版本：v5 评分标准 v2（rebound 门槛 + 六维加权 + 10 日跟踪闭环 + 催化代理 + MA20 不可算即 unknown + 负向证据提示 + 三态纪律）
+  </div>
+
+</div>
+
+<script>
+/* v2 版式核心数据。s = 六维分[时间,资金,广度,位置,催化,启动]，s_w = 权重。 */
+var W = [1.0, 1.2, 1.2, 0.6, 0.8, 1.4];
+
+var SEED = [
+ {
+  "n": "光刻胶",
+  "z": 3.12,
+  "f": 7.84,
+  "zt": 6,
+  "lb": 1,
+  "vb": 1.301,
+  "mr": "佳先股份、联合化学、怡达股份",
+  "pos": "低位启动",
+  "days": 1,
+  "cat": "无",
+  "s": [
+   4,
+   3,
+   4,
+   5,
+   3,
+   4
+  ],
+  "s_w": [
+   1.0,
+   1.2,
+   1.2,
+   0.6,
+   0.8,
+   1.4
+  ],
+  "avg": 3.77,
+  "avgRaw": 3.83,
+  "gate": "rebound",
+  "ma20": false,
+  "ma10": false,
+  "up3": false,
+  "gateMsg": "超跌强反弹：当日+3.12%但仍破20日线（趋势未修复、动能已启动）",
+  "upRatio": 0.7778,
+  "medPct": 2.27,
+  "hist20": -6.54,
+  "launchScore": 4,
+  "catProxy": true
+ },
+ {
+  "n": "光刻机",
+  "z": 3.08,
+  "f": 17.17,
+  "zt": 5,
+  "lb": 1,
+  "vb": 1.199,
+  "mr": "联合化学、国林科技、波长光电",
+  "pos": "低位启动",
+  "days": 1,
+  "cat": "业绩窗口",
+  "s": [
+   4,
+   3,
+   4,
+   5,
+   3,
+   4
+  ],
+  "s_w": [
+   1.0,
+   1.2,
+   1.2,
+   0.6,
+   0.8,
+   1.4
+  ],
+  "avg": 3.77,
+  "avgRaw": 3.83,
+  "gate": "rebound",
+  "ma20": false,
+  "ma10": false,
+  "up3": false,
+  "gateMsg": "超跌强反弹：当日+3.08%但仍破20日线（趋势未修复、动能已启动）",
+  "upRatio": 0.7442,
+  "medPct": 2.23,
+  "hist20": -9.82,
+  "launchScore": 4,
+  "catProxy": true
+ },
+ {
+  "n": "第四代半导体",
+  "z": 3.01,
+  "f": 0.53,
+  "zt": 0,
+  "lb": 0,
+  "vb": 1.744,
+  "mr": "南大光电、蓝晓科技、东微半导",
+  "pos": "低位启动",
+  "days": 1,
+  "cat": "业绩窗口",
+  "s": [
+   4,
+   2,
+   null,
+   5,
+   3,
+   4
+  ],
+  "s_w": [
+   1.0,
+   1.2,
+   1.2,
+   0.6,
+   0.8,
+   1.4
+  ],
+  "avg": 3.48,
+  "avgRaw": 3.6,
+  "gate": "rebound",
+  "ma20": false,
+  "ma10": false,
+  "up3": false,
+  "gateMsg": "超跌强反弹：当日+3.01%但仍破20日线（趋势未修复、动能已启动）",
+  "upRatio": 0.75,
+  "medPct": 2.31,
+  "hist20": -9.12,
+  "launchScore": 4,
+  "catProxy": true
+ },
+ {
+  "n": "白色家电",
+  "z": 1.47,
+  "f": 3.41,
+  "zt": 1,
+  "lb": 2,
+  "vb": 1.508,
+  "mr": "长虹美菱、海尔智家、格力电器",
+  "pos": "低位启动",
+  "days": 3,
+  "cat": "无",
+  "s": [
+   3,
+   5,
+   3,
+   5,
+   3,
+   1
+  ],
+  "s_w": [
+   1.0,
+   1.2,
+   1.2,
+   0.6,
+   0.8,
+   1.4
+  ],
+  "avg": 3.13,
+  "avgRaw": 3.33,
+  "gate": "pass",
+  "ma20": true,
+  "ma10": true,
+  "up3": true,
+  "gateMsg": "全部通过",
+  "upRatio": 0.7,
+  "medPct": 0.8,
+  "hist20": -0.08,
+  "launchScore": 1,
+  "catProxy": true
+ },
+ {
+  "n": "小家电",
+  "z": 1.71,
+  "f": 0.55,
+  "zt": 2,
+  "lb": 2,
+  "vb": 1.616,
+  "mr": "北鼎股份、九阳股份、小熊电器",
+  "pos": "趋势中段",
+  "days": 2,
+  "cat": "无",
+  "s": [
+   5,
+   4,
+   3,
+   3,
+   3,
+   1
+  ],
+  "s_w": [
+   1.0,
+   1.2,
+   1.2,
+   0.6,
+   0.8,
+   1.4
+  ],
+  "avg": 3.06,
+  "avgRaw": 3.17,
+  "gate": "weak",
+  "ma20": true,
+  "ma10": true,
+  "up3": false,
+  "gateMsg": "未连涨3天",
+  "upRatio": 0.6087,
+  "medPct": 1.03,
+  "hist20": 5.55,
+  "launchScore": 1,
+  "catProxy": true
+ },
+ {
+  "n": "中韩自贸区",
+  "z": 1.2,
+  "f": 1.86,
+  "zt": 1,
+  "lb": 1,
+  "vb": null,
+  "mr": "好当家、江丰电子、锦江航运",
+  "pos": "—",
+  "days": 1,
+  "cat": "无",
+  "s": [
+   4,
+   2,
+   3,
+   null,
+   3,
+   1
+  ],
+  "s_w": [
+   1.0,
+   1.2,
+   1.2,
+   0.6,
+   0.8,
+   1.4
+  ],
+  "avg": 2.46,
+  "avgRaw": 2.6,
+  "gate": "unknown",
+  "ma20": null,
+  "ma10": null,
+  "up3": false,
+  "gateMsg": "20日线不可算（该板块历史仅3个交易日，不足20根），均线门槛无法判定，按就低不就高处理",
+  "upRatio": 0.6364,
+  "medPct": 1.02,
+  "hist20": null,
+  "launchScore": 1,
+  "catProxy": true
+ },
+ {
+  "n": "中芯概念",
+  "z": 1.9,
+  "f": 41.82,
+  "zt": 3,
+  "lb": 1,
+  "vb": 1.225,
+  "mr": "伟测科技、有研新材、江化微",
+  "pos": "低位启动",
+  "days": 1,
+  "cat": "业绩窗口",
+  "s": [
+   4,
+   3,
+   4,
+   5,
+   3,
+   1
+  ],
+  "s_w": [
+   1.0,
+   1.2,
+   1.2,
+   0.6,
+   0.8,
+   1.4
+  ],
+  "avg": 3.1,
+  "avgRaw": 3.33,
+  "gate": "ebb",
+  "ma20": false,
+  "ma10": false,
+  "up3": false,
+  "gateMsg": "跌破20日线且当日涨幅仅1.90%（弱势退潮），收复前反弹不算热点复活",
+  "upRatio": 0.7344,
+  "medPct": 2.01,
+  "hist20": -5.52,
+  "launchScore": 1,
+  "catProxy": true
+ },
+ {
+  "n": "电子化学品Ⅱ",
+  "z": 1.86,
+  "f": 3.5,
+  "zt": 3,
+  "lb": 1,
+  "vb": 1.073,
+  "mr": "西陇科学、江化微、格林达",
+  "pos": "低位启动",
+  "days": 1,
+  "cat": "业绩窗口",
+  "s": [
+   4,
+   3,
+   4,
+   5,
+   3,
+   1
+  ],
+  "s_w": [
+   1.0,
+   1.2,
+   1.2,
+   0.6,
+   0.8,
+   1.4
+  ],
+  "avg": 3.1,
+  "avgRaw": 3.33,
+  "gate": "ebb",
+  "ma20": false,
+  "ma10": false,
+  "up3": false,
+  "gateMsg": "跌破20日线且当日涨幅仅1.86%（弱势退潮），收复前反弹不算热点复活",
+  "upRatio": 0.7222,
+  "medPct": 1.67,
+  "hist20": -6.72,
+  "launchScore": 1,
+  "catProxy": true
+ },
+ {
+  "n": "高带宽内存",
+  "z": 1.26,
+  "f": 17.79,
+  "zt": 0,
+  "lb": 0,
+  "vb": 1.034,
+  "mr": "华海清科、雅克科技、中科飞测",
+  "pos": "低位启动",
+  "days": 1,
+  "cat": "业绩窗口",
+  "s": [
+   4,
+   3,
+   3,
+   5,
+   3,
+   1
+  ],
+  "s_w": [
+   1.0,
+   1.2,
+   1.2,
+   0.6,
+   0.8,
+   1.4
+  ],
+  "avg": 2.9,
+  "avgRaw": 3.17,
+  "gate": "ebb",
+  "ma20": false,
+  "ma10": false,
+  "up3": false,
+  "gateMsg": "跌破20日线且当日涨幅仅1.26%（弱势退潮），收复前反弹不算热点复活",
+  "upRatio": 0.6429,
+  "medPct": 1.57,
+  "hist20": -15.73,
+  "launchScore": 1,
+  "catProxy": true
+ },
+ {
+  "n": "半导体",
+  "z": 0.3,
+  "f": 29.63,
+  "zt": 1,
+  "lb": 1,
+  "vb": 0.993,
+  "mr": "伟测科技、盛合晶微、华虹宏力",
+  "pos": "低位启动",
+  "days": 1,
+  "cat": "业绩窗口",
+  "s": [
+   4,
+   3,
+   2,
+   5,
+   3,
+   1
+  ],
+  "s_w": [
+   1.0,
+   1.2,
+   1.2,
+   0.6,
+   0.8,
+   1.4
+  ],
+  "avg": 2.71,
+  "avgRaw": 3.0,
+  "gate": "ebb",
+  "ma20": false,
+  "ma10": false,
+  "up3": false,
+  "gateMsg": "跌破20日线且当日涨幅仅0.30%（弱势退潮），收复前反弹不算热点复活",
+  "upRatio": 0.5211,
+  "medPct": 0.12,
+  "hist20": -5.49,
+  "launchScore": 1,
+  "catProxy": true
+ },
+ {
+  "n": "先进封装",
+  "z": 0.45,
+  "f": 27.28,
+  "zt": 1,
+  "lb": 1,
+  "vb": 0.96,
+  "mr": "国林科技、伟测科技、盛合晶微",
+  "pos": "低位启动",
+  "days": 1,
+  "cat": "业绩窗口",
+  "s": [
+   4,
+   3,
+   2,
+   5,
+   3,
+   1
+  ],
+  "s_w": [
+   1.0,
+   1.2,
+   1.2,
+   0.6,
+   0.8,
+   1.4
+  ],
+  "avg": 2.71,
+  "avgRaw": 3.0,
+  "gate": "ebb",
+  "ma20": false,
+  "ma10": false,
+  "up3": false,
+  "gateMsg": "跌破20日线且当日涨幅仅0.45%（弱势退潮），收复前反弹不算热点复活",
+  "upRatio": 0.5283,
+  "medPct": 0.25,
+  "hist20": -10.37,
+  "launchScore": 1,
+  "catProxy": true
+ },
+ {
+  "n": "贵金属",
+  "z": 1.84,
+  "f": 3.82,
+  "zt": 0,
+  "lb": 0,
+  "vb": 1.004,
+  "mr": "山金国际、赤峰黄金、湖南黄金",
+  "pos": "低位启动",
+  "days": 1,
+  "cat": "无",
+  "s": [
+   4,
+   3,
+   3,
+   5,
+   1,
+   1
+  ],
+  "s_w": [
+   1.0,
+   1.2,
+   1.2,
+   0.6,
+   0.8,
+   1.4
+  ],
+  "avg": 2.65,
+  "avgRaw": 2.83,
+  "gate": "ebb",
+  "ma20": false,
+  "ma10": false,
+  "up3": false,
+  "gateMsg": "跌破20日线且当日涨幅仅1.84%（弱势退潮），收复前反弹不算热点复活",
+  "upRatio": 0.9231,
+  "medPct": 2.11,
+  "hist20": -12.7,
+  "launchScore": 1,
+  "catProxy": true
+ }
+];
+
+var TRACK = [
+ {
+  "dSel": "2026-10-14",
+  "n": "元件",
+  "v0": "真热点",
+  "z0": 8.99,
+  "dStart": "20261014",
+  "dEnd": "20261028",
+  "r10": -15.25,
+  "ex10": -14.68,
+  "mdd": -16.23,
+  "ma20": false,
+  "verdict": "未命中",
+  "bench": -0.572,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-10-14",
+  "n": "PCB",
+  "v0": "真主线",
+  "z0": 5.47,
+  "dStart": "20261014",
+  "dEnd": "20261028",
+  "r10": -12.23,
+  "ex10": -11.66,
+  "mdd": -13.74,
+  "ma20": false,
+  "verdict": "未命中",
+  "bench": -0.572,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-10-14",
+  "n": "光通信模块",
+  "v0": "真主线",
+  "z0": 5.03,
+  "dStart": "20261014",
+  "dEnd": "20261028",
+  "r10": -11.12,
+  "ex10": -10.54,
+  "mdd": -12.44,
+  "ma20": false,
+  "verdict": "未命中",
+  "bench": -0.572,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-10-14",
+  "n": "冰雪经济",
+  "v0": "真热点",
+  "z0": 5.03,
+  "dStart": "20261014",
+  "dEnd": "20261028",
+  "r10": -7.26,
+  "ex10": -6.69,
+  "mdd": -8.51,
+  "ma20": false,
+  "verdict": "未命中",
+  "bench": -0.572,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-10-14",
+  "n": "复合集流体",
+  "v0": "真热点",
+  "z0": 4.62,
+  "dStart": "20261014",
+  "dEnd": "20261028",
+  "r10": -13.75,
+  "ex10": -13.17,
+  "mdd": -15.37,
+  "ma20": false,
+  "verdict": "未命中",
+  "bench": -0.572,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-10-14",
+  "n": "数字媒体",
+  "v0": "真热点",
+  "z0": 4.47,
+  "dStart": "20261014",
+  "dEnd": "20261028",
+  "r10": 0.6,
+  "ex10": 1.17,
+  "mdd": -10.01,
+  "ma20": true,
+  "verdict": "命中(弱)",
+  "bench": -0.572,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-10-14",
+  "n": "F5G概念",
+  "v0": "真热点",
+  "z0": 4.02,
+  "dStart": "20261014",
+  "dEnd": "20261028",
+  "r10": -9.32,
+  "ex10": -8.75,
+  "mdd": -11.31,
+  "ma20": false,
+  "verdict": "未命中",
+  "bench": -0.572,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-10-14",
+  "n": "裸眼3D",
+  "v0": "真热点",
+  "z0": 3.85,
+  "dStart": "20261014",
+  "dEnd": "20261028",
+  "r10": -1.45,
+  "ex10": -0.88,
+  "mdd": -7,
+  "ma20": false,
+  "verdict": "未命中",
+  "bench": -0.572,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-10-29",
+  "n": "航天装备Ⅱ",
+  "v0": "真热点",
+  "z0": 3.54,
+  "dStart": "2026-10-29",
+  "dEnd": "2026-11-12",
+  "r10": 5.37,
+  "ex10": 5.14,
+  "mdd": -3.32,
+  "ma20": true,
+  "verdict": "命中(强)",
+  "bench": 0.226,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-10-29",
+  "n": "银行Ⅱ",
+  "v0": "真热点",
+  "z0": 1.98,
+  "dStart": "2026-10-29",
+  "dEnd": "2026-11-12",
+  "r10": 2.0,
+  "ex10": 1.78,
+  "mdd": -2.17,
+  "ma20": true,
+  "verdict": "命中(弱)",
+  "bench": 0.226,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-10-30",
+  "n": "白酒",
+  "v0": "真热点",
+  "z0": 5.27,
+  "dStart": "2026-10-30",
+  "dEnd": "2026-11-13",
+  "r10": 3.81,
+  "ex10": 3.37,
+  "mdd": -2.53,
+  "ma20": true,
+  "verdict": "命中(强)",
+  "bench": 0.4358,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-10-30",
+  "n": "医疗服务",
+  "v0": "真热点",
+  "z0": 1.56,
+  "dStart": "2026-10-30",
+  "dEnd": "2026-11-13",
+  "r10": 0.5,
+  "ex10": 0.06,
+  "mdd": -5.31,
+  "ma20": false,
+  "verdict": "命中(弱)",
+  "bench": 0.4358,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-11-02",
+  "n": "数字媒体",
+  "v0": "真热点",
+  "z0": 9.75,
+  "dStart": "2026-11-02",
+  "dEnd": "2026-11-16",
+  "r10": 3.79,
+  "ex10": 3.86,
+  "mdd": -8.07,
+  "ma20": true,
+  "verdict": "命中(强)",
+  "bench": -0.0688,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-11-02",
+  "n": "影视院线",
+  "v0": "真热点",
+  "z0": 9.3,
+  "dStart": "2026-11-02",
+  "dEnd": "2026-11-16",
+  "r10": 14.59,
+  "ex10": 14.66,
+  "mdd": -4.34,
+  "ma20": true,
+  "verdict": "命中(强)",
+  "bench": -0.0688,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-11-02",
+  "n": "游戏Ⅱ",
+  "v0": "真热点",
+  "z0": 9.06,
+  "dStart": "2026-11-02",
+  "dEnd": "2026-11-16",
+  "r10": 3.15,
+  "ex10": 3.22,
+  "mdd": -6.5,
+  "ma20": true,
+  "verdict": "命中(强)",
+  "bench": -0.0688,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-11-02",
+  "n": "短剧互动游戏",
+  "v0": "真热点",
+  "z0": 8.84,
+  "dStart": "2026-11-02",
+  "dEnd": "2026-11-16",
+  "r10": 8.49,
+  "ex10": 8.56,
+  "mdd": -4.72,
+  "ma20": true,
+  "verdict": "命中(强)",
+  "bench": -0.0688,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-11-02",
+  "n": "广告营销",
+  "v0": "真主线",
+  "z0": 8.06,
+  "dStart": "2026-11-02",
+  "dEnd": "2026-11-16",
+  "r10": 4.05,
+  "ex10": 4.12,
+  "mdd": -5.92,
+  "ma20": true,
+  "verdict": "命中(强)",
+  "bench": -0.0688,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-11-02",
+  "n": "数据确权",
+  "v0": "真主线",
+  "z0": 7.84,
+  "dStart": "2026-11-02",
+  "dEnd": "2026-11-16",
+  "r10": -1.78,
+  "ex10": -1.71,
+  "mdd": -6.69,
+  "ma20": false,
+  "verdict": "未命中",
+  "bench": -0.0688,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-11-02",
+  "n": "影视概念",
+  "v0": "真热点",
+  "z0": 7.83,
+  "dStart": "2026-11-02",
+  "dEnd": "2026-11-16",
+  "r10": 8.96,
+  "ex10": 9.03,
+  "mdd": -3.14,
+  "ma20": true,
+  "verdict": "命中(强)",
+  "bench": -0.0688,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-11-02",
+  "n": "Web3.0",
+  "v0": "真主线",
+  "z0": 7.83,
+  "dStart": "2026-11-02",
+  "dEnd": "2026-11-16",
+  "r10": -1.18,
+  "ex10": -1.11,
+  "mdd": -7.19,
+  "ma20": false,
+  "verdict": "未命中",
+  "bench": -0.0688,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-11-02",
+  "n": "AI应用",
+  "v0": "真主线",
+  "z0": 6.1,
+  "dStart": "2026-11-02",
+  "dEnd": "2026-11-16",
+  "r10": -1.25,
+  "ex10": -1.18,
+  "mdd": -6.51,
+  "ma20": false,
+  "verdict": "未命中",
+  "bench": -0.0688,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-11-02",
+  "n": "AIGC概念",
+  "v0": "真主线",
+  "z0": 7.37,
+  "dStart": "2026-11-02",
+  "dEnd": "2026-11-16",
+  "r10": 2.12,
+  "ex10": 2.19,
+  "mdd": -6.67,
+  "ma20": true,
+  "verdict": "命中(弱)",
+  "bench": -0.0688,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-11-02",
+  "n": "华为概念",
+  "v0": "真主线",
+  "z0": 3.88,
+  "dStart": "2026-11-02",
+  "dEnd": "2026-11-16",
+  "r10": -1.38,
+  "ex10": -1.32,
+  "mdd": -7.77,
+  "ma20": false,
+  "verdict": "未命中",
+  "bench": -0.0688,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-11-02",
+  "n": "人工智能",
+  "v0": "真主线",
+  "z0": 4.06,
+  "dStart": "2026-11-02",
+  "dEnd": "2026-11-16",
+  "r10": -1.18,
+  "ex10": -1.11,
+  "mdd": -6.74,
+  "ma20": false,
+  "verdict": "未命中",
+  "bench": -0.0688,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-11-02",
+  "n": "电视广播Ⅱ",
+  "v0": "真主线",
+  "z0": 8.57,
+  "dStart": "2026-11-02",
+  "dEnd": "2026-11-16",
+  "r10": 10.32,
+  "ex10": 10.38,
+  "mdd": -1.37,
+  "ma20": true,
+  "verdict": "命中(强)",
+  "bench": -0.0688,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-11-02",
+  "n": "Kimi概念",
+  "v0": "真主线",
+  "z0": 8.28,
+  "dStart": "2026-11-02",
+  "dEnd": "2026-11-16",
+  "r10": 1.01,
+  "ex10": 1.08,
+  "mdd": -7.89,
+  "ma20": false,
+  "verdict": "命中(弱)",
+  "bench": -0.0688,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-11-03",
+  "n": "保险Ⅱ",
+  "v0": "真热点",
+  "z0": 2.66,
+  "dStart": "2026-11-03",
+  "dEnd": "2026-11-17",
+  "r10": -0.49,
+  "ex10": -0.36,
+  "mdd": -3.21,
+  "ma20": true,
+  "verdict": "未命中",
+  "bench": -0.1315,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-11-03",
+  "n": "旅游零售Ⅱ",
+  "v0": "真热点",
+  "z0": 2.05,
+  "dStart": "2026-11-03",
+  "dEnd": "2026-11-17",
+  "r10": -1.68,
+  "ex10": -1.54,
+  "mdd": -3.82,
+  "ma20": true,
+  "verdict": "未命中",
+  "bench": -0.1315,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-11-03",
+  "n": "水产概念",
+  "v0": "真热点",
+  "z0": 2.53,
+  "dStart": "2026-11-03",
+  "dEnd": "2026-11-17",
+  "r10": -1.59,
+  "ex10": -1.46,
+  "mdd": -5.58,
+  "ma20": false,
+  "verdict": "未命中",
+  "bench": -0.1315,
+  "done": true,
+  "dayN": 10
+ },
+ {
+  "dSel": "2026-11-04",
+  "n": "高带宽内存",
+  "v0": "真主线",
+  "z0": 11.53,
+  "dStart": "2026-11-04",
+  "dEnd": "2026-11-17",
+  "r10": -4.42,
+  "ex10": -3.97,
+  "mdd": -10.44,
+  "ma20": false,
+  "verdict": "跟踪中(第9/10日)",
+  "bench": -0.45,
+  "done": false,
+  "dayN": 9
+ },
+ {
+  "dSel": "2026-11-04",
+  "n": "半导体",
+  "v0": "真主线",
+  "z0": 10.64,
+  "dStart": "2026-11-04",
+  "dEnd": "2026-11-17",
+  "r10": -4.22,
+  "ex10": -3.77,
+  "mdd": -9.89,
+  "ma20": false,
+  "verdict": "跟踪中(第9/10日)",
+  "bench": -0.45,
+  "done": false,
+  "dayN": 9
+ },
+ {
+  "dSel": "2026-11-04",
+  "n": "中芯概念",
+  "v0": "真主线",
+  "z0": 10.11,
+  "dStart": "2026-11-04",
+  "dEnd": "2026-11-17",
+  "r10": -3.07,
+  "ex10": -2.62,
+  "mdd": -8.63,
+  "ma20": false,
+  "verdict": "跟踪中(第9/10日)",
+  "bench": -0.45,
+  "done": false,
+  "dayN": 9
+ },
+ {
+  "dSel": "2026-11-04",
+  "n": "先进封装",
+  "v0": "真主线",
+  "z0": 9.58,
+  "dStart": "2026-11-04",
+  "dEnd": "2026-11-17",
+  "r10": -5.67,
+  "ex10": -5.22,
+  "mdd": -10.62,
+  "ma20": false,
+  "verdict": "跟踪中(第9/10日)",
+  "bench": -0.45,
+  "done": false,
+  "dayN": 9
+ },
+ {
+  "dSel": "2026-11-04",
+  "n": "存储芯片",
+  "v0": "真主线",
+  "z0": 9.51,
+  "dStart": "2026-11-04",
+  "dEnd": "2026-11-17",
+  "r10": -5.4,
+  "ex10": -4.95,
+  "mdd": -9.82,
+  "ma20": false,
+  "verdict": "跟踪中(第9/10日)",
+  "bench": -0.45,
+  "done": false,
+  "dayN": 9
+ },
+ {
+  "dSel": "2026-11-04",
+  "n": "光刻机",
+  "v0": "真主线",
+  "z0": 8.4,
+  "dStart": "2026-11-04",
+  "dEnd": "2026-11-17",
+  "r10": 0.04,
+  "ex10": 0.49,
+  "mdd": -8.21,
+  "ma20": false,
+  "verdict": "跟踪中(第9/10日)",
+  "bench": -0.45,
+  "done": false,
+  "dayN": 9
+ },
+ {
+  "dSel": "2026-11-04",
+  "n": "CPO概念",
+  "v0": "真主线",
+  "z0": 7.98,
+  "dStart": "2026-11-04",
+  "dEnd": "2026-11-17",
+  "r10": -8.98,
+  "ex10": -8.53,
+  "mdd": -14.57,
+  "ma20": false,
+  "verdict": "跟踪中(第9/10日)",
+  "bench": -0.45,
+  "done": false,
+  "dayN": 9
+ },
+ {
+  "dSel": "2026-11-04",
+  "n": "半导体概念",
+  "v0": "真主线",
+  "z0": 7.47,
+  "dStart": "2026-11-04",
+  "dEnd": "2026-11-17",
+  "r10": -5.3,
+  "ex10": -4.85,
+  "mdd": -9.44,
+  "ma20": false,
+  "verdict": "跟踪中(第9/10日)",
+  "bench": -0.45,
+  "done": false,
+  "dayN": 9
+ },
+ {
+  "dSel": "2026-11-04",
+  "n": "国产芯片",
+  "v0": "真主线",
+  "z0": 6.25,
+  "dStart": "2026-11-04",
+  "dEnd": "2026-11-09",
+  "r10": -0.18,
+  "ex10": -0.36,
+  "mdd": -2.95,
+  "ma20": false,
+  "verdict": "跟踪中(第3/10日)",
+  "bench": 0.1848,
+  "done": false,
+  "dayN": 3
+ },
+ {
+  "dSel": "2026-11-04",
+  "n": "通信技术",
+  "v0": "真主线",
+  "z0": 5.44,
+  "dStart": "2026-11-04",
+  "dEnd": "2026-11-17",
+  "r10": -6.41,
+  "ex10": -5.96,
+  "mdd": -11.65,
+  "ma20": false,
+  "verdict": "跟踪中(第9/10日)",
+  "bench": -0.45,
+  "done": false,
+  "dayN": 9
+ },
+ {
+  "dSel": "2026-11-04",
+  "n": "贵金属",
+  "v0": "真主线",
+  "z0": 10.45,
+  "dStart": "2026-11-04",
+  "dEnd": "2026-11-17",
+  "r10": -4.32,
+  "ex10": -3.87,
+  "mdd": -11.98,
+  "ma20": false,
+  "verdict": "跟踪中(第9/10日)",
+  "bench": -0.45,
+  "done": false,
+  "dayN": 9
+ },
+ {
+  "dSel": "2026-11-04",
+  "n": "第四代半导体",
+  "v0": "真主线",
+  "z0": 7.74,
+  "dStart": "2026-11-04",
+  "dEnd": "2026-11-17",
+  "r10": -5.46,
+  "ex10": -5.01,
+  "mdd": -9.53,
+  "ma20": false,
+  "verdict": "跟踪中(第9/10日)",
+  "bench": -0.45,
+  "done": false,
+  "dayN": 9
+ },
+ {
+  "dSel": "2026-11-04",
+  "n": "电子化学品Ⅱ",
+  "v0": "真主线",
+  "z0": 8.99,
+  "dStart": "2026-11-04",
+  "dEnd": "2026-11-17",
+  "r10": -4.36,
+  "ex10": -3.91,
+  "mdd": -9.91,
+  "ma20": false,
+  "verdict": "跟踪中(第9/10日)",
+  "bench": -0.45,
+  "done": false,
+  "dayN": 9
+ },
+ {
+  "dSel": "2026-11-05",
+  "n": "光伏设备",
+  "v0": "真主线",
+  "z0": 4.84,
+  "dStart": "2026-11-05",
+  "dEnd": "2026-11-17",
+  "r10": -13.32,
+  "ex10": -12.52,
+  "mdd": -13.32,
+  "ma20": false,
+  "verdict": "跟踪中(第8/10日)",
+  "bench": -0.7967,
+  "done": false,
+  "dayN": 8
+ },
+ {
+  "dSel": "2026-11-05",
+  "n": "广告营销",
+  "v0": "真热点",
+  "z0": 4.84,
+  "dStart": "2026-11-05",
+  "dEnd": "2026-11-17",
+  "r10": -9.49,
+  "ex10": -8.69,
+  "mdd": -11.91,
+  "ma20": false,
+  "verdict": "跟踪中(第8/10日)",
+  "bench": -0.7967,
+  "done": false,
+  "dayN": 8
+ },
+ {
+  "dSel": "2026-11-05",
+  "n": "HJT电池",
+  "v0": "真热点",
+  "z0": 4.45,
+  "dStart": "2026-11-05",
+  "dEnd": "2026-11-17",
+  "r10": -11.3,
+  "ex10": -10.5,
+  "mdd": -11.77,
+  "ma20": false,
+  "verdict": "跟踪中(第8/10日)",
+  "bench": -0.7967,
+  "done": false,
+  "dayN": 8
+ },
+ {
+  "dSel": "2026-11-05",
+  "n": "TOPCon电池",
+  "v0": "真热点",
+  "z0": 4.45,
+  "dStart": "2026-11-05",
+  "dEnd": "2026-11-17",
+  "r10": -9.86,
+  "ex10": -9.06,
+  "mdd": -10.66,
+  "ma20": false,
+  "verdict": "跟踪中(第8/10日)",
+  "bench": -0.7967,
+  "done": false,
+  "dayN": 8
+ },
+ {
+  "dSel": "2026-11-05",
+  "n": "BC电池",
+  "v0": "真热点",
+  "z0": 4.45,
+  "dStart": "2026-11-05",
+  "dEnd": "2026-11-17",
+  "r10": -12.26,
+  "ex10": -11.46,
+  "mdd": -12.29,
+  "ma20": false,
+  "verdict": "跟踪中(第8/10日)",
+  "bench": -0.7967,
+  "done": false,
+  "dayN": 8
+ },
+ {
+  "dSel": "2026-11-05",
+  "n": "贵金属",
+  "v0": "真热点",
+  "z0": 4.35,
+  "dStart": "2026-11-05",
+  "dEnd": "2026-11-17",
+  "r10": -9.59,
+  "ex10": -8.8,
+  "mdd": -11.98,
+  "ma20": false,
+  "verdict": "跟踪中(第8/10日)",
+  "bench": -0.7967,
+  "done": false,
+  "dayN": 8
+ },
+ {
+  "dSel": "2026-11-05",
+  "n": "装修装饰Ⅱ",
+  "v0": "真主线",
+  "z0": 4.16,
+  "dStart": "2026-11-05",
+  "dEnd": "2026-11-17",
+  "r10": -9.6,
+  "ex10": -8.81,
+  "mdd": -9.6,
+  "ma20": false,
+  "verdict": "跟踪中(第8/10日)",
+  "bench": -0.7967,
+  "done": false,
+  "dayN": 8
+ },
+ {
+  "dSel": "2026-11-05",
+  "n": "Kimi概念",
+  "v0": "真热点",
+  "z0": 3.81,
+  "dStart": "2026-11-05",
+  "dEnd": "2026-11-17",
+  "r10": -10.6,
+  "ex10": -9.8,
+  "mdd": -11.62,
+  "ma20": false,
+  "verdict": "跟踪中(第8/10日)",
+  "bench": -0.7967,
+  "done": false,
+  "dayN": 8
+ },
+ {
+  "dSel": "2026-11-05",
+  "n": "AI语料",
+  "v0": "真热点",
+  "z0": 3.77,
+  "dStart": "2026-11-05",
+  "dEnd": "2026-11-17",
+  "r10": -9.2,
+  "ex10": -8.4,
+  "mdd": -13.1,
+  "ma20": false,
+  "verdict": "跟踪中(第8/10日)",
+  "bench": -0.7967,
+  "done": false,
+  "dayN": 8
+ },
+ {
+  "dSel": "2026-11-05",
+  "n": "电池技术",
+  "v0": "真热点",
+  "z0": 3.77,
+  "dStart": "2026-11-05",
+  "dEnd": "2026-11-17",
+  "r10": -8.07,
+  "ex10": -7.28,
+  "mdd": -8.61,
+  "ma20": false,
+  "verdict": "跟踪中(第8/10日)",
+  "bench": -0.7967,
+  "done": false,
+  "dayN": 8
+ },
+ {
+  "dSel": "2026-11-05",
+  "n": "有机硅概念",
+  "v0": "真主线",
+  "z0": 3.77,
+  "dStart": "2026-11-05",
+  "dEnd": "2026-11-17",
+  "r10": -6.61,
+  "ex10": -5.81,
+  "mdd": -7.19,
+  "ma20": false,
+  "verdict": "跟踪中(第8/10日)",
+  "bench": -0.7967,
+  "done": false,
+  "dayN": 8
+ },
+ {
+  "dSel": "2026-11-05",
+  "n": "中芯概念",
+  "v0": "真热点",
+  "z0": 3.29,
+  "dStart": "2026-11-05",
+  "dEnd": "2026-11-17",
+  "r10": -5.79,
+  "ex10": -5.0,
+  "mdd": -8.63,
+  "ma20": false,
+  "verdict": "跟踪中(第8/10日)",
+  "bench": -0.7967,
+  "done": false,
+  "dayN": 8
+ },
+ {
+  "dSel": "2026-11-05",
+  "n": "托育服务",
+  "v0": "真热点",
+  "z0": 3.13,
+  "dStart": "2026-11-05",
+  "dEnd": "2026-11-17",
+  "r10": -5.65,
+  "ex10": -4.86,
+  "mdd": -7.89,
+  "ma20": false,
+  "verdict": "跟踪中(第8/10日)",
+  "bench": -0.7967,
+  "done": false,
+  "dayN": 8
+ },
+ {
+  "dSel": "2026-11-06",
+  "n": "银行Ⅱ",
+  "v0": "真热点",
+  "z0": 0.99,
+  "dStart": "2026-11-06",
+  "dEnd": "2026-11-17",
+  "r10": 4.08,
+  "ex10": 4.73,
+  "mdd": -0.47,
+  "ma20": true,
+  "verdict": "跟踪中(第7/10日)",
+  "bench": -0.6465,
+  "done": false,
+  "dayN": 7
+ },
+ {
+  "dSel": "2026-11-09",
+  "n": "燃气Ⅱ",
+  "v0": "真热点",
+  "z0": 3.25,
+  "dStart": "2026-11-09",
+  "dEnd": "2026-11-17",
+  "r10": -2.74,
+  "ex10": -1.97,
+  "mdd": -5.85,
+  "ma20": false,
+  "verdict": "跟踪中(第6/10日)",
+  "bench": -0.7673,
+  "done": false,
+  "dayN": 6
+ },
+ {
+  "dSel": "2026-11-09",
+  "n": "焦炭Ⅱ",
+  "v0": "真热点",
+  "z0": 5.39,
+  "dStart": "2026-11-09",
+  "dEnd": "2026-11-17",
+  "r10": -6.55,
+  "ex10": -5.78,
+  "mdd": -7.8,
+  "ma20": false,
+  "verdict": "跟踪中(第6/10日)",
+  "bench": -0.7673,
+  "done": false,
+  "dayN": 6
+ },
+ {
+  "dSel": "2026-11-09",
+  "n": "商业航天",
+  "v0": "真热点",
+  "z0": 1.72,
+  "dStart": "2026-11-09",
+  "dEnd": "2026-11-17",
+  "r10": -7.87,
+  "ex10": -7.11,
+  "mdd": -10.89,
+  "ma20": false,
+  "verdict": "跟踪中(第6/10日)",
+  "bench": -0.7673,
+  "done": false,
+  "dayN": 6
+ },
+ {
+  "dSel": "2026-11-09",
+  "n": "厨卫电器",
+  "v0": "真热点",
+  "z0": 2.44,
+  "dStart": "2026-11-09",
+  "dEnd": "2026-11-17",
+  "r10": -0.48,
+  "ex10": 0.29,
+  "mdd": -3.74,
+  "ma20": true,
+  "verdict": "跟踪中(第6/10日)",
+  "bench": -0.7673,
+  "done": false,
+  "dayN": 6
+ },
+ {
+  "dSel": "2026-11-09",
+  "n": "机器人概念",
+  "v0": "真热点",
+  "z0": 1.02,
+  "dStart": "2026-11-09",
+  "dEnd": "2026-11-17",
+  "r10": -5.65,
+  "ex10": -4.88,
+  "mdd": -9.99,
+  "ma20": false,
+  "verdict": "跟踪中(第6/10日)",
+  "bench": -0.7673,
+  "done": false,
+  "dayN": 6
+ },
+ {
+  "dSel": "2026-11-10",
+  "n": "影视院线",
+  "v0": "真热点",
+  "z0": 7.05,
+  "dStart": "2026-11-10",
+  "dEnd": "2026-11-17",
+  "r10": -9.4,
+  "ex10": -8.11,
+  "mdd": -10.78,
+  "ma20": true,
+  "verdict": "跟踪中(第5/10日)",
+  "bench": -1.2852,
+  "done": false,
+  "dayN": 5
+ },
+ {
+  "dSel": "2026-11-10",
+  "n": "短剧互动游戏",
+  "v0": "真热点",
+  "z0": 5.48,
+  "dStart": "2026-11-10",
+  "dEnd": "2026-11-17",
+  "r10": -10.32,
+  "ex10": -9.04,
+  "mdd": -11.45,
+  "ma20": false,
+  "verdict": "跟踪中(第5/10日)",
+  "bench": -1.2852,
+  "done": false,
+  "dayN": 5
+ },
+ {
+  "dSel": "2026-11-10",
+  "n": "影视概念",
+  "v0": "真热点",
+  "z0": 5.03,
+  "dStart": "2026-11-10",
+  "dEnd": "2026-11-17",
+  "r10": -8.23,
+  "ex10": -6.95,
+  "mdd": -8.98,
+  "ma20": true,
+  "verdict": "跟踪中(第5/10日)",
+  "bench": -1.2852,
+  "done": false,
+  "dayN": 5
+ },
+ {
+  "dSel": "2026-11-10",
+  "n": "数字媒体",
+  "v0": "真热点",
+  "z0": 4.84,
+  "dStart": "2026-11-10",
+  "dEnd": "2026-11-17",
+  "r10": -12.19,
+  "ex10": -10.9,
+  "mdd": -13.98,
+  "ma20": false,
+  "verdict": "跟踪中(第5/10日)",
+  "bench": -1.2852,
+  "done": false,
+  "dayN": 5
+ },
+ {
+  "dSel": "2026-11-10",
+  "n": "电子后视镜",
+  "v0": "真热点",
+  "z0": 5.6,
+  "dStart": "2026-11-10",
+  "dEnd": "2026-11-17",
+  "r10": -7.36,
+  "ex10": -6.08,
+  "mdd": -10.08,
+  "ma20": false,
+  "verdict": "跟踪中(第5/10日)",
+  "bench": -1.2852,
+  "done": false,
+  "dayN": 5
+ },
+ {
+  "dSel": "2026-11-10",
+  "n": "混合现实",
+  "v0": "真热点",
+  "z0": 4.97,
+  "dStart": "2026-11-10",
+  "dEnd": "2026-11-17",
+  "r10": -11.41,
+  "ex10": -10.13,
+  "mdd": -12.78,
+  "ma20": false,
+  "verdict": "跟踪中(第5/10日)",
+  "bench": -1.2852,
+  "done": false,
+  "dayN": 5
+ },
+ {
+  "dSel": "2026-11-10",
+  "n": "虚拟现实",
+  "v0": "真热点",
+  "z0": 3.98,
+  "dStart": "2026-11-10",
+  "dEnd": "2026-11-17",
+  "r10": -8.3,
+  "ex10": -7.02,
+  "mdd": -9.72,
+  "ma20": false,
+  "verdict": "跟踪中(第5/10日)",
+  "bench": -1.2852,
+  "done": false,
+  "dayN": 5
+ },
+ {
+  "dSel": "2026-11-10",
+  "n": "其他家电Ⅱ",
+  "v0": "真主线",
+  "z0": 5.18,
+  "dStart": "2026-11-10",
+  "dEnd": "2026-11-17",
+  "r10": -7.91,
+  "ex10": -6.63,
+  "mdd": -7.91,
+  "ma20": false,
+  "verdict": "跟踪中(第5/10日)",
+  "bench": -1.2852,
+  "done": false,
+  "dayN": 5
+ },
+ {
+  "dSel": "2026-11-10",
+  "n": "裸眼3D",
+  "v0": "真热点",
+  "z0": 4.85,
+  "dStart": "2026-11-10",
+  "dEnd": "2026-11-17",
+  "r10": -8.41,
+  "ex10": -7.13,
+  "mdd": -9.66,
+  "ma20": false,
+  "verdict": "跟踪中(第5/10日)",
+  "bench": -1.2852,
+  "done": false,
+  "dayN": 5
+ },
+ {
+  "dSel": "2026-11-10",
+  "n": "机器人概念",
+  "v0": "真热点",
+  "z0": 2.92,
+  "dStart": "2026-11-10",
+  "dEnd": "2026-11-17",
+  "r10": -8.32,
+  "ex10": -7.03,
+  "mdd": -9.99,
+  "ma20": false,
+  "verdict": "跟踪中(第5/10日)",
+  "bench": -1.2852,
+  "done": false,
+  "dayN": 5
+ },
+ {
+  "dSel": "2026-11-10",
+  "n": "华为概念",
+  "v0": "真热点",
+  "z0": 2.78,
+  "dStart": "2026-11-10",
+  "dEnd": "2026-11-17",
+  "r10": -7.8,
+  "ex10": -6.51,
+  "mdd": -9.27,
+  "ma20": false,
+  "verdict": "跟踪中(第5/10日)",
+  "bench": -1.2852,
+  "done": false,
+  "dayN": 5
+ },
+ {
+  "dSel": "2026-11-10",
+  "n": "芯片概念",
+  "v0": "真热点",
+  "z0": 2.58,
+  "dStart": "2026-11-10",
+  "dEnd": "2026-11-17",
+  "r10": -6.68,
+  "ex10": -5.39,
+  "mdd": -8.7,
+  "ma20": false,
+  "verdict": "跟踪中(第5/10日)",
+  "bench": -1.2852,
+  "done": false,
+  "dayN": 5
+ },
+ {
+  "dSel": "2026-11-10",
+  "n": "铜缆高速连接",
+  "v0": "真主线",
+  "z0": 3.08,
+  "dStart": "2026-11-10",
+  "dEnd": "2026-11-17",
+  "r10": -7.31,
+  "ex10": -6.03,
+  "mdd": -10.79,
+  "ma20": false,
+  "verdict": "跟踪中(第5/10日)",
+  "bench": -1.2852,
+  "done": false,
+  "dayN": 5
+ },
+ {
+  "dSel": "2026-11-10",
+  "n": "体育Ⅱ",
+  "v0": "真热点",
+  "z0": 3.01,
+  "dStart": "2026-11-10",
+  "dEnd": "2026-11-17",
+  "r10": -7.12,
+  "ex10": -5.83,
+  "mdd": -7.12,
+  "ma20": false,
+  "verdict": "跟踪中(第5/10日)",
+  "bench": -1.2852,
+  "done": false,
+  "dayN": 5
+ },
+ {
+  "dSel": "2026-11-11",
+  "n": "元件",
+  "v0": "真主线",
+  "z0": 4.9,
+  "dStart": "2026-11-11",
+  "dEnd": "2026-11-17",
+  "r10": -16.55,
+  "ex10": -14.7,
+  "mdd": -16.55,
+  "ma20": false,
+  "verdict": "跟踪中(第4/10日)",
+  "bench": -1.8534,
+  "done": false,
+  "dayN": 4
+ },
+ {
+  "dSel": "2026-11-11",
+  "n": "PCB",
+  "v0": "真主线",
+  "z0": 3.58,
+  "dStart": "2026-11-11",
+  "dEnd": "2026-11-17",
+  "r10": -13.27,
+  "ex10": -11.42,
+  "mdd": -13.27,
+  "ma20": false,
+  "verdict": "跟踪中(第4/10日)",
+  "bench": -1.8534,
+  "done": false,
+  "dayN": 4
+ },
+ {
+  "dSel": "2026-11-11",
+  "n": "CPO概念",
+  "v0": "真主线",
+  "z0": 5.83,
+  "dStart": "2026-11-11",
+  "dEnd": "2026-11-17",
+  "r10": -14.57,
+  "ex10": -12.71,
+  "mdd": -14.57,
+  "ma20": false,
+  "verdict": "跟踪中(第4/10日)",
+  "bench": -1.8534,
+  "done": false,
+  "dayN": 4
+ },
+ {
+  "dSel": "2026-11-11",
+  "n": "光通信模块",
+  "v0": "真主线",
+  "z0": 5.33,
+  "dStart": "2026-11-11",
+  "dEnd": "2026-11-17",
+  "r10": -14.17,
+  "ex10": -12.32,
+  "mdd": -14.17,
+  "ma20": false,
+  "verdict": "跟踪中(第4/10日)",
+  "bench": -1.8534,
+  "done": false,
+  "dayN": 4
+ },
+ {
+  "dSel": "2026-11-11",
+  "n": "通信设备",
+  "v0": "真主线",
+  "z0": 4.82,
+  "dStart": "2026-11-11",
+  "dEnd": "2026-11-17",
+  "r10": -11.56,
+  "ex10": -9.71,
+  "mdd": -11.56,
+  "ma20": false,
+  "verdict": "跟踪中(第4/10日)",
+  "bench": -1.8534,
+  "done": false,
+  "dayN": 4
+ },
+ {
+  "dSel": "2026-11-11",
+  "n": "光纤概念",
+  "v0": "真热点",
+  "z0": 4.71,
+  "dStart": "2026-11-11",
+  "dEnd": "2026-11-17",
+  "r10": -12.18,
+  "ex10": -10.33,
+  "mdd": -12.18,
+  "ma20": false,
+  "verdict": "跟踪中(第4/10日)",
+  "bench": -1.8534,
+  "done": false,
+  "dayN": 4
+ },
+ {
+  "dSel": "2026-11-11",
+  "n": "英伟达概念",
+  "v0": "真热点",
+  "z0": 3.81,
+  "dStart": "2026-11-11",
+  "dEnd": "2026-11-17",
+  "r10": -13.98,
+  "ex10": -12.13,
+  "mdd": -13.98,
+  "ma20": false,
+  "verdict": "跟踪中(第4/10日)",
+  "bench": -1.8534,
+  "done": false,
+  "dayN": 4
+ },
+ {
+  "dSel": "2026-11-11",
+  "n": "铜缆高速连接",
+  "v0": "真热点",
+  "z0": 3.9,
+  "dStart": "2026-11-11",
+  "dEnd": "2026-11-17",
+  "r10": -10.79,
+  "ex10": -8.94,
+  "mdd": -10.79,
+  "ma20": false,
+  "verdict": "跟踪中(第4/10日)",
+  "bench": -1.8534,
+  "done": false,
+  "dayN": 4
+ },
+ {
+  "dSel": "2026-11-11",
+  "n": "F5G概念",
+  "v0": "真热点",
+  "z0": 4.18,
+  "dStart": "2026-11-11",
+  "dEnd": "2026-11-17",
+  "r10": -9.82,
+  "ex10": -7.97,
+  "mdd": -9.82,
+  "ma20": false,
+  "verdict": "跟踪中(第4/10日)",
+  "bench": -1.8534,
+  "done": false,
+  "dayN": 4
+ },
+ {
+  "dSel": "2026-11-11",
+  "n": "通信技术",
+  "v0": "真热点",
+  "z0": 3.29,
+  "dStart": "2026-11-11",
+  "dEnd": "2026-11-17",
+  "r10": -11.65,
+  "ex10": -9.79,
+  "mdd": -11.65,
+  "ma20": false,
+  "verdict": "跟踪中(第4/10日)",
+  "bench": -1.8534,
+  "done": false,
+  "dayN": 4
+ },
+ {
+  "dSel": "2026-11-11",
+  "n": "5G概念",
+  "v0": "真热点",
+  "z0": 3.05,
+  "dStart": "2026-11-11",
+  "dEnd": "2026-11-17",
+  "r10": -11.39,
+  "ex10": -9.53,
+  "mdd": -11.39,
+  "ma20": false,
+  "verdict": "跟踪中(第4/10日)",
+  "bench": -1.8534,
+  "done": false,
+  "dayN": 4
+ },
+ {
+  "dSel": "2026-11-12",
+  "n": "地面兵装Ⅱ",
+  "v0": "真热点",
+  "z0": 3.19,
+  "dStart": "2026-11-12",
+  "dEnd": "2026-11-17",
+  "r10": -10.54,
+  "ex10": -8.62,
+  "mdd": -10.54,
+  "ma20": false,
+  "verdict": "跟踪中(第3/10日)",
+  "bench": -1.9248,
+  "done": false,
+  "dayN": 3
+ },
+ {
+  "dSel": "2026-11-12",
+  "n": "渔业",
+  "v0": "真热点",
+  "z0": 2.54,
+  "dStart": "2026-11-12",
+  "dEnd": "2026-11-17",
+  "r10": -2.53,
+  "ex10": -0.6,
+  "mdd": -2.66,
+  "ma20": true,
+  "verdict": "跟踪中(第3/10日)",
+  "bench": -1.9248,
+  "done": false,
+  "dayN": 3
+ },
+ {
+  "dSel": "2026-11-13",
+  "n": "影视院线",
+  "v0": "真热点",
+  "z0": 4.39,
+  "dStart": "2026-11-13",
+  "dEnd": "2026-11-17",
+  "r10": -10.66,
+  "ex10": -8.75,
+  "mdd": -10.66,
+  "ma20": true,
+  "verdict": "跟踪中(第2/10日)",
+  "bench": -1.9141,
+  "done": false,
+  "dayN": 2
+ },
+ {
+  "dSel": "2026-11-13",
+  "n": "银行Ⅱ",
+  "v0": "真热点",
+  "z0": 1.43,
+  "dStart": "2026-11-13",
+  "dEnd": "2026-11-17",
+  "r10": 1.91,
+  "ex10": 3.82,
+  "mdd": 0.0,
+  "ma20": true,
+  "verdict": "跟踪中(第2/10日)",
+  "bench": -1.9141,
+  "done": false,
+  "dayN": 2
+ },
+ {
+  "dSel": "2026-11-16",
+  "n": "白色家电",
+  "v0": "真热点",
+  "z0": 3.02,
+  "dStart": "2026-11-16",
+  "dEnd": "2026-11-17",
+  "r10": 1.47,
+  "ex10": 3.03,
+  "mdd": 0.0,
+  "ma20": true,
+  "verdict": "跟踪中(第1/10日)",
+  "bench": -1.553,
+  "done": false,
+  "dayN": 1
+ },
+ {
+  "dSel": "2026-11-16",
+  "n": "保险Ⅱ",
+  "v0": "真热点",
+  "z0": 1.5,
+  "dStart": "2026-11-16",
+  "dEnd": "2026-11-17",
+  "r10": 0.1,
+  "ex10": 1.65,
+  "mdd": 0.0,
+  "ma20": true,
+  "verdict": "跟踪中(第1/10日)",
+  "bench": -1.553,
+  "done": false,
+  "dayN": 1
+ },
+ {
+  "dSel": "2026-11-16",
+  "n": "电视广播Ⅱ",
+  "v0": "真热点",
+  "z0": 2.19,
+  "dStart": "2026-11-16",
+  "dEnd": "2026-11-17",
+  "r10": -8.13,
+  "ex10": -6.58,
+  "mdd": -8.13,
+  "ma20": false,
+  "verdict": "跟踪中(第1/10日)",
+  "bench": -1.553,
+  "done": false,
+  "dayN": 1
+ },
+ {
+  "dSel": "2026-11-17",
+  "n": "光刻胶",
+  "v0": "真主线",
+  "z0": 3.12,
+  "dStart": "2026-11-17",
+  "dEnd": "2026-11-17",
+  "r10": 0.0,
+  "ex10": null,
+  "mdd": 0.0,
+  "ma20": false,
+  "verdict": "跟踪中(第0/10日)",
+  "bench": null,
+  "done": false,
+  "dayN": 0
+ },
+ {
+  "dSel": "2026-11-17",
+  "n": "光刻机",
+  "v0": "真主线",
+  "z0": 3.08,
+  "dStart": "2026-11-17",
+  "dEnd": "2026-11-17",
+  "r10": 0.0,
+  "ex10": null,
+  "mdd": 0.0,
+  "ma20": false,
+  "verdict": "跟踪中(第0/10日)",
+  "bench": null,
+  "done": false,
+  "dayN": 0
+ },
+ {
+  "dSel": "2026-11-17",
+  "n": "第四代半导体",
+  "v0": "真热点",
+  "z0": 3.01,
+  "dStart": "2026-11-17",
+  "dEnd": "2026-11-17",
+  "r10": 0.0,
+  "ex10": null,
+  "mdd": 0.0,
+  "ma20": false,
+  "verdict": "跟踪中(第0/10日)",
+  "bench": null,
+  "done": false,
+  "dayN": 0
+ },
+ {
+  "dSel": "2026-11-17",
+  "n": "小家电",
+  "v0": "真热点",
+  "z0": 1.71,
+  "dStart": "2026-11-17",
+  "dEnd": "2026-11-17",
+  "r10": 0.0,
+  "ex10": null,
+  "mdd": 0.0,
+  "ma20": true,
+  "verdict": "跟踪中(第0/10日)",
+  "bench": null,
+  "done": false,
+  "dayN": 0
+ }
+];
+
+function wavg(d){
+  var s=d.s, w=d.s_w||W, num=0, den=0;
+  for(var i=0;i<s.length;i++){ if(s[i]!==null&&s[i]!==undefined){ num+=s[i]*w[i]; den+=w[i]; } }
+  return den? num/den : 0;
+}
+function gateInfo(d){
+  if(!d.gate) return {t:"—",c:"",k:"pass"};
+  if(d.gate==="rebound") return {t:"↩ 超跌强反弹(z>"+num(d.z,1)+"%破MA20)",c:"gate-rebound",k:"rebound"};
+  if(d.gate==="ebb") return {t:"✗ 退潮(破MA20)",c:"gatebad",k:"ebb"};
+  if(d.gate==="cold") return {t:"✗ 未入围",c:"gatebad",k:"cold"};
+  if(d.gate==="unknown") return {t:"数据缺",c:"",k:"unknown"};
+  var p=[];
+  if(d.ma20!==undefined&&d.ma20!==null)p.push(d.ma20?"20日✓":"20日✗");
+  if(d.ma10!==undefined&&d.ma10!==null)p.push(d.ma10?"10日✓":"10日✗");
+  if(d.up3!==undefined&&d.up3!==null)p.push(d.up3?"连涨3✓":"连涨3✗");
+  var bad=p.join("").indexOf("✗")>=0;
+  return {t:p.length?p.join(" "):"✓ 通过",c:bad?"gatebad":"gateok",k:d.gate};
+}
+function label(d,a){
+  var g=gateInfo(d).k;
+  if(g==="ebb")return "退潮观察";
+  if(g==="cold")return "未入围";
+  if(g==="unknown")return a>=2.5?"待验证(门槛缺)":"待验证";
+  if(g==="rebound")return a>=3.5?"真主线":(a>=2.8?"真热点":"待验证");
+  if(g==="weak")return a>=3.0?"真热点":"待验证";
+  return a>=4.0?"真主线":(a>=3.2?"真热点":"待验证");
+}
+function cls(d,a){var g=gateInfo(d).k;if(g==="ebb")return"ebb";if(g==="cold")return"cold";if(g==="rebound")return"rebound";if(g==="weak")return a>=3.0?"watch":"rot";return a>=4.0?"main":(a>=3.2?"watch":"rot");}
+function fmt(v,unit){if(v===null||v===undefined)return "—";return v+unit;}
+function num(v,d){if(v===null||v===undefined||isNaN(v))return "—";return v.toFixed(d===undefined?2:d);}
+function render(){
+  var f=document.getElementById("filterSel").value;
+  var tb=document.getElementById("tbody");
+  var rows=[];
+  var arr=SEED.slice().sort(function(x,y){
+    var gx=gateInfo(x).k,gy=gateInfo(y).k;
+    var bx=(gx==="ebb"||gx==="cold")?1:0,by=(gy==="ebb"||gy==="cold")?1:0;
+    if(bx!==by)return bx-by;
+    return wavg(y)-wavg(x);
+  });
+  var ebbs=[],rebs=[];
+  var cnt={main:0,watch:0,rot:0,ebb:0,cold:0,rebound:0};
+  for(var i=0;i<arr.length;i++){
+    var d=arr[i],a=wavg(d),g=gateInfo(d),lab=label(d,a);
+    if(g.k==="ebb"){ebbs.push(d);cnt.ebb++;}
+    if(g.k==="cold")cnt.cold++;
+    if(g.k==="rebound"){rebs.push(d);cnt.rebound++;}
+    if(lab==="真主线")cnt.main++;
+    else if(lab==="真热点")cnt.watch++;
+    else if(lab==="待验证"||lab.indexOf("待验证")===0)cnt.rot++;
+    if(f==="main"&&lab!=="真主线")continue;
+    if(f==="watch"&&lab!=="真热点")continue;
+    if(f==="rot"&&lab.indexOf("待验证")!==0)continue;
+    if(f==="rebound"&&g.k!=="rebound")continue;
+    if(f==="ebb"&&g.k!=="ebb")continue;
+    if(f==="cold"&&g.k!=="cold")continue;
+    var bars="";
+    for(var j=0;j<6;j++){
+      var on=(d.s[j]!==null&&d.s[j]!==undefined&&j<Math.round(d.s[j]));
+      bars+='<i class="'+(on?"on":"")+'"></i>';
+    }
+    var zc=d.z>0?"up":(d.z<0?"dn":"");
+    var fc=d.f>0?"up":(d.f<0?"dn":"");
+    var ltag = (g.k==="rebound") ? '<span class="tagline rebound">超跌强反弹→'+lab+'</span>' : '<span class="tagline '+cls(d,a)+'">'+lab+'</span>';
+    var rc = (g.k==="rebound") ? ' class="rebound-cell"' : '';
+    rows.push("<tr"+(g.k==="rebound"?' class="rebound-row"':'')+">"+
+      "<td><b>"+d.n+"</b></td>"+
+      '<td class="'+zc+'">'+num(d.z,2)+"</td>"+
+      '<td class="'+fc+'">'+num(d.f,2)+"</td>"+
+      "<td>"+fmt(d.zt,"")+"</td><td>"+fmt(d.lb,"板")+"</td><td>"+fmt(d.vb,"")+"</td>"+
+      "<td>"+d.mr+"</td><td>"+d.pos+"</td><td>"+fmt(d.days," 天")+"</td><td>"+d.cat+"</td>"+
+      '<td class="'+g.c+'">'+g.t+"</td>"+
+      '<td><span class="score w6" title="六维(时间/资金/广度/位置/催化/启动) 权重1.0/1.2/1.2/0.6/0.8/1.4">'+bars+"</span></td>"+
+      '<td class="avg">'+num(a,2)+"</td>"+
+      "<td"+rc+">"+ltag+"</td>"+
+      "</tr>");
+  }
+  tb.innerHTML=rows.join("");
+  // KPI 自动统计
+  setKpi("kpiMain",cnt.main);
+  setKpi("kpiWatch",cnt.watch);
+  setKpi("kpiRot",cnt.rot);
+  setKpi("kpiEbb",cnt.ebb);
+  setKpi("kpiCold",cnt.cold);
+  setKpi("kpiReb",cnt.rebound);
+  var ez=document.getElementById("ebbZone");
+  try{renderTrack();}catch(e){}
+  if(ebbs.length){
+    var h='<div style="margin-top:12px;">';
+    for(var k=0;k<ebbs.length;k++){
+      var e=ebbs[k],m=wavg(e);
+      h+='<div class="ebbcard">🚫 <b>'+e.n+"</b>｜涨幅 "+num(e.z,2)+"%｜主力净额 "+num(e.f,2)+" 亿｜涨停 "+fmt(e.zt,"")+" 家｜均分 "+num(m,2)+
+         "——"+(e.gateMsg||"板块指数跌破 20 日均线，按 v2 规则：z≤3% 视为退潮，收复前反弹不算热点复活。")+"</div>";
+    }
+    h+="</div>";
+    ez.innerHTML=h;
+  }else{ez.innerHTML="";}
+}
+function verdictClass(v){
+  if(v&&v.indexOf("命中(强)")===0)return "t-hit";
+  if(v&&v.indexOf("命中(弱)")===0)return "t-weak";
+  return "t-pend";
+}
+function renderTrack(){
+  var tb=document.getElementById("trackBody");
+  var rows=[];
+  for(var i=0;i<TRACK.length;i++){
+    var t=TRACK[i];
+    var rcls=t.r10!=null?(t.r10>=0?"t-up":"t-dn"):"t-pend";
+    var ecls=t.ex10!=null?(t.ex10>=0?"t-up":"t-dn"):"t-pend";
+    var vc=verdictClass(t.verdict);
+    rows.push("<tr>"+
+      "<td><b>"+t.n+"</b></td>"+
+      "<td>"+t.dSel+"</td>"+
+      "<td>"+t.v0+"</td>"+
+      "<td>"+(t.done?"已完成":"跟踪中(第"+t.dayN+"/10日)")+"</td>"+
+      '<td class="'+rcls+'">'+(t.r10!=null?t.r10.toFixed(2):"—")+"</td>"+
+      '<td class="'+ecls+'">'+(t.ex10!=null?(t.ex10>=0?"+":"")+t.ex10.toFixed(2):"—")+"</td>"+
+      '<td class="t-pend">'+(t.mdd!=null?t.mdd.toFixed(2):"—")+"</td>"+
+      "<td>"+(t.ma20===true?"是":(t.ma20===false?"否":"—"))+"</td>"+
+      '<td class="'+vc+'">'+t.verdict+"</td>"+
+      "</tr>");
+  }
+  tb.innerHTML=rows.join("");
+}
+function exportJSON(){
+  var payload=JSON.stringify({sectors:SEED,track:TRACK},null,1);
+  var blob=new Blob([payload],{type:"application/json;charset=utf-8"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="sector-rotation-data_2026-11-17.json";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+render();
+/* 防御性修复：render() 中的 KPI 赋值若目标元素缺失会抛异常中断整个渲染
+   （历史缺陷：id 缺失导致 ebb 卡片区与 10 日跟踪表不渲染）。此处加空值保护。 */
+function setKpi(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
+/* 防御性修复：renderTrack() 原先从未被调用，导致 10 日跟踪表恒为空。
+   现于 render() 末尾统一调用，并在筛选切换时同步刷新。 */
+function exportJSON(){
+  var payload=JSON.stringify({sectors:SEED,track:TRACK},null,1);
+  var blob=new Blob([payload],{type:"application/json;charset=utf-8"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="sector-rotation-data_2026-11-17.json";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+</script>
+</body>
+</html>
