@@ -1,6 +1,6 @@
 {
-  "updated": "2026-11-18 15:31",
-  "period": "2026-10-29 ~ 2026-11-18",
+  "updated": "2026-11-19 15:31",
+  "period": "2026-10-30 ~ 2026-11-19",
   "days": 15,
   "fields": [
     "date",
@@ -23,25 +23,6 @@
   ],
   "rows": [
     {
-      "date": "10-29",
-      "up": 756,
-      "down": 4400,
-      "limit_up": 39,
-      "limit_down": 41,
-      "failed": 25,
-      "continuous": 8,
-      "actual_limit_up": 39,
-      "cyb_limit_up": 1,
-      "kcb_limit_up": 0,
-      "first_board": 31,
-      "two_board": 4,
-      "three_board": 2,
-      "four_board": 2,
-      "five_board": 0,
-      "six_plus": 0,
-      "cycle": "振荡"
-    },
-    {
       "date": "10-30",
       "up": 854,
       "down": 4290,
@@ -58,7 +39,7 @@
       "four_board": 0,
       "five_board": 1,
       "six_plus": 0,
-      "cycle": "衰退"
+      "cycle": "振荡"
     },
     {
       "date": "11-02",
@@ -77,7 +58,7 @@
       "four_board": 1,
       "five_board": 0,
       "six_plus": 1,
-      "cycle": "反弹"
+      "cycle": "回暖"
     },
     {
       "date": "11-03",
@@ -143,14 +124,14 @@
       "limit_up": 32,
       "limit_down": 15,
       "failed": 14,
-      "continuous": 6,
+      "continuous": 11,
       "actual_limit_up": 32,
       "cyb_limit_up": 3,
       "kcb_limit_up": 0,
-      "first_board": 26,
-      "two_board": 1,
-      "three_board": 2,
-      "four_board": 1,
+      "first_board": 21,
+      "two_board": 4,
+      "three_board": 3,
+      "four_board": 2,
       "five_board": 2,
       "six_plus": 0,
       "cycle": "退潮"
@@ -306,6 +287,25 @@
       "five_board": 0,
       "six_plus": 0,
       "cycle": "振荡"
+    },
+    {
+      "date": "11-19",
+      "up": 638,
+      "down": 4532,
+      "limit_up": 23,
+      "limit_down": 68,
+      "failed": 24,
+      "continuous": 5,
+      "actual_limit_up": 23,
+      "cyb_limit_up": 1,
+      "kcb_limit_up": 0,
+      "first_board": 18,
+      "two_board": 2,
+      "three_board": 3,
+      "four_board": 0,
+      "five_board": 0,
+      "six_plus": 0,
+      "cycle": "退潮"
     }
   ]
 }
