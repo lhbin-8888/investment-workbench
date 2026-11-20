@@ -1,6 +1,6 @@
 {
-  "updated": "2026-11-19 15:31",
-  "period": "2026-10-30 ~ 2026-11-19",
+  "updated": "2026-11-20 15:31",
+  "period": "2026-11-02 ~ 2026-11-20",
   "days": 15,
   "fields": [
     "date",
@@ -23,25 +23,6 @@
   ],
   "rows": [
     {
-      "date": "10-30",
-      "up": 854,
-      "down": 4290,
-      "limit_up": 47,
-      "limit_down": 82,
-      "failed": 31,
-      "continuous": 9,
-      "actual_limit_up": 47,
-      "cyb_limit_up": 4,
-      "kcb_limit_up": 1,
-      "first_board": 38,
-      "two_board": 6,
-      "three_board": 2,
-      "four_board": 0,
-      "five_board": 1,
-      "six_plus": 0,
-      "cycle": "振荡"
-    },
-    {
       "date": "11-02",
       "up": 4382,
       "down": 767,
@@ -58,7 +39,7 @@
       "four_board": 1,
       "five_board": 0,
       "six_plus": 1,
-      "cycle": "回暖"
+      "cycle": "振荡"
     },
     {
       "date": "11-03",
@@ -145,14 +126,14 @@
       "failed": 44,
       "continuous": 9,
       "actual_limit_up": 54,
-      "cyb_limit_up": 3,
-      "kcb_limit_up": 1,
+      "cyb_limit_up": 1,
+      "kcb_limit_up": 0,
       "first_board": 45,
-      "two_board": 8,
+      "two_board": 7,
       "three_board": 0,
       "four_board": 0,
       "five_board": 0,
-      "six_plus": 1,
+      "six_plus": 2,
       "cycle": "回暖"
     },
     {
@@ -238,13 +219,13 @@
       "limit_up": 32,
       "limit_down": 60,
       "failed": 16,
-      "continuous": 11,
+      "continuous": 13,
       "actual_limit_up": 32,
-      "cyb_limit_up": 2,
+      "cyb_limit_up": 1,
       "kcb_limit_up": 0,
-      "first_board": 21,
-      "two_board": 8,
-      "three_board": 2,
+      "first_board": 19,
+      "two_board": 9,
+      "three_board": 3,
       "four_board": 1,
       "five_board": 0,
       "six_plus": 0,
@@ -306,6 +287,25 @@
       "five_board": 0,
       "six_plus": 0,
       "cycle": "退潮"
+    },
+    {
+      "date": "11-20",
+      "up": 297,
+      "down": 4897,
+      "limit_up": 28,
+      "limit_down": 58,
+      "failed": 7,
+      "continuous": 3,
+      "actual_limit_up": 28,
+      "cyb_limit_up": 3,
+      "kcb_limit_up": 0,
+      "first_board": 25,
+      "two_board": 1,
+      "three_board": 0,
+      "four_board": 2,
+      "five_board": 0,
+      "six_plus": 0,
+      "cycle": "衰退"
     }
   ]
 }
