@@ -535,6 +535,15 @@ text-decoration:none;border-bottom:1px solid var(--accent)}
 .sentiment-table .s-cycle{color:var(--accent);font-weight:600}
 .sentiment-table .s-num{font-variant-numeric:tabular-nums}
 .sentiment-empty{color:var(--text-dim);font-size:12px;text-align:center;padding:20px}
+/* 共振优选：白底容器专用深色文字（不复用深色主题变量，避免浅灰字落白底看不清） */
+.resonance-table th{background:#1F2937;color:#F9FAFB;font-size:12px}
+.resonance-table td{color:#1F2937;border-color:#D1D5DB}
+.resonance-table tr:hover td{background:#F3F4F6}
+.resonance-table .s-up{color:#C81E1E}
+.resonance-table .s-down{color:#0B7A4B}
+.resonance-lead{font-size:12px;color:#374151;margin-bottom:10px;line-height:1.7}
+.resonance-note{font-size:11px;color:#475569;margin-top:8px;line-height:1.6}
+.resonance-head-meta{color:#D1D5DB !important}
 .market-toggle{
   display:flex;gap:6px;
 }
@@ -1524,10 +1533,10 @@ function buildResonanceShell(){
   h += '<div class="sector-panel">';
   h +=   '<div class="sector-head">';
   h +=     '<h3><span class="tag">共振优选</span> 分层过滤整合选股</h3>';
-  h +=     '<span class="meta">热点股池定方向 → 主力净流入验真伪 → 多因子排雷｜<span id="resonanceUpdated">更新于 --</span></span>';
+  h +=     '<span class="meta resonance-head-meta">热点股池定方向 → 主力净流入验真伪 → 多因子排雷｜<span id="resonanceUpdated">更新于 --</span></span>';
   h +=   '</div>';
   h +=   '<div class="sector-body" style="padding:14px">';
-  h +=     '<div style="font-size:12px;color:#9CA3AF;margin-bottom:10px;line-height:1.7">'
+  h +=     '<div class="resonance-lead">'
   h +=       '整合逻辑：题材分/因子分经全市场大样本验证无稳定预测力，故不打分融合；改为按各方法被数据支持的功能分层——'
   h +=       '① <b>热点股池(RDGP)</b> 定方向（只在强势板块成分内选）；'
   h +=       '② <b>主力净流入 f62&gt;0</b> 作否决闸门（净流出剔除）；'
@@ -1535,7 +1544,7 @@ function buildResonanceShell(){
   h +=     '</div>';
   h +=     '<div id="resonanceTableBox"><div class="sentiment-empty">正在加载共振优选数据...</div></div>';
   h +=   '</div>';
-  h +=   '<div class="doc-links">数据来源：东方财富实时资金+三大报表 + 通达信本地日线｜由 resonance_picker.py 每日盘后生成</div>';
+  h +=   '<div class="doc-links" style="color:#475569">数据来源：东方财富实时资金+三大报表 + 通达信本地日线｜由 resonance_picker.py 每日盘后生成</div>';
   h += '</div>';
   h += '</div>';
   h += '<div class="docs-section" id="docsSection"></div>';
@@ -1878,14 +1887,14 @@ function renderResonanceTable(){
       pe:'PE', pb:'PB', pct:'当日涨幅', turnover:'换手率',
       main_net:'主力净流入(亿)', report_date:'报告期'
     };
-    var html = '<div class="sentiment-scroll"><table class="sentiment-table"><thead><tr>';
+    var html = '<div class="sentiment-scroll"><table class="sentiment-table resonance-table"><thead><tr>';
     html += '<th>序号</th>';
     headers && Object.keys(headers).forEach(function(k){ html += '<th>' + headers[k] + '</th>'; });
     html += '</tr></thead><tbody>';
     data.rows.forEach(function(row, i){
       html += '<tr>';
       html += '<td class="s-num">' + (i+1) + '</td>';
-      html += '<td style="color:#fff;font-weight:600">' + esc(row.name || '-') + '</td>';
+      html += '<td style="color:#111827;font-weight:600">' + esc(row.name || '-') + '</td>';
       html += '<td class="s-num">' + esc(row.code || '-') + '</td>';
       html += '<td class="s-num">' + esc(row.market || '-') + '</td>';
       html += '<td>' + esc(row.sector || '-') + '</td>';
@@ -1909,7 +1918,7 @@ function renderResonanceTable(){
       html += '</tr>';
     });
     html += '</tbody></table></div>';
-    html += '<div style="font-size:11px;color:#6B7280;margin-top:8px">注：自由现金流=经营现金流−资本开支；利润/营收同比为最新报告期同比；PE/PB/涨幅/换手为实时快照；主力净流入为当日值。财务数据仅作研究参考，不构成投资建议。</div>';
+    html += '<div class="resonance-note">注：自由现金流=经营现金流−资本开支；利润/营收同比为最新报告期同比；PE/PB/涨幅/换手为实时快照；主力净流入为当日值。财务数据仅作研究参考，不构成投资建议。</div>';
     box.innerHTML = html;
   });
 }
