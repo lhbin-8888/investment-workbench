@@ -801,6 +801,9 @@ function selectItem(el) {
   } else if (dirKey === '05-行业与个股分析' && name === '估值模型') {
     // 估值模型：嵌入纯前端个股估值工具（浏览器直连东财+腾讯，无后端依赖）
     html += buildValuationSectionShell();
+  } else if (name === '个股深度') {
+    // 个股深度：顶部嵌入「共振优选」分层过滤选股表（数据由 resonance_picker.py 生成）
+    html += buildResonanceShell();
   } else if (dirKey === '06-投资策略分析' && name === '策略回测') {
     // 策略回测：嵌入分区式策略管理工具（默认 9 分区，可手动增加；纯前端，数据存本机浏览器）
     html += buildBacktestSectionShell();
@@ -835,6 +838,10 @@ function selectItem(el) {
   // 板块轮动：直接嵌入报告页面
   if (dirKey === '03-A股盘面信息' && name === '板块轮动') {
     renderSectorRotation();
+  }
+  // 个股深度：渲染共振优选选股表
+  if (name === '个股深度') {
+    renderResonanceTable();
   }
 
   // 普通板块：渲染文档卡片列表（manifest + localStorage 合并）
@@ -1510,6 +1517,31 @@ function buildValuationSectionShell(){
   return h;
 }
 
+// 共振优选：分层过滤整合选股表（热点定方向 + 主力资金验真 + 多因子排雷）
+function buildResonanceShell(){
+  var h = '';
+  h += '<div class="sector-wrap">';
+  h += '<div class="sector-panel">';
+  h +=   '<div class="sector-head">';
+  h +=     '<h3><span class="tag">共振优选</span> 分层过滤整合选股</h3>';
+  h +=     '<span class="meta">热点股池定方向 → 主力净流入验真伪 → 多因子排雷｜<span id="resonanceUpdated">更新于 --</span></span>';
+  h +=   '</div>';
+  h +=   '<div class="sector-body" style="padding:14px">';
+  h +=     '<div style="font-size:12px;color:#9CA3AF;margin-bottom:10px;line-height:1.7">'
+  h +=       '整合逻辑：题材分/因子分经全市场大样本验证无稳定预测力，故不打分融合；改为按各方法被数据支持的功能分层——'
+  h +=       '① <b>热点股池(RDGP)</b> 定方向（只在强势板块成分内选）；'
+  h +=       '② <b>主力净流入 f62&gt;0</b> 作否决闸门（净流出剔除）；'
+  h +=       '③ <b>多因子排雷</b>：ST/北交所/亏损/超买(&gt;9.5%)/破MA10/连跌3日/10日回撤&gt;12%/13周涨幅&gt;30%。'
+  h +=     '</div>';
+  h +=     '<div id="resonanceTableBox"><div class="sentiment-empty">正在加载共振优选数据...</div></div>';
+  h +=   '</div>';
+  h +=   '<div class="doc-links">数据来源：东方财富实时资金+三大报表 + 通达信本地日线｜由 resonance_picker.py 每日盘后生成</div>';
+  h += '</div>';
+  h += '</div>';
+  h += '<div class="docs-section" id="docsSection"></div>';
+  return h;
+}
+
 function buildBacktestSectionShell(){
   var h = '';
   h += '<div class="sector-wrap">';
@@ -1812,6 +1844,72 @@ function renderSentimentTable(){
       html += '</tr>';
     });
     html += '</tbody></table></div>';
+    box.innerHTML = html;
+  });
+}
+
+// 共振优选：加载 data/resonance-picks.json
+function loadResonanceData(cb){
+  try {
+    fetch('data/resonance-picks.json', { cache: 'no-store' })
+      .then(function(res){ if (!res.ok) throw new Error('http ' + res.status); return res.json(); })
+      .then(function(j){ (j && j.rows && j.rows.length) ? cb(j) : cb(null); })
+      .catch(function(){ cb(null); });
+  } catch (e) { cb(null); }
+}
+
+function fmtYi(v){ return (v===null||v===undefined) ? '-' : (v/1e8).toFixed(2); }
+function fmtPct(v){ return (v===null||v===undefined) ? '-' : (v.toFixed(2)+'%'); }
+function fmtNum(v){ return (v===null||v===undefined) ? '-' : String(v); }
+
+function renderResonanceTable(){
+  var box = document.getElementById('resonanceTableBox');
+  var up = document.getElementById('resonanceUpdated');
+  if (!box) return;
+  loadResonanceData(function(data){
+    if (up) up.textContent = '更新于 ' + (data && data.updated ? data.updated : '--');
+    if (!data || !data.rows || !data.rows.length) {
+      box.innerHTML = '<div class="sentiment-empty">暂无共振优选数据，请运行 quant/unified_research/resonance_picker.py 生成 data/resonance-picks.json</div>';
+      return;
+    }
+    var headers = {
+      name:'名称', code:'代码', market:'市场', sector:'所属板块',
+      fcf:'自由现金流(亿)', np_yoy:'利润同比', rev_yoy:'营收同比',
+      pe:'PE', pb:'PB', pct:'当日涨幅', turnover:'换手率',
+      main_net:'主力净流入(亿)', report_date:'报告期'
+    };
+    var html = '<div class="sentiment-scroll"><table class="sentiment-table"><thead><tr>';
+    html += '<th>序号</th>';
+    headers && Object.keys(headers).forEach(function(k){ html += '<th>' + headers[k] + '</th>'; });
+    html += '</tr></thead><tbody>';
+    data.rows.forEach(function(row, i){
+      html += '<tr>';
+      html += '<td class="s-num">' + (i+1) + '</td>';
+      html += '<td style="color:#fff;font-weight:600">' + esc(row.name || '-') + '</td>';
+      html += '<td class="s-num">' + esc(row.code || '-') + '</td>';
+      html += '<td class="s-num">' + esc(row.market || '-') + '</td>';
+      html += '<td>' + esc(row.sector || '-') + '</td>';
+      // 自由现金流：正绿负红（金额，非涨跌色，按财务健康常识：正为好=绿）
+      var fcfCls = (row.fcf !== null && row.fcf !== undefined) ? (row.fcf >= 0 ? 's-down' : 's-up') : '';
+      html += '<td class="s-num ' + fcfCls + '">' + fmtYi(row.fcf) + '</td>';
+      // 利润同比/营收同比：红涨绿跌
+      var npCls = (row.np_yoy !== null && row.np_yoy !== undefined) ? (row.np_yoy >= 0 ? 's-up' : 's-down') : '';
+      html += '<td class="s-num ' + npCls + '">' + fmtPct(row.np_yoy) + '</td>';
+      var revCls = (row.rev_yoy !== null && row.rev_yoy !== undefined) ? (row.rev_yoy >= 0 ? 's-up' : 's-down') : '';
+      html += '<td class="s-num ' + revCls + '">' + fmtPct(row.rev_yoy) + '</td>';
+      html += '<td class="s-num">' + fmtNum(row.pe) + '</td>';
+      html += '<td class="s-num">' + fmtNum(row.pb) + '</td>';
+      // 当日涨幅：红涨绿跌（中国习惯）
+      var pctCls = (row.pct !== null && row.pct !== undefined) ? (row.pct >= 0 ? 's-up' : 's-down') : '';
+      html += '<td class="s-num ' + pctCls + '">' + fmtPct(row.pct) + '</td>';
+      html += '<td class="s-num">' + fmtPct(row.turnover) + '</td>';
+      var mnCls = (row.main_net !== null && row.main_net !== undefined) ? (row.main_net >= 0 ? 's-up' : 's-down') : '';
+      html += '<td class="s-num ' + mnCls + '">' + fmtYi(row.main_net) + '</td>';
+      html += '<td class="s-num">' + esc(row.report_date || '-') + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    html += '<div style="font-size:11px;color:#6B7280;margin-top:8px">注：自由现金流=经营现金流−资本开支；利润/营收同比为最新报告期同比；PE/PB/涨幅/换手为实时快照；主力净流入为当日值。财务数据仅作研究参考，不构成投资建议。</div>';
     box.innerHTML = html;
   });
 }
