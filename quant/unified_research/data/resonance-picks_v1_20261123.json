@@ -1,0 +1,53 @@
+{
+  "updated": "2026-11-23 23:41",
+  "strategy": "共振优选(热点定方向+主力资金验真+多因子排雷+业绩质量过滤)",
+  "fields": [
+    "name",
+    "code",
+    "market",
+    "sector",
+    "fcf",
+    "np_yoy",
+    "rev_yoy",
+    "pe",
+    "pb",
+    "pct",
+    "turnover",
+    "main_net",
+    "report_date"
+  ],
+  "rows": [
+    {
+      "code": "300852",
+      "name": "四会富仕",
+      "sector": "元件",
+      "fcf": -261807074.48999998,
+      "np_yoy": 101.67,
+      "rev_yoy": 49.684447752,
+      "pe": 23.92,
+      "pb": 3.49,
+      "pct": 3.19,
+      "turnover": 12.42,
+      "main_net": 63946699.0,
+      "market": "深",
+      "report_date": "2026-09-30",
+      "note": ""
+    },
+    {
+      "code": "300628",
+      "name": "亿联网络",
+      "sector": "通信设备",
+      "fcf": 1437998699.8700001,
+      "np_yoy": 16.25,
+      "rev_yoy": 17.5914614297,
+      "pe": 16.57,
+      "pb": 5.39,
+      "pct": -2.91,
+      "turnover": 1.42,
+      "main_net": 9528392.0,
+      "market": "深",
+      "report_date": "2026-09-30",
+      "note": ""
+    }
+  ]
+}

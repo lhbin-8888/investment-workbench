@@ -544,6 +544,8 @@ text-decoration:none;border-bottom:1px solid var(--accent)}
 .resonance-lead{font-size:12px;color:#374151;margin-bottom:10px;line-height:1.7}
 .resonance-note{font-size:11px;color:#475569;margin-top:8px;line-height:1.6}
 .resonance-head-meta{color:#D1D5DB !important}
+.resonance-risk{display:inline-block;background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5;border-radius:4px;padding:1px 6px;margin:1px 3px 1px 0;font-size:11px;font-weight:600}
+.resonance-risk-none{color:#9CA3AF;font-size:11px}
 .market-toggle{
   display:flex;gap:6px;
 }
@@ -1532,20 +1534,20 @@ function buildResonanceShell(){
   h += '<div class="sector-wrap">';
   h += '<div class="sector-panel">';
   h +=   '<div class="sector-head">';
-  h +=     '<h3><span class="tag">共振优选</span> 分层过滤整合选股</h3>';
-  h +=     '<span class="meta resonance-head-meta">热点股池定方向 → 主力净流入验真伪 → 多因子排雷｜<span id="resonanceUpdated">更新于 --</span></span>';
+  h +=     '<h3><span class="tag">共振优选</span> 真主线龙头选股（v2）</h3>';
+  h +=     '<span class="meta resonance-head-meta">热点股池定方向 → 主力资金验真伪 → 技术闸放宽抓龙头 → 业绩风险标注｜<span id="resonanceUpdated">更新于 --</span></span>';
   h +=   '</div>';
   h +=   '<div class="sector-body" style="padding:14px">';
   h +=     '<div class="resonance-lead">'
-  h +=       '整合逻辑：题材分/因子分经全市场大样本验证无稳定预测力，故不打分融合；改为按各方法被数据支持的功能分层——'
-  h +=       '① <b>热点股池(RDGP)</b> 定方向（只在强势板块成分内选）；'
-  h +=       '② <b>主力净流入 f62&gt;0</b> 作否决闸门（净流出剔除）；'
-  h +=       '③ <b>多因子排雷</b>：ST/北交所/亏损/超买(&gt;9.5%)/破MA10/连跌3日/10日回撤&gt;12%/13周涨幅&gt;30%；'
-  h +=       '④ <b>业绩质量过滤</b>：剔除利润同比&lt;-50% 或 营收同比&lt;-30% 或 PE&gt;200 的微利暴雷票。'
+  h +=       '<b>v2 策略（2026-11-24 升级·抓主线龙头）</b>：题材分/因子分经全市场大样本验证无稳定预测力，故不打分融合，按各方法被数据支持的功能分层——'
+  h +=       '① <b>热点股池(RDGP)</b> 定方向：只取日报 v2 判定的<b>真主线板块</b>成分；'
+  h +=       '② <b>主力净流入 f62&gt;0</b> 否决闸门（净流出剔除，不放宽）；'
+  h +=       '③ <b>技术闸放宽</b>：真主线成分豁免超买(&gt;9.5%)/13周涨幅&gt;30%/10日回撤&gt;12%/破MA10 四道"恐高"闸——主线龙头本就是高涨幅，不再错杀；仅保留 ST/北交所/连跌3日硬闸；'
+  h +=       '④ <b>业绩闸降级为风险标注</b>：净利润&lt;0 或 PE&gt;500 硬剔除；利润同比&lt;-50%/营收同比&lt;-30%/PE 200~500 改为<b>标注风险仍入选</b>（红色标签），既抓到强势龙头又如实揭示风险。'
   h +=     '</div>';
   h +=     '<div id="resonanceTableBox"><div class="sentiment-empty">正在加载共振优选数据...</div></div>';
   h +=   '</div>';
-  h +=   '<div class="doc-links" style="color:#475569">数据来源：东方财富实时资金+三大报表 + 通达信本地日线｜由 resonance_picker.py 每日盘后生成</div>';
+  h +=   '<div class="doc-links" style="color:#475569">数据来源：东方财富实时资金+三大报表 + 通达信本地日线｜由 resonance_picker_v2.py 每日盘后生成｜<b style="color:#B91C1C">红色标签=被放宽/降级的每项风险，请自行甄别</b></div>';
   h += '</div>';
   h += '</div>';
   h += '<div class="docs-section" id="docsSection"></div>';
@@ -1886,7 +1888,7 @@ function renderResonanceTable(){
       name:'名称', code:'代码', market:'市场', sector:'所属板块',
       fcf:'自由现金流(亿)', np_yoy:'利润同比', rev_yoy:'营收同比',
       pe:'PE', pb:'PB', pct:'当日涨幅', turnover:'换手率',
-      main_net:'主力净流入(亿)', report_date:'报告期'
+      main_net:'主力净流入(亿)', report_date:'报告期', risk_tags:'风险标注'
     };
     var html = '<div class="sentiment-scroll"><table class="sentiment-table resonance-table"><thead><tr>';
     html += '<th>序号</th>';
@@ -1916,10 +1918,17 @@ function renderResonanceTable(){
       var mnCls = (row.main_net !== null && row.main_net !== undefined) ? (row.main_net >= 0 ? 's-up' : 's-down') : '';
       html += '<td class="s-num ' + mnCls + '">' + fmtYi(row.main_net) + '</td>';
       html += '<td class="s-num">' + esc(row.report_date || '-') + '</td>';
+      // 风险标注：被放宽/降级的每项风险打红标
+      var tags = row.risk_tags || [];
+      if (tags.length) {
+        html += '<td>' + tags.map(function(t){ return '<span class="resonance-risk">' + esc(t) + '</span>'; }).join('') + '</td>';
+      } else {
+        html += '<td><span class="resonance-risk-none">无</span></td>';
+      }
       html += '</tr>';
     });
     html += '</tbody></table></div>';
-    html += '<div class="resonance-note">注：自由现金流=经营现金流−资本开支；利润/营收同比为最新报告期同比；PE/PB/涨幅/换手为实时快照；主力净流入为当日值。财务数据仅作研究参考，不构成投资建议。</div>';
+    html += '<div class="resonance-note">注：自由现金流=经营现金流−资本开支；利润/营收同比为最新报告期同比；PE/PB/涨幅/换手为实时快照；主力净流入为当日值。<b style="color:#B91C1C">红色标签=该股触发但被 v2 放宽/降级的每项风险（超买/破位/回撤/13周涨幅/业绩暴雷等），追高需自行甄别。</b>财务数据仅作研究参考，不构成投资建议。</div>';
     box.innerHTML = html;
   });
 }
