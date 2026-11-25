@@ -1,0 +1,67 @@
+{
+  "version": "0.1.0",
+  "market": {
+    "primary_index": "000300",
+    "breadth_index": "000905",
+    "ma_short": 60,
+    "ma_long": 120,
+    "max_failed_ratio": 0.5
+  },
+  "sector": {
+    "swing_gates": ["pass"],
+    "rebound_requires_ma20": true,
+    "short_gates": ["pass", "weak", "rebound"],
+    "exclude_gates": ["ebb", "cold", "unknown"]
+  },
+  "liquidity": {
+    "min_avg_amount_20": 100000000,
+    "min_float_cap": 3000000000
+  },
+  "swing": {
+    "min_bars": 120,
+    "max_daily_pct": 12.0,
+    "min_score_a": 75.0,
+    "min_score_b": 65.0,
+    "weights": {
+      "leader": {
+        "sector": 20,
+        "trend": 30,
+        "volume": 15,
+        "fund": 15,
+        "fundamental": 10,
+        "macd": 10
+      },
+      "mid": {
+        "sector": 15,
+        "trend": 20,
+        "volume": 10,
+        "fund": 15,
+        "fundamental": 25,
+        "macd": 15
+      }
+    }
+  },
+  "short": {
+    "min_bars": 30,
+    "min_daily_pct": 0.2,
+    "max_daily_pct": 9.5,
+    "min_volume_ratio": 1.2,
+    "max_volume_ratio": 4.0,
+    "min_score_a": 78.0,
+    "min_score_b": 68.0,
+    "weights": {
+      "sector": 25,
+      "trend": 20,
+      "volume": 20,
+      "fund": 20,
+      "fundamental": 5,
+      "macd": 10
+    }
+  },
+  "risk": {
+    "swing_stop_pct": 0.07,
+    "short_stop_pct": 0.05,
+    "swing_time_stop_days": 10,
+    "short_time_stop_days": 5
+  }
+}

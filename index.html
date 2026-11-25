@@ -487,8 +487,67 @@ text-decoration:none;border-bottom:1px solid var(--accent)}
 .doc-links a:hover{opacity:.8}
 .sector-body iframe{width:100%;height:960px;border:0;display:block;background:#fff}
 
+/* ============================ 选股雷达页 ============================ */
+.selector-wrap{display:flex;flex-direction:column;gap:14px}
+.selector-command{
+  position:relative;overflow:hidden;display:grid;
+  grid-template-columns:minmax(260px,1.35fr) repeat(4,minmax(88px,.55fr)) auto;
+  align-items:center;gap:16px;padding:18px 20px 17px;
+  background:linear-gradient(135deg,#101827 0%,#111827 56%,#151427 100%);
+  border:1px solid var(--border);border-radius:14px;
+}
+.selector-command::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:2px;
+  background:linear-gradient(90deg,var(--accent),var(--accent-purple) 54%,#F5C542);
+}
+.selector-state{display:flex;flex-direction:column;gap:4px;min-width:0}
+.selector-state-top{display:flex;align-items:center;gap:9px;font-size:17px;font-weight:700;color:var(--text-primary)}
+.selector-state-top i{
+  width:9px;height:9px;border-radius:50%;background:var(--text-dim);
+  box-shadow:0 0 0 5px rgba(107,114,128,.10);flex-shrink:0;
+}
+.selector-state-top.on i{background:#10B981;box-shadow:0 0 0 5px rgba(16,185,129,.12),0 0 14px rgba(16,185,129,.7)}
+.selector-state-top.mid i{background:#F5C542;box-shadow:0 0 0 5px rgba(245,197,66,.12),0 0 14px rgba(245,197,66,.55)}
+.selector-state-top.off i{background:#FF4D4F;box-shadow:0 0 0 5px rgba(255,77,79,.12),0 0 14px rgba(255,77,79,.6)}
+.selector-state p{font-size:11.5px;color:var(--text-muted);line-height:1.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.selector-kpi{min-width:0;padding-left:14px;border-left:1px solid var(--border)}
+.selector-kpi b{display:block;font-size:20px;line-height:1.15;color:var(--text-primary);font-variant-numeric:tabular-nums;white-space:nowrap}
+.selector-kpi b#selectorDataDate{font-size:14px;letter-spacing:-.2px}
+.selector-kpi span{display:block;margin-top:4px;font-size:10.5px;color:var(--text-dim);white-space:nowrap}
+.selector-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.selector-actions button,
+.selector-actions a{
+  appearance:none;border:1px solid var(--border);border-radius:7px;
+  background:var(--bg-hover);color:var(--text-muted);font:600 11px/1 inherit;
+  padding:8px 10px;text-decoration:none;cursor:pointer;white-space:nowrap;
+}
+.selector-actions button:hover,
+.selector-actions a:hover{border-color:rgba(0,229,255,.5);color:var(--accent);background:rgba(0,229,255,.07)}
+.selector-frame{
+  background:#0c1118;border:1px solid var(--border);border-radius:14px;
+  overflow:hidden;min-height:960px;
+}
+.selector-frame iframe{display:block;width:100%;height:1020px;border:0;background:#0c1118}
+.selector-foot{
+  display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  padding:0 2px;font-size:10.5px;color:var(--text-dim);line-height:1.6;
+}
+.selector-foot b{color:var(--text-muted);font-weight:600}
+
 @media(max-width:768px){
   .sector-body iframe{height:720px}
+}
+@media(max-width:1180px){
+  .selector-command{grid-template-columns:minmax(230px,1.3fr) repeat(2,minmax(82px,.5fr)) auto}
+  .selector-kpi:nth-of-type(4),.selector-kpi:nth-of-type(5){display:none}
+}
+@media(max-width:768px){
+  .selector-command{grid-template-columns:1fr 1fr;gap:13px}
+  .selector-state{grid-column:1/-1}
+  .selector-actions{grid-column:1/-1;justify-content:flex-start}
+  .selector-kpi:nth-of-type(4),.selector-kpi:nth-of-type(5){display:block}
+  .selector-frame{min-height:720px}
+  .selector-frame iframe{height:900px}
 }
 
 /* ============================ 每日盘面页 ============================ */
@@ -644,7 +703,8 @@ var NAV = [
     {id:"03-A股盘面信息",name:"每日盘面",icon:"chart-line"},
     {id:"03-A股盘面信息",name:"板块轮动",icon:"shuffle"},
     {id:"01-投研信息收集",name:"每日晨报",icon:"file-text"},
-    {id:"01-投研信息收集",name:"行业板块龙头股分析",icon:"trophy"}
+    {id:"01-投研信息收集",name:"行业板块龙头股分析",icon:"trophy"},
+    {id:"quant/stock_selector",name:"选股雷达",icon:"crosshair"}
   ]},
   {label:"交易管理",items:[
     {id:"04-投资复盘",name:"日度复盘",icon:"sun"},
@@ -663,6 +723,7 @@ var NAV = [
 ];
 
 var README = {"03-A股盘面信息|||每日盘面": "存放A股每日大盘走势、主要指数表现、成交额、涨跌家数等盘面速览。", "03-A股盘面信息|||板块轮动": "存放A股板块轮动分析、行业涨跌幅排名、资金在板块间的流动趋势判断。", "03-A股盘面信息|||行业板块龙头股分析": "存放各行业板块龙头股筛选与分析报告，含龙头识别、竞争格局与资金关注度。", "04-投资复盘|||日度复盘": "存放每日投资操作的复盘总结，包括当日交易回顾、得失分析与次日计划。", "04-投资复盘|||月度复盘": "存放月度投资绩效分析、资产配置回顾与下一阶段策略调整。", "01-投研信息收集|||宏观研究": "存放宏观经济数据跟踪、GDP/CPI/PMI等核心指标分析、货币政策与财政政策研究。页面上半页为黄金/原油/美债/汇率近一周波动曲线，下半页为中国宏观政策信息。", "01-投研信息收集|||券商研报": "存放各大券商（中信、华泰、中金、国泰君安等）的研究报告、晨会纪要、策略报告。", "05-行业与个股分析|||行业研究": "存放行业深度研究报告、行业景气度跟踪、产业链分析及竞争格局研判。", "05-行业与个股分析|||个股深度": "存放个股深度研究报告，包括商业模式、护城河、成长性、管理层等全面分析。", "05-行业与个股分析|||财务分析": "本区已嵌入「个股财务分析」自动工具：输入名称或代码即生成盈利/健康/现金流/成长/同业/估值/综合评分报告并可导出 PDF（含封面/水印/页眉）；同时保留模块说明与模板文档。", "05-行业与个股分析|||估值模型": "本区已嵌入「个股估值模型」自动工具：输入名称或代码即按「个股估值」技能框架（判类型→选主尺 DCF/PE/PEG/PS/PB→两把尺子交叉验证）测算内在价值区间与安全边际，并可一键生成 PDF 进入下方文档列表；同时保留模块说明文档。", "06-投资策略分析|||策略回测": "本区已嵌入「策略回测工作台」：默认划分 9 个分区（可手动增加/删除/排序/折叠），每个分区展示一种策略——策略名称（手动填写）、策略程序文件（本机选择或按路径载入）、策略说明与使用文档、策略回测情况（回测区间/收益/回撤/夏普/胜率等 12 项指标）、策略风险与注意事项；内容自动存本机浏览器，可导出/导入 JSON，也可把单个策略导出为报告并归档到下方文档列表。", "06-投资策略分析|||组合管理": "存放投资组合配置方案、仓位记录、再平衡计划及组合绩效归因分析。", "01-投研信息收集|||每日晨报": "每日盘前晨报，覆盖隔夜美股、欧股、亚太、贵金属、原油、汇率美债及A股资金面，自动加载 data/ 目录下最新一份按日期命名的晨报 Markdown。"};
+README["quant/stock_selector|||选股雷达"] = "从主线与热点板块中筛选波段龙头、趋势中军和短线机会。先过市场总闸与板块资格，再评估价格、成交量、主力资金、MACD、基本面及交易条件；允许没有机会，所有淘汰原因可追踪。";
 
 var TM = {
   "日报模板":'# 投研日报\n\n---\n\n## 基本信息\n\n| 项目 | 内容 |\n|------|------|\n| **日期** | YYYY-MM-DD（星期X） |\n| **撰写人** | — |\n\n---\n\n## 一、大盘概况\n\n### 主要指数\n\n| 指数 | 收盘价 | 涨跌幅 | 成交额（亿） |\n|------|--------|--------|-------------|\n| 上证指数 | — | — | — |\n| 深证成指 | — | — | — |\n| 创业板指 | — | — | — |\n| 科创50 | — | — | — |\n| 沪深300 | — | — | — |\n\n### 市场情绪\n\n| 指标 | 数值 | 说明 |\n|------|------|------|\n| 涨跌家数比 | — / — | — |\n| 涨停 / 跌停 | — / — | — |\n| 两市成交额合计 | — 亿 | 较前日 ±—% |\n| 北向资金净流入 | — 亿 | — |\n\n---\n\n## 二、板块表现\n\n### 领涨板块\n\n| 板块名称 | 涨幅 | 驱动逻辑 | 代表性个股 |\n|----------|------|----------|------------|\n| — | — | — | — |\n\n### 领跌板块\n\n| 板块名称 | 跌幅 | 下跌原因 | 代表性个股 |\n|----------|------|----------|------------|\n| — | — | — | — |\n\n### 异动板块 / 个股点评\n\n- —\n\n---\n\n## 三、持仓跟踪\n\n| 标的 | 仓位占比 | 今日涨跌 | 最新动态 / 公告 | 操作建议 |\n|------|----------|----------|-----------------|----------|\n| — | — | — | — | — |\n\n---\n\n## 四、今日操作记录\n\n| 时间 | 标的 | 方向（买/卖） | 数量 | 均价 | 成交额 | 操作理由 |\n|------|------|-------------|------|------|--------|----------|\n| — | — | — | — | — | — | — |\n\n---\n\n## 五、次日关注\n\n### 重点关注标的\n\n| 标的 | 关注方向 | 关注理由 | 关键价位 |\n|------|----------|----------|----------|\n| — | — | — | — |\n\n### 宏观/消息面提醒\n\n- —\n\n### 待操作计划\n\n- —\n\n---\n\n## 六、心得备忘\n\n- 今日感悟：\n- 待研究事项：\n- 其他备忘：',
@@ -671,6 +732,7 @@ var TM = {
 };
 
 var ICONS = {"chart-line": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"22 12 18 12 15 21 9 3 6 12 2 12\"/></svg>", "trophy": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 7 7 7 9\"/><path d=\"M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 17 7 17 9\"/><path d=\"M4 22h16\"/><path d=\"M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22\"/><path d=\"M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22\"/><path d=\"M18 2H6v7a6 6 0 0 0 12 0V2Z\"/></svg>", "arrow-up-down": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m21 16-4 4-4-4\"/><path d=\"M17 20V4\"/><path d=\"m3 8 4-4 4 4\"/><path d=\"M7 4v16\"/></svg>", "shuffle": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m16 3 5 5-5 5\"/><path d=\"M21 8H9a4 4 0 0 0-4 4v1\"/><path d=\"m8 21-5-5 5-5\"/><path d=\"M3 16h12a4 4 0 0 0 4-4v-1\"/></svg>", "sun": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41\"/></svg>", "calendar-week": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"16\" y1=\"2\" x2=\"16\" y2=\"6\"/><line x1=\"8\" y1=\"2\" x2=\"8\" y2=\"6\"/><line x1=\"3\" y1=\"10\" x2=\"21\" y2=\"10\"/><line x1=\"8\" y1=\"14\" x2=\"8\" y2=\"14.01\"/><line x1=\"12\" y1=\"14\" x2=\"12\" y2=\"14.01\"/><line x1=\"16\" y1=\"14\" x2=\"16\" y2=\"14.01\"/><line x1=\"8\" y1=\"18\" x2=\"8\" y2=\"18.01\"/><line x1=\"12\" y1=\"18\" x2=\"12\" y2=\"18.01\"/><line x1=\"16\" y1=\"18\" x2=\"16\" y2=\"18.01\"/></svg>", "calendar-month": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"16\" y1=\"2\" x2=\"16\" y2=\"6\"/><line x1=\"8\" y1=\"2\" x2=\"8\" y2=\"6\"/><line x1=\"3\" y1=\"10\" x2=\"21\" y2=\"10\"/></svg>", "receipt": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z\"/><path d=\"M14 8H8\"/><path d=\"M16 12H8\"/><path d=\"M13 16H8\"/></svg>", "globe": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><line x1=\"2\" y1=\"12\" x2=\"22\" y2=\"12\"/><path d=\"M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z\"/></svg>", "file-text": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><polyline points=\"14 2 14 8 20 8\"/><line x1=\"16\" y1=\"13\" x2=\"8\" y2=\"13\"/><line x1=\"16\" y1=\"17\" x2=\"8\" y2=\"17\"/><polyline points=\"10 9 9 9 8 9\"/></svg>", "briefcase": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"2\" y=\"7\" width=\"20\" height=\"14\" rx=\"2\" ry=\"2\"/><path d=\"M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16\"/></svg>", "users": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\"/><path d=\"M16 3.13a4 4 0 0 1 0 7.75\"/></svg>", "earth": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><line x1=\"2\" y1=\"12\" x2=\"22\" y2=\"12\"/><path d=\"M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z\"/></svg>", "package": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"m16.5 9.4-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z\"/><polyline points=\"3.29 7 12 12 20.71 7\"/><line x1=\"12\" y1=\"22\" x2=\"12\" y2=\"12\"/></svg>", "currency": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8\"/><path d=\"M12 18V6\"/></svg>", "banknote": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"2\" y=\"6\" width=\"20\" height=\"12\" rx=\"2\"/><circle cx=\"12\" cy=\"12\" r=\"2\"/><path d=\"M6 12h.01M18 12h.01\"/></svg>", "building": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"4\" y=\"2\" width=\"16\" height=\"20\" rx=\"2\" ry=\"2\"/><path d=\"M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01\"/></svg>", "search": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><line x1=\"21\" y1=\"21\" x2=\"16.65\" y2=\"16.65\"/></svg>", "calculator": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"4\" y=\"2\" width=\"16\" height=\"20\" rx=\"2\"/><line x1=\"8\" y1=\"6\" x2=\"16\" y2=\"6\"/><line x1=\"16\" y1=\"14\" x2=\"16\" y2=\"18\"/><path d=\"M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01\"/></svg>", "chart-bar": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><line x1=\"18\" y1=\"20\" x2=\"18\" y2=\"10\"/><line x1=\"12\" y1=\"20\" x2=\"12\" y2=\"4\"/><line x1=\"6\" y1=\"20\" x2=\"6\" y2=\"14\"/></svg>", "play-circle": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><polygon points=\"10 8 16 12 10 16 10 8\"/></svg>", "layers": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><polygon points=\"12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2\"/><line x1=\"12\" y1=\"22\" x2=\"12\" y2=\"15.5\"/><polyline points=\"22 8.5 12 15.5 2 8.5\"/></svg>", "shield": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z\"/></svg>", "edit": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7\"/><path d=\"M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z\"/></svg>", "tools": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z\"/></svg>"};
+ICONS.crosshair = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>';
 
 // ============ INIT ============
 document.getElementById('headerDate').textContent =
@@ -812,6 +874,8 @@ function selectItem(el) {
   } else if (dirKey === '05-行业与个股分析' && name === '估值模型') {
     // 估值模型：嵌入纯前端个股估值工具（浏览器直连东财+腾讯，无后端依赖）
     html += buildValuationSectionShell();
+  } else if (dirKey === 'quant/stock_selector' && name === '选股雷达') {
+    html += buildSelectorRadarShell();
   } else if (name === '个股深度') {
     // 个股深度：顶部嵌入「共振优选」分层过滤选股表（数据由 resonance_picker.py 生成）
     html += buildResonanceShell();
@@ -854,9 +918,13 @@ function selectItem(el) {
   if (name === '个股深度') {
     renderResonanceTable();
   }
+  // 选股雷达：加载最新 JSON 概览，完整分析在下方内嵌页面展示
+  if (dirKey === 'quant/stock_selector' && name === '选股雷达') {
+    renderSelectorRadar();
+  }
 
   // 普通板块：渲染文档卡片列表（manifest + localStorage 合并）
-  if (!isTplItem && name !== '工具与模板' && name !== '每日晨报' && name !== '每日盘面' && !(dirKey === '03-A股盘面信息' && name === '板块轮动')) {
+  if (!isTplItem && name !== '工具与模板' && name !== '每日晨报' && name !== '每日盘面' && !(dirKey === '03-A股盘面信息' && name === '板块轮动') && !(dirKey === 'quant/stock_selector' && name === '选股雷达')) {
     currentSection = name;
     renderDocList(name, '');
   } else {
@@ -1554,6 +1622,72 @@ function buildResonanceShell(){
   return h;
 }
 
+// 选股雷达：市场总闸 + 波段/短线双通道
+function buildSelectorRadarShell(){
+  var h = '';
+  h += '<div class="selector-wrap">';
+  h +=   '<div class="selector-command">';
+  h +=     '<div class="selector-state">';
+  h +=       '<div class="selector-state-top" id="selectorRegimeWrap"><i></i><span id="selectorRegime">正在读取市场总闸</span></div>';
+  h +=       '<p id="selectorRegimeHint">读取最新板块资格与候选结果…</p>';
+  h +=     '</div>';
+  h +=     '<div class="selector-kpi"><b id="selectorDataDate">--</b><span>数据日期</span></div>';
+  h +=     '<div class="selector-kpi"><b id="selectorSectors">--</b><span>合格板块</span></div>';
+  h +=     '<div class="selector-kpi"><b id="selectorSwing">--</b><span>波段记录</span></div>';
+  h +=     '<div class="selector-kpi"><b id="selectorShort">--</b><span>短线记录</span></div>';
+  h +=     '<div class="selector-actions">';
+  h +=       '<button type="button" onclick="reloadSelectorFrame()">刷新</button>';
+  h +=       '<a href="quant/stock_selector/output/latest.html" target="_blank" rel="noopener">全屏打开</a>';
+  h +=       '<a href="quant/stock_selector/output/latest.json" target="_blank" rel="noopener">JSON</a>';
+  h +=     '</div>';
+  h +=   '</div>';
+  h +=   '<div class="selector-frame">';
+  h +=     '<iframe id="selectorFrame" src="quant/stock_selector/output/latest.html?embed=1" loading="lazy" title="主线与热点双通道选股雷达"></iframe>';
+  h +=   '</div>';
+  h +=   '<div class="selector-foot">';
+  h +=     '<span><b>执行顺序</b>：市场总闸 → 板块资格 → 龙头/中军 → 波段或短线 → 入场与失效边界</span>';
+  h +=     '<span>只有本地规则引擎生成最新数据后，线上页面才会更新。</span>';
+  h +=   '</div>';
+  h += '</div>';
+  return h;
+}
+
+function reloadSelectorFrame(){
+  var frame = document.getElementById('selectorFrame');
+  if (frame) frame.src = 'quant/stock_selector/output/latest.html?embed=1&v=' + Date.now();
+  renderSelectorRadar();
+}
+
+function renderSelectorRadar(){
+  var regimeEl = document.getElementById('selectorRegime');
+  var wrapEl = document.getElementById('selectorRegimeWrap');
+  var hintEl = document.getElementById('selectorRegimeHint');
+  var dateEl = document.getElementById('selectorDataDate');
+  var sectorsEl = document.getElementById('selectorSectors');
+  var swingEl = document.getElementById('selectorSwing');
+  var shortEl = document.getElementById('selectorShort');
+  if (!regimeEl || !wrapEl || !hintEl || !dateEl || !sectorsEl || !swingEl || !shortEl) return;
+  fetch('quant/stock_selector/output/latest.json?ts=' + Date.now(), {cache:'no-store'})
+    .then(function(res){ if(!res.ok) throw new Error('http '+res.status); return res.json(); })
+    .then(function(data){
+      var market = data.market || {};
+      var summary = data.summary || {};
+      var regime = market.regime || '未知';
+      regimeEl.textContent = regime;
+      wrapEl.className = 'selector-state-top ' + (regime === '进攻' ? 'on' : regime === '防守' ? 'off' : 'mid');
+      hintEl.textContent = (market.trade_allowed ? '允许新开仓' : '暂停新开仓') + ' · 仓位系数 ' + (market.position_multiplier == null ? '--' : market.position_multiplier) + (market.reasons && market.reasons.length ? ' · ' + market.reasons.slice(0,2).join(' · ') : '');
+      dateEl.textContent = data.data_date || '--';
+      sectorsEl.textContent = ((summary.swing_eligible_sectors || 0) + (summary.short_eligible_sectors || 0)) + ' / ' + (summary.sector_count || 0);
+      swingEl.textContent = (summary.swing_count || 0) + ' 条';
+      shortEl.textContent = (summary.short_count || 0) + ' 条';
+    })
+    .catch(function(){
+      regimeEl.textContent = '数据未生成';
+      wrapEl.className = 'selector-state-top';
+      hintEl.textContent = '请在本地运行选股雷达并发布最新结果';
+    });
+}
+
 function buildBacktestSectionShell(){
   var h = '';
   h += '<div class="sector-wrap">';
@@ -2089,7 +2223,12 @@ window.addEventListener('resize',function(){
 // ============ DEFAULT SELECT ============
 // 默认选中"每日晨报"板块（页面加载时自动 fetch 每日晨报目录最新 PDF）
 setupSearch();
-var defaultItem = document.querySelector('.nav-item[data-name="每日晨报"]');
+var requestedModule = '';
+try { requestedModule = new URLSearchParams(location.search).get('module') || ''; } catch(e) {}
+var requestedItem = requestedModule
+  ? document.querySelector('.nav-item[data-name="' + CSS.escape(requestedModule) + '"]')
+  : null;
+var defaultItem = requestedItem || document.querySelector('.nav-item[data-name="每日晨报"]');
 if (defaultItem) {
   selectItem(defaultItem);
 } else {
