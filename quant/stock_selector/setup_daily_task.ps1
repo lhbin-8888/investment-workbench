@@ -14,8 +14,7 @@ $action = New-ScheduledTaskAction `
   -WorkingDirectory $root
 
 $trigger = New-ScheduledTaskTrigger `
-  -Weekly `
-  -DaysOfWeek Monday, Tuesday, Wednesday, Thursday, Friday `
+  -Daily `
   -At "16:40"
 
 $settings = New-ScheduledTaskSettingsSet `
@@ -30,9 +29,9 @@ Register-ScheduledTask `
   -Action $action `
   -Trigger $trigger `
   -Settings $settings `
-  -Description "Update the stock selector every weekday at 16:40 and publish only when content changes." `
+  -Description "Update the stock selector every day at 16:40 and publish only when content changes." `
   -Force | Out-Null
 
 Write-Host "Scheduled task registered: $taskName"
-Write-Host "Schedule: Monday-Friday 16:40"
+Write-Host "Schedule: Daily 16:40"
 Write-Host "Runner: $runner"
