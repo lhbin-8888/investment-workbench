@@ -615,7 +615,7 @@ text-decoration:none;border-bottom:1px solid var(--accent)}
 }
 .market-toggle button:hover{border-color:var(--accent);color:var(--accent)}
 .market-toggle button.active{background:rgba(0,229,255,.12);border-color:rgba(0,229,255,.35);color:var(--accent)}
-/* ====== 市场情况（情绪 / 板块 / 指数 / 仓位） ====== */
+/* ====== 市场情绪（情绪 / 板块 / 指数 / 仓位） ====== */
 .ms-wrap{display:flex;flex-direction:column;gap:14px}
 .ms-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .ms-grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
@@ -734,7 +734,7 @@ text-decoration:none;border-bottom:1px solid var(--accent)}
 var NAV = [
   {label:"投研分析",items:[
     {id:"03-A股盘面信息",name:"每日盘面",icon:"chart-line"},
-    {id:"03-A股盘面信息",name:"市场情况",icon:"activity"},
+    {id:"03-A股盘面信息",name:"市场情绪",icon:"activity"},
     {id:"03-A股盘面信息",name:"板块轮动",icon:"shuffle"},
     {id:"01-投研信息收集",name:"每日晨报",icon:"file-text"},
     {id:"01-投研信息收集",name:"行业板块龙头股分析",icon:"trophy"},
@@ -758,7 +758,7 @@ var NAV = [
 
 var README = {"03-A股盘面信息|||每日盘面": "存放A股每日大盘走势、主要指数表现、成交额、涨跌家数等盘面速览。", "03-A股盘面信息|||板块轮动": "存放A股板块轮动分析、行业涨跌幅排名、资金在板块间的流动趋势判断。", "03-A股盘面信息|||行业板块龙头股分析": "存放各行业板块龙头股筛选与分析报告，含龙头识别、竞争格局与资金关注度。", "04-投资复盘|||日度复盘": "存放每日投资操作的复盘总结，包括当日交易回顾、得失分析与次日计划。", "04-投资复盘|||月度复盘": "存放月度投资绩效分析、资产配置回顾与下一阶段策略调整。", "01-投研信息收集|||宏观研究": "存放宏观经济数据跟踪、GDP/CPI/PMI等核心指标分析、货币政策与财政政策研究。页面上半页为黄金/原油/美债/汇率近一周波动曲线，下半页为中国宏观政策信息。", "01-投研信息收集|||券商研报": "存放各大券商（中信、华泰、中金、国泰君安等）的研究报告、晨会纪要、策略报告。", "05-行业与个股分析|||行业研究": "存放行业深度研究报告、行业景气度跟踪、产业链分析及竞争格局研判。", "05-行业与个股分析|||个股深度": "存放个股深度研究报告，包括商业模式、护城河、成长性、管理层等全面分析。", "05-行业与个股分析|||财务分析": "本区已嵌入「个股财务分析」自动工具：输入名称或代码即生成盈利/健康/现金流/成长/同业/估值/综合评分报告并可导出 PDF（含封面/水印/页眉）；同时保留模块说明与模板文档。", "05-行业与个股分析|||估值模型": "本区已嵌入「个股估值模型」自动工具：输入名称或代码即按「个股估值」技能框架（判类型→选主尺 DCF/PE/PEG/PS/PB→两把尺子交叉验证）测算内在价值区间与安全边际，并可一键生成 PDF 进入下方文档列表；同时保留模块说明文档。", "06-投资策略分析|||策略回测": "本区已嵌入「策略回测工作台」：默认划分 9 个分区（可手动增加/删除/排序/折叠），每个分区展示一种策略——策略名称（手动填写）、策略程序文件（本机选择或按路径载入）、策略说明与使用文档、策略回测情况（回测区间/收益/回撤/夏普/胜率等 12 项指标）、策略风险与注意事项；内容自动存本机浏览器，可导出/导入 JSON，也可把单个策略导出为报告并归档到下方文档列表。", "06-投资策略分析|||组合管理": "存放投资组合配置方案、仓位记录、再平衡计划及组合绩效归因分析。", "01-投研信息收集|||每日晨报": "每日盘前晨报，覆盖隔夜美股、欧股、亚太、贵金属、原油、汇率美债及A股资金面，自动加载 data/ 目录下最新一份按日期命名的晨报 Markdown。"};
 README["quant/stock_selector|||选股雷达"] = "从主线与热点板块中筛选波段龙头、趋势中军和短线机会。先过市场总闸与板块资格，再评估价格、成交量、主力资金、MACD、基本面及交易条件；允许没有机会，所有淘汰原因可追踪。";
-README["03-A股盘面信息|||市场情况"] = "市场情绪与仓位参考实时看板：牛股王 Smartbeta 情绪评分与档位研判、板块情绪榜（领涨/领跌）、四大指数与两市成交额、五档仓位控制参考。情绪为逆向指标，冰点分批布局、过热严控回撤。";
+README["03-A股盘面信息|||市场情绪"] = "市场情绪与仓位参考实时看板：牛股王 Smartbeta 情绪评分与档位研判、板块情绪榜（领涨/领跌）、四大指数与两市成交额、五档仓位控制参考。情绪为逆向指标，冰点分批布局、过热严控回撤。";
 
 var TM = {
   "日报模板":'# 投研日报\n\n---\n\n## 基本信息\n\n| 项目 | 内容 |\n|------|------|\n| **日期** | YYYY-MM-DD（星期X） |\n| **撰写人** | — |\n\n---\n\n## 一、大盘概况\n\n### 主要指数\n\n| 指数 | 收盘价 | 涨跌幅 | 成交额（亿） |\n|------|--------|--------|-------------|\n| 上证指数 | — | — | — |\n| 深证成指 | — | — | — |\n| 创业板指 | — | — | — |\n| 科创50 | — | — | — |\n| 沪深300 | — | — | — |\n\n### 市场情绪\n\n| 指标 | 数值 | 说明 |\n|------|------|------|\n| 涨跌家数比 | — / — | — |\n| 涨停 / 跌停 | — / — | — |\n| 两市成交额合计 | — 亿 | 较前日 ±—% |\n| 北向资金净流入 | — 亿 | — |\n\n---\n\n## 二、板块表现\n\n### 领涨板块\n\n| 板块名称 | 涨幅 | 驱动逻辑 | 代表性个股 |\n|----------|------|----------|------------|\n| — | — | — | — |\n\n### 领跌板块\n\n| 板块名称 | 跌幅 | 下跌原因 | 代表性个股 |\n|----------|------|----------|------------|\n| — | — | — | — |\n\n### 异动板块 / 个股点评\n\n- —\n\n---\n\n## 三、持仓跟踪\n\n| 标的 | 仓位占比 | 今日涨跌 | 最新动态 / 公告 | 操作建议 |\n|------|----------|----------|-----------------|----------|\n| — | — | — | — | — |\n\n---\n\n## 四、今日操作记录\n\n| 时间 | 标的 | 方向（买/卖） | 数量 | 均价 | 成交额 | 操作理由 |\n|------|------|-------------|------|------|--------|----------|\n| — | — | — | — | — | — | — |\n\n---\n\n## 五、次日关注\n\n### 重点关注标的\n\n| 标的 | 关注方向 | 关注理由 | 关键价位 |\n|------|----------|----------|----------|\n| — | — | — | — |\n\n### 宏观/消息面提醒\n\n- —\n\n### 待操作计划\n\n- —\n\n---\n\n## 六、心得备忘\n\n- 今日感悟：\n- 待研究事项：\n- 其他备忘：',
@@ -895,8 +895,8 @@ function selectItem(el) {
     // 每日晨报：异步加载 01-投研信息收集/每日晨报/ 最新晨报 PDF（内嵌 PDF 查看器展示）
     html += '<div class="tpl-preview"><div class="tpl-header"><h3><span class="tag">每日晨报</span> <span id="morningReportTitle">正在加载...</span></h3></div>';
     html += '<div class="tpl-body" id="morningReportBody" style="padding:0"><div class="empty-text">正在加载晨报数据...</div></div></div>';
-  } else if (name === '市场情况') {
-    // 市场情况：牛股王情绪评分 + 板块情绪榜 + A股实时指数 + 仓位控制参考
+  } else if (name === '市场情绪') {
+    // 市场情绪：牛股王情绪评分 + 板块情绪榜 + A股实时指数 + 仓位控制参考
     html += buildMarketSentimentShell();
   } else if (name === '每日盘面') {
     // 每日盘面：上半页 = 四大指数15日走势；下半页 = A股成交额柱状图
@@ -945,8 +945,8 @@ function selectItem(el) {
   if (dirKey === '01-投研信息收集' && name === '宏观研究') {
     renderMacro();
   }
-  // 市场情况：加载牛股王情绪 + 腾讯实时指数
-  if (name === '市场情况') {
+  // 市场情绪：加载牛股王情绪 + 腾讯实时指数
+  if (name === '市场情绪') {
     renderMarketSentiment();
   }
   // 每日盘面：加载 data/index-daily.json
@@ -967,7 +967,7 @@ function selectItem(el) {
   }
 
   // 普通板块：渲染文档卡片列表（manifest + localStorage 合并）
-  if (!isTplItem && name !== '工具与模板' && name !== '每日晨报' && name !== '每日盘面' && name !== '市场情况' && !(dirKey === '03-A股盘面信息' && name === '板块轮动') && !(dirKey === 'quant/stock_selector' && name === '选股雷达')) {
+  if (!isTplItem && name !== '工具与模板' && name !== '每日晨报' && name !== '每日盘面' && name !== '市场情绪' && !(dirKey === '03-A股盘面信息' && name === '板块轮动') && !(dirKey === 'quant/stock_selector' && name === '选股雷达')) {
     currentSection = name;
     renderDocList(name, '');
   } else {
@@ -2204,7 +2204,7 @@ function macroChart(points, lines){
   return s;
 }
 
-// ============ 市场情况：牛股王情绪 + 板块榜 + 实时指数 + 仓位参考 ============
+// ============ 市场情绪：牛股王情绪 + 板块榜 + 实时指数 + 仓位参考 ============
 var MS_EMOTION_URL = 'https://stq.niuguwang.com/taoquant/DBXF/GetMarketEmotion?plateType=-1';
 var MS_PLATE_URL = 'https://stq.niuguwang.com/taoquant/DBXF/GetPlateEmoRank';
 var MS_QUOTE_URL = 'https://qt.gtimg.cn/q=sh000001,sz399001,sz399006,sh000300';
@@ -2444,6 +2444,8 @@ window.addEventListener('resize',function(){
 setupSearch();
 var requestedModule = '';
 try { requestedModule = new URLSearchParams(location.search).get('module') || ''; } catch(e) {}
+// 兼容旧链接：原「市场情况」已更名为「市场情绪」
+if (requestedModule === '市场情况') requestedModule = '市场情绪';
 var requestedItem = requestedModule
   ? document.querySelector('.nav-item[data-name="' + CSS.escape(requestedModule) + '"]')
   : null;
