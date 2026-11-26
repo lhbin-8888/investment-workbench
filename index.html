@@ -2210,11 +2210,11 @@ var MS_PLATE_URL = 'https://stq.niuguwang.com/taoquant/DBXF/GetPlateEmoRank';
 var MS_QUOTE_URL = 'https://qt.gtimg.cn/q=sh000001,sz399001,sz399006,sh000300';
 // 与技能 scripts/sentiment.py 的 POS_BANDS 保持一致，改口径需两处同步
 var MS_POS_BANDS = [
-  {lo:0,  hi:20,  band:'情绪冰点', tone:'分批布局区', pos:'60–90%', note:'分批低吸、网格建仓，保留加仓余粮'},
-  {lo:21, hi:40,  band:'情绪低迷', tone:'逢低吸纳区', pos:'50–70%', note:'只买逻辑硬、跌出来的标的，不加杠杆、不追热点'},
-  {lo:41, hi:60,  band:'情绪中性', tone:'均衡持有区', pos:'40–60%', note:'底仓+网格高抛低吸'},
-  {lo:61, hi:80,  band:'情绪偏热', tone:'兑现防守区', pos:'30–50%', note:'持仓为主、逢大阳兑现，停止新建重仓'},
-  {lo:81, hi:100, band:'情绪过热', tone:'严控回撤区', pos:'0–30%',  note:'落袋为安、停止新开仓，只留趋势最强品种'}
+  {lo:0,  hi:20,  band:'情绪冰点', tone:'分批布局区', pos:'30–60%', note:'首笔30–40%试探建仓；指数站上20日线或情绪连续3日回升，再加至60%上限'},
+  {lo:21, hi:40,  band:'情绪低迷', tone:'逢低吸纳区', pos:'40–60%', note:'只买逻辑硬、跌出来的标的；单次加仓不超过总仓位10%，不加杠杆'},
+  {lo:41, hi:60,  band:'情绪中性', tone:'均衡持有区', pos:'30–50%', note:'底仓+网格高抛低吸，总仓位不超过50%'},
+  {lo:61, hi:80,  band:'情绪偏热', tone:'兑现防守区', pos:'20–40%', note:'持仓为主、逢大阳兑现，停止新建重仓'},
+  {lo:81, hi:100, band:'情绪过热', tone:'严控回撤区', pos:'0–20%',  note:'落袋为安、停止新开仓，只留趋势最强品种'}
 ];
 var MS_TIMERS = [];
 
