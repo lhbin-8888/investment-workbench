@@ -2265,6 +2265,20 @@ function buildMarketSentimentShell(){
   h += '</div>';
   return h;
 }
+// 板块榜接口的 upcount/midcount/downcount 上游恒为 0，改用每条板块自带的成分股接口补真实家数；单条失败不影响其他
+function msFetchPlateCounts(items){
+  if (!items || !items.length) return Promise.resolve(items || []);
+  return Promise.all(items.slice(0,6).map(function(it){
+    if (!it.url) return Promise.resolve(it);
+    return msFetchText(it.url, false).then(function(t){
+      var d = JSON.parse(t);
+      ['upcount','midcount','downcount'].forEach(function(k){
+        if (d[k] !== undefined && d[k] !== null && d[k] !== '') it[k] = Number(d[k]) || 0;
+      });
+      return it;
+    }).catch(function(){ return it; });
+  }));
+}
 function msRenderPlate(boxId, items){
   var box = document.getElementById(boxId);
   if (!box) return;
@@ -2305,8 +2319,13 @@ function renderMarketSentimentEmotion(){
     var tEl = document.getElementById('msEmoTime'); if (tEl) tEl.textContent = '更新于 ' + (d.updatetime || '--');
     var pEl = document.getElementById('msPosNow'); if (pEl) pEl.textContent = advice.pos;
     var nEl = document.getElementById('msPosNote'); if (nEl) nEl.textContent = advice.tone + ' · ' + advice.note;
-    msRenderPlate('msRiseBox', plate.data.riseitems);
-    msRenderPlate('msFallBox', plate.data.downitems);
+    var riseItems = plate.data.riseitems || [], fallItems = plate.data.downitems || [];
+    msRenderPlate('msRiseBox', riseItems);
+    msRenderPlate('msFallBox', fallItems);
+    Promise.all([msFetchPlateCounts(riseItems), msFetchPlateCounts(fallItems)]).then(function(pairs){
+      msRenderPlate('msRiseBox', pairs[0]);
+      msRenderPlate('msFallBox', pairs[1]);
+    });
 
     var bb = document.getElementById('msBandBox');
     if (bb){
