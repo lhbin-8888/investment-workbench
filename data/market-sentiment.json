@@ -1,6 +1,6 @@
 {
-  "updated": "2026-11-26 15:32",
-  "period": "2026-11-06 ~ 2026-11-26",
+  "updated": "2026-11-27 15:31",
+  "period": "2026-11-09 ~ 2026-11-27",
   "days": 15,
   "fields": [
     "date",
@@ -23,25 +23,6 @@
   ],
   "rows": [
     {
-      "date": "11-06",
-      "up": 716,
-      "down": 4431,
-      "limit_up": 32,
-      "limit_down": 15,
-      "failed": 14,
-      "continuous": 11,
-      "actual_limit_up": 32,
-      "cyb_limit_up": 3,
-      "kcb_limit_up": 0,
-      "first_board": 21,
-      "two_board": 4,
-      "three_board": 3,
-      "four_board": 2,
-      "five_board": 2,
-      "six_plus": 0,
-      "cycle": "振荡"
-    },
-    {
       "date": "11-09",
       "up": 2043,
       "down": 3009,
@@ -58,7 +39,7 @@
       "four_board": 0,
       "five_board": 0,
       "six_plus": 1,
-      "cycle": "回暖"
+      "cycle": "振荡"
     },
     {
       "date": "11-10",
@@ -238,15 +219,15 @@
       "limit_up": 146,
       "limit_down": 3,
       "failed": 24,
-      "continuous": 21,
+      "continuous": 15,
       "actual_limit_up": 146,
-      "cyb_limit_up": 21,
-      "kcb_limit_up": 7,
-      "first_board": 125,
-      "two_board": 18,
-      "three_board": 1,
+      "cyb_limit_up": 20,
+      "kcb_limit_up": 8,
+      "first_board": 131,
+      "two_board": 10,
+      "three_board": 2,
       "four_board": 0,
-      "five_board": 2,
+      "five_board": 3,
       "six_plus": 0,
       "cycle": "振荡"
     },
@@ -257,12 +238,12 @@
       "limit_up": 55,
       "limit_down": 2,
       "failed": 68,
-      "continuous": 34,
+      "continuous": 32,
       "actual_limit_up": 55,
-      "cyb_limit_up": 8,
+      "cyb_limit_up": 7,
       "kcb_limit_up": 1,
-      "first_board": 21,
-      "two_board": 28,
+      "first_board": 23,
+      "two_board": 26,
       "three_board": 5,
       "four_board": 1,
       "five_board": 0,
@@ -306,6 +287,25 @@
       "five_board": 1,
       "six_plus": 0,
       "cycle": "分歧"
+    },
+    {
+      "date": "11-27",
+      "up": 5025,
+      "down": 181,
+      "limit_up": 417,
+      "limit_down": 0,
+      "failed": 42,
+      "continuous": 29,
+      "actual_limit_up": 417,
+      "cyb_limit_up": 41,
+      "kcb_limit_up": 58,
+      "first_board": 388,
+      "two_board": 22,
+      "three_board": 3,
+      "four_board": 3,
+      "five_board": 0,
+      "six_plus": 1,
+      "cycle": "反转"
     }
   ]
 }
